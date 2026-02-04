@@ -4,7 +4,8 @@
 # Comprehensive vulnerability assessment using multiple scanners
 ################################################################################
 
-set -e
+# DO NOT use set -e - we want to continue even if tools fail
+set -o pipefail  # Catch errors in pipelines
 TARGET="$1"
 OUTPUT_DIR="$2"
 
@@ -39,6 +40,34 @@ log_warn() {
     echo -e "${YELLOW}[!]${NC} $1"
 }
 
+# Concurrency controls
+THREADS="${RECONX_THREADS:-5}"
+SQLMAP_THREADS="${RECONX_SQLMAP_THREADS:-3}"
+TIMEOUT_DEFAULT="${RECONX_VULN_TIMEOUT:-1200}"
+
+export -f log_info
+export -f log_warn
+export -f log_error
+
+run_with_timeout() {
+    local timeout_duration="$1"
+    shift
+    timeout "$timeout_duration" bash -c "$*" 2>/dev/null
+}
+
+run_parallel_from_file() {
+    local input_file="$1"
+    local parallelism="$2"
+    local command="$3"
+
+    if [ ! -s "$input_file" ]; then
+        log_warn "No inputs found in $input_file"
+        return 0
+    fi
+
+    xargs -I{} -P "$parallelism" bash -c "$command" _ {} < "$input_file"
+}
+
 # Check prerequisites
 if [ ! -f "$PHASE1_DIR/alive_hosts.txt" ]; then
     log_error "Phase 1 output not found. Run Phase 1 first!"
@@ -70,12 +99,12 @@ log_info "=== NUCLEI SCANNING ==="
 NUCLEI_DIR="$PHASE_DIR/nuclei"
 mkdir -p "$NUCLEI_DIR"
 
-if command -v nuclei &> /dev/null; then
+if command -v nuclei &> /dev/null && [ "$SCAN_COUNT" -gt 0 ]; then
     log_info "Running Nuclei with all templates..."
 
     # Update Nuclei templates
     log_info "Updating Nuclei templates..."
-    nuclei -update-templates 2>/dev/null || log_warn "Failed to update Nuclei templates"
+    run_with_timeout "$TIMEOUT_DEFAULT" "nuclei -update-templates" || log_warn "Failed to update Nuclei templates"
 
     # Run Nuclei with different severity levels
     log_info "Nuclei: Critical & High severity scan..."
@@ -110,7 +139,7 @@ if command -v nuclei &> /dev/null; then
     NUCLEI_COUNT=$(cat "$NUCLEI_DIR/nuclei_all.json" | jq -s 'length' 2>/dev/null || echo "0")
     log_info "Nuclei findings: $NUCLEI_COUNT"
 else
-    log_warn "Nuclei not found"
+    log_warn "Nuclei not found or no scan URLs"
 fi
 
 ################################################################################
@@ -128,14 +157,14 @@ if command -v trivy &> /dev/null; then
     # Scan current directory for misconfigurations
     if [ -d ".git" ]; then
         log_info "Trivy: Scanning repository for misconfigurations..."
-        trivy fs --scanners config,secret --format json --output "$TRIVY_DIR/trivy_repo_config.json" . 2>/dev/null || log_warn "Trivy repo scan failed"
+        run_with_timeout "$TIMEOUT_DEFAULT" "trivy fs --scanners config,secret --format json --output \"$TRIVY_DIR/trivy_repo_config.json\" ." || log_warn "Trivy repo scan failed"
     fi
 
     # Scan for vulnerabilities in dependencies if package files exist
     for pkg_file in package.json requirements.txt Gemfile go.mod pom.xml; do
         if [ -f "$pkg_file" ]; then
             log_info "Trivy: Scanning $pkg_file..."
-            trivy fs --scanners vuln --format json --output "$TRIVY_DIR/trivy_${pkg_file//[^a-zA-Z0-9]/_}.json" . 2>/dev/null || true
+            run_with_timeout "$TIMEOUT_DEFAULT" "trivy fs --scanners vuln --format json --output \"$TRIVY_DIR/trivy_${pkg_file//[^a-zA-Z0-9]/_}.json\" ." || true
         fi
     done
 
@@ -144,7 +173,7 @@ if command -v trivy &> /dev/null; then
         docker images --format "{{.Repository}}:{{.Tag}}" 2>/dev/null | head -n 10 | while IFS= read -r image; do
             if [ ! -z "$image" ] && [ "$image" != "<none>:<none>" ]; then
                 log_info "Trivy: Scanning Docker image $image..."
-                trivy image --format json --output "$TRIVY_DIR/trivy_image_${image//[^a-zA-Z0-9]/_}.json" "$image" 2>/dev/null || true
+                run_with_timeout "$TIMEOUT_DEFAULT" "trivy image --format json --output \"$TRIVY_DIR/trivy_image_${image//[^a-zA-Z0-9]/_}.json\" \"$image\"" || true
             fi
         done
     fi
@@ -222,13 +251,16 @@ if command -v sqlmap &> /dev/null; then
     if [ -f "$XSS_DIR/param_urls.txt" ] && [ -s "$XSS_DIR/param_urls.txt" ]; then
         log_info "Testing $(wc -l < "$XSS_DIR/param_urls.txt" | tr -d ' ') URLs for SQL injection..."
 
-        head -n 30 "$XSS_DIR/param_urls.txt" | while IFS= read -r url; do
-            log_info "SQLMap: $url"
+        head -n 30 "$XSS_DIR/param_urls.txt" | awk 'NF' > "$SQLI_DIR/sqlmap_targets.txt"
 
+        export SQLI_DIR SQLMAP_THREADS
+        run_parallel_from_file "$SQLI_DIR/sqlmap_targets.txt" "$THREADS" '
+            url="$1"
+            log_info "SQLMap: $url"
             sqlmap -u "$url" --batch --random-agent --level=1 --risk=1 \
-                --output-dir="$SQLI_DIR" --flush-session --threads=3 \
+                --output-dir="$SQLI_DIR" --flush-session --threads="$SQLMAP_THREADS" \
                 >> "$SQLI_DIR/sqlmap_results.txt" 2>&1 || true
-        done
+        '
 
         SQLI_COUNT=$(grep -c "vulnerable" "$SQLI_DIR/sqlmap_results.txt" 2>/dev/null || echo "0")
         log_info "SQLMap vulnerabilities: $SQLI_COUNT"
@@ -251,10 +283,12 @@ mkdir -p "$CORS_DIR"
 if command -v corsy &> /dev/null || [ -f "/opt/Corsy/corsy.py" ]; then
     log_info "Running Corsy..."
 
-    if [ -f "/opt/Corsy/corsy.py" ]; then
-        python3 /opt/Corsy/corsy.py -i "$PHASE_DIR/scan_urls.txt" -o "$CORS_DIR/corsy_results.txt" 2>/dev/null || log_warn "Corsy failed"
+    if [ "$SCAN_COUNT" -eq 0 ]; then
+        log_warn "No scan URLs for Corsy"
+    elif [ -f "/opt/Corsy/corsy.py" ]; then
+        run_with_timeout "$TIMEOUT_DEFAULT" "python3 /opt/Corsy/corsy.py -i \"$PHASE_DIR/scan_urls.txt\" -o \"$CORS_DIR/corsy_results.txt\"" || log_warn "Corsy failed"
     else
-        corsy -i "$PHASE_DIR/scan_urls.txt" -o "$CORS_DIR/corsy_results.txt" 2>/dev/null || log_warn "Corsy failed"
+        run_with_timeout "$TIMEOUT_DEFAULT" "corsy -i \"$PHASE_DIR/scan_urls.txt\" -o \"$CORS_DIR/corsy_results.txt\"" || log_warn "Corsy failed"
     fi
 
     if [ -f "$CORS_DIR/corsy_results.txt" ]; then
@@ -278,10 +312,14 @@ mkdir -p "$MISC_DIR"
 if command -v nikto &> /dev/null; then
     log_info "Running Nikto..."
 
-    head -n 10 "$ALIVE_HOSTS" | while IFS= read -r host; do
+    head -n 10 "$ALIVE_HOSTS" | awk 'NF' > "$MISC_DIR/nikto_targets.txt"
+
+    export MISC_DIR
+    run_parallel_from_file "$MISC_DIR/nikto_targets.txt" "$THREADS" '
+        host="$1"
         log_info "Nikto: $host"
         nikto -h "https://$host" -Format json -output "$MISC_DIR/nikto_${host//[^a-zA-Z0-9]/_}.json" 2>/dev/null || true
-    done
+    '
 
     cat "$MISC_DIR"/nikto_*.json 2>/dev/null > "$MISC_DIR/nikto_all.json" || touch "$MISC_DIR/nikto_all.json"
 else
@@ -298,11 +336,13 @@ if command -v wpscan &> /dev/null; then
     if [ -s "$MISC_DIR/wordpress_sites.txt" ]; then
         log_info "Found WordPress sites, running WPScan..."
 
-        while IFS= read -r wp_url; do
+        export MISC_DIR
+        run_parallel_from_file "$MISC_DIR/wordpress_sites.txt" "$THREADS" '
+            wp_url="$1"
             log_info "WPScan: $wp_url"
             wpscan --url "$wp_url" --random-agent --format json \
                 --output "$MISC_DIR/wpscan_${wp_url//[^a-zA-Z0-9]/_}.json" 2>/dev/null || true
-        done < "$MISC_DIR/wordpress_sites.txt"
+        '
 
         cat "$MISC_DIR"/wpscan_*.json 2>/dev/null > "$MISC_DIR/wpscan_all.json" || touch "$MISC_DIR/wpscan_all.json"
     fi
@@ -314,10 +354,14 @@ fi
 if command -v wapiti &> /dev/null; then
     log_info "Running Wapiti..."
 
-    head -n 5 "$PHASE_DIR/scan_urls.txt" | while IFS= read -r url; do
+    head -n 5 "$PHASE_DIR/scan_urls.txt" | awk 'NF' > "$MISC_DIR/wapiti_targets.txt"
+
+    export MISC_DIR
+    run_parallel_from_file "$MISC_DIR/wapiti_targets.txt" "$THREADS" '
+        url="$1"
         log_info "Wapiti: $url"
         wapiti -u "$url" -f json -o "$MISC_DIR/wapiti_${url//[^a-zA-Z0-9]/_}.json" 2>/dev/null || true
-    done
+    '
 
     cat "$MISC_DIR"/wapiti_*.json 2>/dev/null > "$MISC_DIR/wapiti_all.json" || touch "$MISC_DIR/wapiti_all.json"
 else
@@ -328,10 +372,14 @@ fi
 if command -v cmsmap &> /dev/null; then
     log_info "Running CMSmap..."
 
-    head -n 10 "$PHASE_DIR/scan_urls.txt" | while IFS= read -r url; do
+    head -n 10 "$PHASE_DIR/scan_urls.txt" | awk 'NF' > "$MISC_DIR/cmsmap_targets.txt"
+
+    export MISC_DIR
+    run_parallel_from_file "$MISC_DIR/cmsmap_targets.txt" "$THREADS" '
+        url="$1"
         log_info "CMSmap: $url"
         cmsmap -t "$url" -o "$MISC_DIR/cmsmap_${url//[^a-zA-Z0-9]/_}.txt" 2>/dev/null || true
-    done
+    '
 
     cat "$MISC_DIR"/cmsmap_*.txt 2>/dev/null > "$MISC_DIR/cmsmap_all.txt" || touch "$MISC_DIR/cmsmap_all.txt"
 else
@@ -342,9 +390,13 @@ fi
 if command -v retire &> /dev/null; then
     log_info "Running Retire.js..."
 
-    head -n 50 "$PHASE3_DIR/urls/javascript_files.txt" 2>/dev/null | while IFS= read -r js_url; do
+    head -n 50 "$PHASE3_DIR/urls/javascript_files.txt" 2>/dev/null | awk 'NF' > "$MISC_DIR/retire_targets.txt"
+
+    export MISC_DIR
+    run_parallel_from_file "$MISC_DIR/retire_targets.txt" "$THREADS" '
+        js_url="$1"
         retire --jspath "$js_url" --outputformat json >> "$MISC_DIR/retirejs_results.json" 2>/dev/null || true
-    done
+    '
 else
     log_warn "Retire.js not found"
 fi
@@ -362,15 +414,18 @@ mkdir -p "$SSL_DIR"
 if command -v testssl.sh &> /dev/null || [ -f "/opt/testssl.sh/testssl.sh" ]; then
     log_info "Running testssl.sh..."
 
-    head -n 10 "$ALIVE_HOSTS" | while IFS= read -r host; do
-        log_info "testssl.sh: $host"
+    head -n 10 "$ALIVE_HOSTS" | awk 'NF' > "$SSL_DIR/testssl_targets.txt"
 
+    export SSL_DIR
+    run_parallel_from_file "$SSL_DIR/testssl_targets.txt" "$THREADS" '
+        host="$1"
+        log_info "testssl.sh: $host"
         if [ -f "/opt/testssl.sh/testssl.sh" ]; then
             /opt/testssl.sh/testssl.sh --jsonfile "$SSL_DIR/testssl_${host//[^a-zA-Z0-9]/_}.json" "$host" 2>/dev/null || true
         else
             testssl.sh --jsonfile "$SSL_DIR/testssl_${host//[^a-zA-Z0-9]/_}.json" "$host" 2>/dev/null || true
         fi
-    done
+    '
 
     cat "$SSL_DIR"/testssl_*.json 2>/dev/null > "$SSL_DIR/testssl_all.json" || touch "$SSL_DIR/testssl_all.json"
 else
@@ -381,10 +436,14 @@ fi
 if command -v sslyze &> /dev/null; then
     log_info "Running SSLyze..."
 
-    head -n 10 "$ALIVE_HOSTS" | while IFS= read -r host; do
+    head -n 10 "$ALIVE_HOSTS" | awk 'NF' > "$SSL_DIR/sslyze_targets.txt"
+
+    export SSL_DIR
+    run_parallel_from_file "$SSL_DIR/sslyze_targets.txt" "$THREADS" '
+        host="$1"
         log_info "SSLyze: $host"
         sslyze --json_out="$SSL_DIR/sslyze_${host//[^a-zA-Z0-9]/_}.json" "$host" 2>/dev/null || true
-    done
+    '
 
     cat "$SSL_DIR"/sslyze_*.json 2>/dev/null > "$SSL_DIR/sslyze_all.json" || touch "$SSL_DIR/sslyze_all.json"
 else

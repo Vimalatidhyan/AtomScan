@@ -127,9 +127,20 @@ else
     ((TOOLS_SKIPPED++))
 fi
 
-# Amass Intel mode for ASN/Org discovery
-run_tool "amass" "$PHASE_DIR/amass_intel.txt" 300 \
-    "amass intel -d '$TARGET' -whois -timeout 10 -o '$PHASE_DIR/amass_intel.txt'" || true
+# Amass Intel/Enum (version-aware)
+if command -v amass &> /dev/null; then
+    if amass intel -h >/dev/null 2>&1; then
+        run_tool "amass" "$PHASE_DIR/amass_intel.txt" 300 \
+            "amass intel -d '$TARGET' -whois -timeout 10 -o '$PHASE_DIR/amass_intel.txt'" || true
+    else
+        log_warn "Amass intel not supported; using passive enum instead"
+        run_tool "amass" "$PHASE_DIR/amass_intel.txt" 300 \
+            "amass enum -d '$TARGET' -passive -timeout 15 -o '$PHASE_DIR/amass_intel.txt'" || true
+    fi
+else
+    log_warn "Amass not found"
+    ((TOOLS_SKIPPED++))
+fi
 
 # Get subsidiaries (if tool exists)
 if [ -f "/opt/getSubsidiaries/getSubsidiaries.py" ]; then

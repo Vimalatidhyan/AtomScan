@@ -52,6 +52,13 @@ class ReconX:
         self.db = DatabaseManager(db_path)
         self.threads = threads
         self.modules_dir = Path(__file__).parent / "modules"
+        self.phase_timeout_default = int(os.getenv("RECONX_PHASE_TIMEOUT", "3600"))
+        self.phase_timeouts = {
+            1: int(os.getenv("RECONX_PHASE1_TIMEOUT", str(self.phase_timeout_default))),
+            2: int(os.getenv("RECONX_PHASE2_TIMEOUT", str(self.phase_timeout_default))),
+            3: int(os.getenv("RECONX_PHASE3_TIMEOUT", str(self.phase_timeout_default))),
+            4: int(os.getenv("RECONX_PHASE4_TIMEOUT", str(self.phase_timeout_default))),
+        }
 
         # Initialize output directory
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -98,7 +105,7 @@ Attack Surface Management Framework
         print(f"{Colors.BOLD}{Colors.BLUE}{phase}{Colors.END}")
         print(f"{Colors.BOLD}{Colors.BLUE}{'='*70}{Colors.END}\n")
 
-    def run_module(self, module_script: str, target: str, output_dir: Path) -> bool:
+    def run_module(self, module_script: str, target: str, output_dir: Path, timeout: int | None = None) -> bool:
         """Execute a bash module script"""
         script_path = self.modules_dir / module_script
 
@@ -108,12 +115,15 @@ Attack Surface Management Framework
 
         self.log_info(f"Executing {module_script} for {target}")
 
+        if timeout is None:
+            timeout = self.phase_timeout_default
+
         try:
             result = subprocess.run(
                 [str(script_path), target, str(output_dir)],
                 capture_output=True,
                 text=True,
-                timeout=3600  # 1 hour timeout per phase
+                timeout=timeout
             )
 
             # Print module output
@@ -331,7 +341,7 @@ Attack Surface Management Framework
                     self.log_warn("Phase 1 already completed, skipping...")
                 else:
                     self.log_phase(f"Phase 1: Discovery & Enumeration - {target}")
-                    if self.run_module("01_discovery.sh", target, target_dir):
+                    if self.run_module("01_discovery.sh", target, target_dir, timeout=self.phase_timeouts[1]):
                         self.parse_phase1_output(target, target_dir)
                         self.db.update_phase(target, 1, True)
                     else:
@@ -345,7 +355,7 @@ Attack Surface Management Framework
                     self.log_warn("Phase 2 already completed, skipping...")
                 else:
                     self.log_phase(f"Phase 2: Intelligence & Infrastructure - {target}")
-                    if self.run_module("02_intel.sh", target, target_dir):
+                    if self.run_module("02_intel.sh", target, target_dir, timeout=self.phase_timeouts[2]):
                         self.parse_phase2_output(target, target_dir)
                         self.db.update_phase(target, 2, True)
                     else:
@@ -359,7 +369,7 @@ Attack Surface Management Framework
                     self.log_warn("Phase 3 already completed, skipping...")
                 else:
                     self.log_phase(f"Phase 3: Deep Web & Content Discovery - {target}")
-                    if self.run_module("03_content.sh", target, target_dir):
+                    if self.run_module("03_content.sh", target, target_dir, timeout=self.phase_timeouts[3]):
                         self.parse_phase3_output(target, target_dir)
                         self.db.update_phase(target, 3, True)
                     else:
@@ -373,7 +383,7 @@ Attack Surface Management Framework
                     self.log_warn("Phase 4 already completed, skipping...")
                 else:
                     self.log_phase(f"Phase 4: Vulnerability Scanning - {target}")
-                    if self.run_module("04_vuln.sh", target, target_dir):
+                    if self.run_module("04_vuln.sh", target, target_dir, timeout=self.phase_timeouts[4]):
                         self.parse_phase4_output(target, target_dir)
                         self.db.update_phase(target, 4, True)
                     else:

@@ -84,6 +84,9 @@ sort -u "$URLS_DIR/targets.txt" -o "$URLS_DIR/targets.txt"
 
 # Launch archive crawlers in parallel
 pids=()
+SPIDEYX_AVAILABLE=0
+HAKRAWLER_AVAILABLE=0
+KATANA_AVAILABLE=0
 
 # 1. GAU (GetAllUrls)
 if command -v gau &> /dev/null; then
@@ -95,6 +98,7 @@ if command -v gau &> /dev/null; then
     pids+=($!)
 else
     log_warn "GAU not found"
+    touch "$URLS_DIR/gau.txt"
 fi
 
 # 2. Waybackurls
@@ -106,10 +110,12 @@ if command -v waybackurls &> /dev/null; then
     pids+=($!)
 else
     log_warn "waybackurls not found"
+    touch "$URLS_DIR/waybackurls.txt"
 fi
 
 # 3. SpideyX (Revolt suite)
 if command -v spideyx &> /dev/null; then
+    SPIDEYX_AVAILABLE=1
     log_info "Launching SpideyX crawler..."
     (
         SPIDEYX_CMD=""
@@ -137,6 +143,7 @@ if command -v spideyx &> /dev/null; then
     pids+=($!)
 else
     log_warn "SpideyX not found"
+    touch "$URLS_DIR/spideyx.txt"
 fi
 
 # 4. Gospider (fallback crawler)
@@ -155,10 +162,12 @@ if command -v gospider &> /dev/null; then
     pids+=($!)
 else
     log_warn "gospider not found"
+    touch "$URLS_DIR/gospider.txt"
 fi
 
 # 5. Hakrawler
 if command -v hakrawler &> /dev/null; then
+    HAKRAWLER_AVAILABLE=1
     log_info "Launching hakrawler..."
     (
         cat "$ALIVE_HOSTS" | sed 's|^|https://|' | hakrawler -depth 3 -plain \
@@ -167,10 +176,12 @@ if command -v hakrawler &> /dev/null; then
     pids+=($!)
 else
     log_warn "hakrawler not found"
+    touch "$URLS_DIR/hakrawler.txt"
 fi
 
 # 6. Katana (ProjectDiscovery)
 if command -v katana &> /dev/null; then
+    KATANA_AVAILABLE=1
     log_info "Launching Katana..."
     (
         cat "$ALIVE_HOSTS" | katana -d 5 -c 20 -silent -jc -kf all \
@@ -179,6 +190,7 @@ if command -v katana &> /dev/null; then
     pids+=($!)
 else
     log_warn "Katana not found"
+    touch "$URLS_DIR/katana.txt"
 fi
 
 # Wait for all URL discovery tools
@@ -187,9 +199,22 @@ for pid in "${pids[@]}"; do
     wait "$pid" 2>/dev/null || true
 done
 
+# Fallback: if crawler tools are missing, rely on GAU/Wayback only
+if [ "$SPIDEYX_AVAILABLE" -eq 0 ] && [ "$HAKRAWLER_AVAILABLE" -eq 0 ] && [ "$KATANA_AVAILABLE" -eq 0 ]; then
+    log_warn "Crawler tools (SpideyX/hakrawler/katana) missing; relying on GAU/Wayback only"
+fi
+
 # Merge all URLs
 log_info "Merging discovered URLs..."
-cat "$URLS_DIR"/*.txt 2>/dev/null | \
+safe_cat "$URLS_DIR/all_urls_raw.txt" \
+    "$URLS_DIR/gau.txt" \
+    "$URLS_DIR/waybackurls.txt" \
+    "$URLS_DIR/spideyx.txt" \
+    "$URLS_DIR/gospider.txt" \
+    "$URLS_DIR/hakrawler.txt" \
+    "$URLS_DIR/katana.txt"
+
+cat "$URLS_DIR/all_urls_raw.txt" 2>/dev/null | \
     safe_grep -E '^https?://' | \
     sort -u > "$URLS_DIR/all_urls.txt"
 

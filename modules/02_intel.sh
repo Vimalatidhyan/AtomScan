@@ -171,17 +171,55 @@ PORTS_DIR="$PHASE_DIR/ports"
 mkdir -p "$PORTS_DIR"
 
 # Extract just hostnames/IPs for port scanning
-cat "$SCAN_HOSTS" | sed -E 's|^https?://||' | sed 's|/.*||' | sort -u > "$PORTS_DIR/targets.txt"
+cat "$SCAN_HOSTS" | sed -E 's|^https?://||' | sed 's|/.*||' | sed 's|:.*||' | sort -u > "$PORTS_DIR/targets_raw.txt"
+
+# Resolve hostnames to IPs to avoid rustscan resolution errors
+> "$PORTS_DIR/targets.txt"
+while IFS= read -r host; do
+    if [ -z "$host" ]; then
+        continue
+    fi
+
+    if echo "$host" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+        echo "$host" >> "$PORTS_DIR/targets.txt"
+        continue
+    fi
+
+    resolved_ips=""
+    if command -v dig &> /dev/null; then
+        resolved_ips=$(dig +short "$host" | grep -E '^[0-9]+\.' | head -n 5)
+    fi
+
+    if [ -z "$resolved_ips" ] && command -v getent &> /dev/null; then
+        resolved_ips=$(getent ahostsv4 "$host" | awk '{print $1}' | sort -u | head -n 5)
+    fi
+
+    if [ -n "$resolved_ips" ]; then
+        echo "$resolved_ips" >> "$PORTS_DIR/targets.txt"
+    else
+        log_warn "Skipping unresolved host for port scan: $host"
+    fi
+done < "$PORTS_DIR/targets_raw.txt"
+
+sort -u "$PORTS_DIR/targets.txt" -o "$PORTS_DIR/targets.txt"
 TARGETS_COUNT=$(wc -l < "$PORTS_DIR/targets.txt" 2>/dev/null | tr -d ' ')
 
 # RustScan - Fast initial scan
 if command -v rustscan &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
     log_info "Running RustScan (fast port discovery)..."
+    RUSTSCAN_BATCH="${RECONX_RUSTSCAN_BATCH:-1000}"
+    RUSTSCAN_TIMEOUT="${RECONX_RUSTSCAN_TIMEOUT:-2000}"
+    RUSTSCAN_NO_NMAP=""
+
+    if rustscan -h 2>&1 | grep -q -- "--no-nmap"; then
+        RUSTSCAN_NO_NMAP="--no-nmap"
+    fi
 
     # Scan hosts in batches
     while IFS= read -r host; do
         log_info "RustScan: $host"
-        rustscan -a "$host" --ulimit 5000 --range 1-65535 --timeout 1000 \
+        rustscan -a "$host" -b "$RUSTSCAN_BATCH" -t "$RUSTSCAN_TIMEOUT" \
+            --ulimit 5000 --range 1-65535 $RUSTSCAN_NO_NMAP \
             >> "$PORTS_DIR/rustscan_raw.txt" 2>/dev/null || log_warn "RustScan failed for $host"
     done < "$PORTS_DIR/targets.txt"
 

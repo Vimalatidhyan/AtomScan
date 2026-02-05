@@ -416,11 +416,17 @@ if [ "$RESOLVED_COUNT" -gt 0 ] && [ -s "$PHASE_DIR/resolved_subdomains.txt" ]; t
                 sed -E 's|^https?://||' | sed 's|/.*||' | sort -u > "$PHASE_DIR/alive_hosts.txt" || touch "$PHASE_DIR/alive_hosts.txt"
 
             ALIVE_COUNT=$(wc -l < "$PHASE_DIR/alive_hosts.txt" 2>/dev/null | tr -d ' ')
+            if [ "$ALIVE_COUNT" -eq 0 ]; then
+                log_warn "HTTPx parsed but no alive hosts; falling back to resolved subdomains"
+                cp "$PHASE_DIR/resolved_subdomains.txt" "$PHASE_DIR/alive_hosts.txt" 2>/dev/null || touch "$PHASE_DIR/alive_hosts.txt"
+                ALIVE_COUNT=$(wc -l < "$PHASE_DIR/alive_hosts.txt" 2>/dev/null | tr -d ' ')
+            fi
             log_info "Alive hosts: $ALIVE_COUNT"
         else
-            log_warn "HTTPx produced no output"
-            touch "$PHASE_DIR/alive_hosts.txt"
-            ALIVE_COUNT=0
+            log_warn "HTTPx produced no output; falling back to resolved subdomains"
+            cp "$PHASE_DIR/resolved_subdomains.txt" "$PHASE_DIR/alive_hosts.txt" 2>/dev/null || touch "$PHASE_DIR/alive_hosts.txt"
+            ALIVE_COUNT=$(wc -l < "$PHASE_DIR/alive_hosts.txt" 2>/dev/null | tr -d ' ')
+            log_info "Alive hosts (fallback): $ALIVE_COUNT"
         fi
     else
         log_warn "HTTPx not found, skipping live validation"

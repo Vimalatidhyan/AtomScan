@@ -59,9 +59,9 @@ log_section "Installing System Packages"
 if [ "$OS" = "kali" ] || [ "$OS" = "debian" ] || [ "$OS" = "ubuntu" ]; then
     # Chromium package name varies by distro (kali/debian/ubuntu)
     CHROMIUM_PKG=""
-    if apt-cache show chromium-browser >/dev/null 2>&1; then
+    if apt-cache policy chromium-browser 2>/dev/null | awk '/Candidate:/ {print $2}' | grep -vq "(none)"; then
         CHROMIUM_PKG="chromium-browser"
-    elif apt-cache show chromium >/dev/null 2>&1; then
+    elif apt-cache policy chromium 2>/dev/null | awk '/Candidate:/ {print $2}' | grep -vq "(none)"; then
         CHROMIUM_PKG="chromium"
     else
         log_warn "Chromium package not found; skipping browser install"

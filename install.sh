@@ -222,10 +222,67 @@ log_info "Installing Sublist3r..."
 git clone https://github.com/aboul3la/Sublist3r.git "$INSTALL_DIR/Sublist3r" 2>/dev/null || (cd "$INSTALL_DIR/Sublist3r" && git pull)
 cd "$INSTALL_DIR/Sublist3r" && pip3 install -r requirements.txt || true
 
-# SubDominator
-log_info "Installing SubDominator..."
-git clone https://github.com/RevoltSecurities/SubDominator.git "$INSTALL_DIR/SubDominator" 2>/dev/null || (cd "$INSTALL_DIR/SubDominator" && git pull)
-cd "$INSTALL_DIR/SubDominator" && pip3 install -r requirements.txt || true
+# Subdominator (RevoltSecurities)
+log_info "Installing Subdominator..."
+git clone https://github.com/RevoltSecurities/Subdominator.git "$INSTALL_DIR/Subdominator" 2>/dev/null || (cd "$INSTALL_DIR/Subdominator" && git pull)
+cd "$INSTALL_DIR/Subdominator" && [ -f requirements.txt ] && pip3 install -r requirements.txt || true
+if [ -f "$INSTALL_DIR/Subdominator/subdominator.py" ]; then
+    ln -sf "$INSTALL_DIR/Subdominator/subdominator.py" /usr/local/bin/subdominator || true
+elif [ -f "$INSTALL_DIR/Subdominator/Subdominator.py" ]; then
+    ln -sf "$INSTALL_DIR/Subdominator/Subdominator.py" /usr/local/bin/subdominator || true
+fi
+ln -sfn "$INSTALL_DIR/Subdominator" "$INSTALL_DIR/SubDominator" || true
+
+# SubProber (RevoltSecurities)
+log_info "Installing SubProber..."
+git clone https://github.com/RevoltSecurities/SubProber.git "$INSTALL_DIR/SubProber" 2>/dev/null || (cd "$INSTALL_DIR/SubProber" && git pull)
+cd "$INSTALL_DIR/SubProber" && [ -f requirements.txt ] && pip3 install -r requirements.txt || true
+if [ -f "$INSTALL_DIR/SubProber/subprober.py" ]; then
+    ln -sf "$INSTALL_DIR/SubProber/subprober.py" /usr/local/bin/subprober || true
+elif [ -f "$INSTALL_DIR/SubProber/SubProber.py" ]; then
+    ln -sf "$INSTALL_DIR/SubProber/SubProber.py" /usr/local/bin/subprober || true
+fi
+ln -sfn "$INSTALL_DIR/SubProber" "$INSTALL_DIR/subprober" || true
+
+# ShodanX (RevoltSecurities)
+log_info "Installing ShodanX..."
+git clone https://github.com/RevoltSecurities/ShodanX.git "$INSTALL_DIR/ShodanX" 2>/dev/null || (cd "$INSTALL_DIR/ShodanX" && git pull)
+cd "$INSTALL_DIR/ShodanX" && [ -f requirements.txt ] && pip3 install -r requirements.txt || true
+if [ -f "$INSTALL_DIR/ShodanX/shodanx.py" ]; then
+    ln -sf "$INSTALL_DIR/ShodanX/shodanx.py" /usr/local/bin/shodanx || true
+elif [ -f "$INSTALL_DIR/ShodanX/ShodanX.py" ]; then
+    ln -sf "$INSTALL_DIR/ShodanX/ShodanX.py" /usr/local/bin/shodanx || true
+fi
+ln -sfn "$INSTALL_DIR/ShodanX" "$INSTALL_DIR/shodanx" || true
+
+# GoogleDorker (RevoltSecurities)
+log_info "Installing GoogleDorker..."
+git clone https://github.com/RevoltSecurities/GoogleDorker.git "$INSTALL_DIR/GoogleDorker" 2>/dev/null || (cd "$INSTALL_DIR/GoogleDorker" && git pull)
+cd "$INSTALL_DIR/GoogleDorker" && [ -f requirements.txt ] && pip3 install -r requirements.txt || true
+if [ -f "$INSTALL_DIR/GoogleDorker/dorker.py" ]; then
+    ln -sf "$INSTALL_DIR/GoogleDorker/dorker.py" /usr/local/bin/dorker || true
+elif [ -f "$INSTALL_DIR/GoogleDorker/GoogleDorker.py" ]; then
+    ln -sf "$INSTALL_DIR/GoogleDorker/GoogleDorker.py" /usr/local/bin/dorker || true
+fi
+
+# SpideyX (RevoltSecurities)
+log_info "Installing SpideyX..."
+git clone https://github.com/RevoltSecurities/SpideyX.git "$INSTALL_DIR/SpideyX" 2>/dev/null || (cd "$INSTALL_DIR/SpideyX" && git pull)
+cd "$INSTALL_DIR/SpideyX" && [ -f requirements.txt ] && pip3 install -r requirements.txt || true
+if [ -f "$INSTALL_DIR/SpideyX/spideyx.py" ]; then
+    ln -sf "$INSTALL_DIR/SpideyX/spideyx.py" /usr/local/bin/spideyx || true
+elif [ -f "$INSTALL_DIR/SpideyX/SpideyX.py" ]; then
+    ln -sf "$INSTALL_DIR/SpideyX/SpideyX.py" /usr/local/bin/spideyx || true
+fi
+
+# Dnsbruter (RevoltSecurities)
+log_info "Installing Dnsbruter..."
+git clone https://github.com/RevoltSecurities/Dnsbruter.git "$INSTALL_DIR/Dnsbruter" 2>/dev/null || (cd "$INSTALL_DIR/Dnsbruter" && git pull)
+cd "$INSTALL_DIR/Dnsbruter" && [ -f requirements.txt ] && pip3 install -r requirements.txt || true
+if [ -f "$INSTALL_DIR/Dnsbruter/dnsbruter.py" ]; then
+    ln -sf "$INSTALL_DIR/Dnsbruter/dnsbruter.py" /usr/local/bin/dnsbruter || true
+fi
+ln -sfn "$INSTALL_DIR/Dnsbruter" "$INSTALL_DIR/dnsbruter" || true
 
 # Dirsearch
 log_info "Installing Dirsearch..."
@@ -283,13 +340,6 @@ rm gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz
 # TruffleHog
 log_info "Installing TruffleHog..."
 pip3 install trufflehog || log_warn "TruffleHog install failed"
-
-# Trivy
-log_info "Installing Trivy..."
-wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add -
-echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | tee -a /etc/apt/sources.list.d/trivy.list
-apt-get update
-apt-get install -y trivy || log_warn "Trivy install failed"
 
 # Gospider (SpideyX alternative)
 log_info "Installing Gospider..."
@@ -384,9 +434,10 @@ TOOLS=(
     "dnsx" "httpx"
     "gau" "waybackurls" "hakrawler" "katana"
     "ffuf" "feroxbuster"
-    "nuclei" "dalfox" "trivy"
+    "nuclei" "dalfox"
     "subjack" "gitleaks"
     "nmap" "sqlmap" "nikto"
+    "subdominator" "subprober" "shodanx" "dorker" "spideyx" "dnsbruter"
 )
 
 INSTALLED=0

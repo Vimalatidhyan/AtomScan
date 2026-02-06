@@ -270,15 +270,25 @@ class UrlParser(OutputParser):
         lines = self.read_lines(file_path)
         return [{'url': line, 'source_tool': 'katana'} for line in lines if line.startswith('http')]
 
+    def parse_spideyx(self, file_path: str) -> List[Dict[str, str]]:
+        """Parse SpideyX output"""
+        lines = self.read_lines(file_path)
+        results = []
+        for line in lines:
+            match = re.search(r'(https?://[^\s]+)', line)
+            if match:
+                results.append({'url': match.group(1), 'source_tool': 'spideyx'})
+        return results
+
     def parse_gospider(self, file_path: str) -> List[Dict[str, str]]:
-        """Parse gospider output (SpideyX)"""
+        """Parse gospider output"""
         lines = self.read_lines(file_path)
         results = []
         for line in lines:
             # Gospider format: [SOURCE] - [CODE] - URL
             match = re.search(r'(https?://[^\s]+)', line)
             if match:
-                results.append({'url': match.group(1), 'source_tool': 'spideyx'})
+                results.append({'url': match.group(1), 'source_tool': 'gospider'})
         return results
 
 
@@ -404,25 +414,6 @@ class VulnerabilityParser(OutputParser):
                     })
         return results
 
-    def parse_trivy(self, file_path: str) -> List[Dict[str, Any]]:
-        """Parse Trivy JSON output"""
-        data = self.read_json(file_path)
-        results = []
-
-        if isinstance(data, list):
-            for result in data:
-                if 'Vulnerabilities' in result:
-                    target = result.get('Target', '')
-                    for vuln in result['Vulnerabilities']:
-                        results.append({
-                            'tool': 'trivy',
-                            'host': target,
-                            'name': vuln.get('Title', vuln.get('VulnerabilityID', 'Unknown')),
-                            'severity': vuln.get('Severity', 'unknown').lower(),
-                            'info': vuln.get('Description', ''),
-                            'cve': vuln.get('VulnerabilityID', '')
-                        })
-        return results
 
 
 class LeakParser(OutputParser):

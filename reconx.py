@@ -257,7 +257,8 @@ Attack Surface Management Framework
             'waybackurls.txt': 'waybackurls',
             'hakrawler.txt': 'hakrawler',
             'katana.txt': 'katana',
-            'spideyx.txt': 'spideyx'
+            'spideyx.txt': 'spideyx',
+            'gospider.txt': 'gospider'
         }
 
         urls_dir = phase_dir / "urls"

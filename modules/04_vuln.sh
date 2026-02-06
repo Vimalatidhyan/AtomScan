@@ -354,6 +354,39 @@ else
     log_warn "Wapiti not found"
 fi
 
+# Skipfish (web application security scanner)
+if command -v skipfish &> /dev/null; then
+    log_info "Running Skipfish..."
+
+    SKIPFISH_DIR="$PHASE_DIR/skipfish"
+    mkdir -p "$SKIPFISH_DIR"
+
+    SKIPFISH_DICT=""
+    if [ -f "/usr/share/skipfish/dictionaries/minimal.wl" ]; then
+        SKIPFISH_DICT="/usr/share/skipfish/dictionaries/minimal.wl"
+    elif [ -f "/usr/share/skipfish/dictionaries/complete.wl" ]; then
+        SKIPFISH_DICT="/usr/share/skipfish/dictionaries/complete.wl"
+    fi
+
+    SKIPFISH_TIME="${RECONX_SKIPFISH_TIME:-1:30:00}"
+    SKIPFISH_RPS="${RECONX_SKIPFISH_RPS:-20}"
+    SKIPFISH_MAX_HOSTS="${RECONX_SKIPFISH_MAX_HOSTS:-3}"
+
+    if [ -z "$SKIPFISH_DICT" ]; then
+        log_warn "Skipfish dictionary not found; skipping Skipfish"
+    else
+        head -n "$SKIPFISH_MAX_HOSTS" "$ALIVE_HOSTS" | awk 'NF' > "$SKIPFISH_DIR/skipfish_targets.txt"
+
+        while IFS= read -r host; do
+            log_info "Skipfish: $host"
+            out_dir="$SKIPFISH_DIR/skipfish_${host//[^a-zA-Z0-9]/_}"
+            run_with_timeout "$TIMEOUT_DEFAULT" "skipfish -l $SKIPFISH_RPS -k $SKIPFISH_TIME -S '$SKIPFISH_DICT' -W - -o '$out_dir' 'https://$host/'" || log_warn "Skipfish failed for $host"
+        done < "$SKIPFISH_DIR/skipfish_targets.txt"
+    fi
+else
+    log_warn "Skipfish not found"
+fi
+
 # CMSmap (CMS scanner)
 if command -v cmsmap &> /dev/null; then
     log_info "Running CMSmap..."

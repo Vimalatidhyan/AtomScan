@@ -96,6 +96,7 @@ if [ "$OS" = "kali" ] || [ "$OS" = "debian" ] || [ "$OS" = "ubuntu" ]; then
         whois dnsutils \
         nmap masscan \
         nikto sqlmap \
+        skipfish \
         $CHROMIUM_PKG \
         default-jre \
         nodejs npm \
@@ -534,6 +535,7 @@ TOOLS=(
     "subjack" "gitleaks"
     "nmap" "sqlmap" "nikto"
     "subdominator" "subprober" "shodanx" "dorker" "spideyx" "dnsbruter"
+    "skipfish"
 )
 
 INSTALLED=0

@@ -39,6 +39,11 @@ log_warn() {
     echo -e "${YELLOW}[!]${NC} $1"
 }
 
+# Tunables (increase speed where safe)
+RUSTSCAN_BATCH="${RECONX_RUSTSCAN_BATCH:-1000}"
+RUSTSCAN_TIMEOUT="${RECONX_RUSTSCAN_TIMEOUT:-3000}"
+SUBJACK_THREADS="${RECONX_SUBJACK_THREADS:-100}"
+
 safe_cat() {
     local output_file="$1"
     shift
@@ -212,8 +217,6 @@ TARGETS_COUNT=$(wc -l < "$PORTS_DIR/targets.txt" 2>/dev/null | tr -d ' ')
 # RustScan - Fast initial scan
 if command -v rustscan &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
     log_info "Running RustScan (fast port discovery)..."
-    RUSTSCAN_BATCH="${RECONX_RUSTSCAN_BATCH:-1000}"
-    RUSTSCAN_TIMEOUT="${RECONX_RUSTSCAN_TIMEOUT:-2000}"
     RUSTSCAN_NO_NMAP=""
 
     if rustscan -h 2>&1 | grep -q -- "--no-nmap"; then
@@ -398,7 +401,7 @@ if command -v subjack &> /dev/null; then
 
     if [ -f "$PHASE1_DIR/all_subdomains.txt" ]; then
         subjack -w "$PHASE1_DIR/all_subdomains.txt" \
-            -t 50 -timeout 30 -ssl -v \
+            -t "$SUBJACK_THREADS" -timeout 30 -ssl -v \
             -o "$TAKEOVER_DIR/subjack_results.txt" 2>/dev/null || log_warn "Subjack failed"
 
         if [ -f "$TAKEOVER_DIR/subjack_results.txt" ]; then

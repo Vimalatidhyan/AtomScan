@@ -60,16 +60,21 @@ safe_grep() {
 }
 
 # Concurrency controls
-THREADS="${RECONX_THREADS:-5}"
-SQLMAP_THREADS="${RECONX_SQLMAP_THREADS:-3}"
-TIMEOUT_DEFAULT="${RECONX_VULN_TIMEOUT:-1200}"
+THREADS="${RECONX_THREADS:-10}"
+SQLMAP_THREADS="${RECONX_SQLMAP_THREADS:-5}"
+TIMEOUT_DEFAULT="${RECONX_VULN_TIMEOUT:-3600}"
+NUCLEI_RATE_HIGH="${RECONX_NUCLEI_RATE_HIGH:-100}"
+NUCLEI_RATE_MED="${RECONX_NUCLEI_RATE_MED:-150}"
+NUCLEI_RATE_LOW="${RECONX_NUCLEI_RATE_LOW:-200}"
+NUCLEI_RATE_CVE="${RECONX_NUCLEI_RATE_CVE:-100}"
+NUCLEI_RATE_MISC="${RECONX_NUCLEI_RATE_MISC:-150}"
 
 # Sanitize concurrency values
 if ! [[ "$THREADS" =~ ^[0-9]+$ ]] || [ "$THREADS" -lt 1 ]; then
-    THREADS=5
+    THREADS=10
 fi
 if ! [[ "$SQLMAP_THREADS" =~ ^[0-9]+$ ]] || [ "$SQLMAP_THREADS" -lt 1 ]; then
-    SQLMAP_THREADS=3
+    SQLMAP_THREADS=5
 fi
 
 export -f log_info
@@ -136,28 +141,28 @@ if command -v nuclei &> /dev/null && [ "$SCAN_COUNT" -gt 0 ]; then
     # Run Nuclei with different severity levels
     log_info "Nuclei: Critical & High severity scan..."
     cat "$PHASE_DIR/scan_urls.txt" | \
-        nuclei -silent -json -severity critical,high -rate-limit 50 \
+        nuclei -silent -json -severity critical,high -rate-limit "$NUCLEI_RATE_HIGH" \
         -o "$NUCLEI_DIR/nuclei_critical_high.json" 2>/dev/null || log_warn "Nuclei critical/high scan failed"
 
     log_info "Nuclei: Medium severity scan..."
     cat "$PHASE_DIR/scan_urls.txt" | \
-        nuclei -silent -json -severity medium -rate-limit 100 \
+        nuclei -silent -json -severity medium -rate-limit "$NUCLEI_RATE_MED" \
         -o "$NUCLEI_DIR/nuclei_medium.json" 2>/dev/null || log_warn "Nuclei medium scan failed"
 
     log_info "Nuclei: Low & Info severity scan..."
     cat "$PHASE_DIR/scan_urls.txt" | \
-        nuclei -silent -json -severity low,info -rate-limit 150 \
+        nuclei -silent -json -severity low,info -rate-limit "$NUCLEI_RATE_LOW" \
         -o "$NUCLEI_DIR/nuclei_low_info.json" 2>/dev/null || log_warn "Nuclei low/info scan failed"
 
     # Specific template scans
     log_info "Nuclei: CVE templates..."
     cat "$PHASE_DIR/scan_urls.txt" | \
-        nuclei -silent -json -tags cve -rate-limit 50 \
+        nuclei -silent -json -tags cve -rate-limit "$NUCLEI_RATE_CVE" \
         -o "$NUCLEI_DIR/nuclei_cve.json" 2>/dev/null || log_warn "Nuclei CVE scan failed"
 
     log_info "Nuclei: Misconfiguration templates..."
     cat "$PHASE_DIR/scan_urls.txt" | \
-        nuclei -silent -json -tags misconfiguration,config -rate-limit 100 \
+        nuclei -silent -json -tags misconfiguration,config -rate-limit "$NUCLEI_RATE_MISC" \
         -o "$NUCLEI_DIR/nuclei_misconfig.json" 2>/dev/null || log_warn "Nuclei misconfig scan failed"
 
     # Merge all Nuclei results
@@ -369,7 +374,7 @@ if command -v skipfish &> /dev/null; then
     fi
 
     SKIPFISH_TIME="${RECONX_SKIPFISH_TIME:-1:30:00}"
-    SKIPFISH_RPS="${RECONX_SKIPFISH_RPS:-20}"
+    SKIPFISH_RPS="${RECONX_SKIPFISH_RPS:-30}"
     SKIPFISH_MAX_HOSTS="${RECONX_SKIPFISH_MAX_HOSTS:-3}"
 
     if [ -z "$SKIPFISH_DICT" ]; then

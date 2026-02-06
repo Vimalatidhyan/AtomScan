@@ -25,6 +25,25 @@ fi
 PHASE_DIR="$OUTPUT_DIR/phase1_discovery"
 mkdir -p "$PHASE_DIR"
 
+# Tunables (increase timeouts/threads for stability & speed)
+WHOIS_TIMEOUT="${RECONX_WHOIS_TIMEOUT:-60}"
+AMASS_INTEL_TIMEOUT="${RECONX_AMASS_INTEL_TIMEOUT:-600}"
+AMASS_ENUM_TIMEOUT="${RECONX_AMASS_ENUM_TIMEOUT:-1200}"
+SUBLIST3R_TIMEOUT="${RECONX_SUBLIST3R_TIMEOUT:-1200}"
+SUBFINDER_TIMEOUT="${RECONX_SUBFINDER_TIMEOUT:-900}"
+SUBFINDER_THREADS="${RECONX_SUBFINDER_THREADS:-50}"
+ASSETFINDER_TIMEOUT="${RECONX_ASSETFINDER_TIMEOUT:-900}"
+SUBDOMINATOR_TIMEOUT="${RECONX_SUBDOMINATOR_TIMEOUT:-1200}"
+CRT_TIMEOUT="${RECONX_CRTSH_TIMEOUT:-600}"
+SECURITYTRAILS_TIMEOUT="${RECONX_SECURITYTRAILS_TIMEOUT:-600}"
+DNSBRUTER_TIMEOUT="${RECONX_DNSBRUTER_TIMEOUT:-1800}"
+DNSPROBER_TIMEOUT="${RECONX_DNSPROBER_TIMEOUT:-1200}"
+DNSX_TIMEOUT="${RECONX_DNSX_TIMEOUT:-1800}"
+DNSX_THREADS="${RECONX_DNSX_THREADS:-100}"
+HTTPX_TIMEOUT="${RECONX_HTTPX_TIMEOUT:-15}"
+HTTPX_THREADS="${RECONX_HTTPX_THREADS:-100}"
+HTTPX_RUN_TIMEOUT="${RECONX_HTTPX_RUN_TIMEOUT:-3600}"
+
 echo "[*] Phase 1: Discovery & Enumeration for $TARGET"
 echo "[*] Output directory: $PHASE_DIR"
 
@@ -121,7 +140,7 @@ log_info "=== HORIZONTAL DISCOVERY ==="
 # Whois domain information
 if command -v whois &> /dev/null; then
     log_info "Running whois..."
-    timeout 30 whois "$TARGET" > "$PHASE_DIR/whois.txt" 2>/dev/null || log_warn "Whois failed or timed out"
+    timeout "$WHOIS_TIMEOUT" whois "$TARGET" > "$PHASE_DIR/whois.txt" 2>/dev/null || log_warn "Whois failed or timed out"
 else
     log_warn "whois not found"
     ((TOOLS_SKIPPED++))
@@ -130,12 +149,12 @@ fi
 # Amass Intel/Enum (version-aware)
 if command -v amass &> /dev/null; then
     if amass intel -h >/dev/null 2>&1; then
-        run_tool "amass" "$PHASE_DIR/amass_intel.txt" 300 \
-            "amass intel -d '$TARGET' -whois -timeout 10 -o '$PHASE_DIR/amass_intel.txt'" || true
+        run_tool "amass" "$PHASE_DIR/amass_intel.txt" "$AMASS_INTEL_TIMEOUT" \
+            "amass intel -d '$TARGET' -whois -timeout 15 -o '$PHASE_DIR/amass_intel.txt'" || true
     else
         log_warn "Amass intel not supported; using passive enum instead"
-        run_tool "amass" "$PHASE_DIR/amass_intel.txt" 300 \
-            "amass enum -d '$TARGET' -passive -timeout 15 -o '$PHASE_DIR/amass_intel.txt'" || true
+        run_tool "amass" "$PHASE_DIR/amass_intel.txt" "$AMASS_INTEL_TIMEOUT" \
+            "amass enum -d '$TARGET' -passive -timeout 20 -o '$PHASE_DIR/amass_intel.txt'" || true
     fi
 else
     log_warn "Amass not found"
@@ -145,7 +164,7 @@ fi
 # Get subsidiaries (if tool exists)
 if [ -f "/opt/getSubsidiaries/getSubsidiaries.py" ]; then
     log_info "Running getSubsidiaries..."
-    timeout 300 python3 /opt/getSubsidiaries/getSubsidiaries.py "$TARGET" > "$PHASE_DIR/subsidiaries.txt" 2>/dev/null || log_warn "getSubsidiaries failed"
+    timeout 600 python3 /opt/getSubsidiaries/getSubsidiaries.py "$TARGET" > "$PHASE_DIR/subsidiaries.txt" 2>/dev/null || log_warn "getSubsidiaries failed"
 else
     log_warn "getSubsidiaries not found"
     ((TOOLS_SKIPPED++))
@@ -169,7 +188,7 @@ declare -A tool_pids
 if command -v sublist3r &> /dev/null || [ -f "/opt/Sublist3r/sublist3r.py" ]; then
     log_info "Launching Sublist3r..."
     (
-        timeout 900 bash -c "
+        timeout "$SUBLIST3R_TIMEOUT" bash -c "
             if [ -f '/opt/Sublist3r/sublist3r.py' ]; then
                 python3 /opt/Sublist3r/sublist3r.py -d '$TARGET' -o '$TEMP_SUBS/sublist3r.txt'
             else
@@ -188,7 +207,7 @@ fi
 if command -v amass &> /dev/null; then
     log_info "Launching Amass enum..."
     (
-        timeout 900 amass enum -d "$TARGET" -passive -timeout 15 -o "$TEMP_SUBS/amass.txt" 2>/dev/null || touch "$TEMP_SUBS/amass.txt"
+        timeout "$AMASS_ENUM_TIMEOUT" amass enum -d "$TARGET" -passive -timeout 20 -o "$TEMP_SUBS/amass.txt" 2>/dev/null || touch "$TEMP_SUBS/amass.txt"
     ) &
     tool_pids[amass]=$!
     pids+=($!)
@@ -201,7 +220,7 @@ fi
 if command -v assetfinder &> /dev/null; then
     log_info "Launching Assetfinder..."
     (
-        timeout 600 assetfinder --subs-only "$TARGET" > "$TEMP_SUBS/assetfinder.txt" 2>/dev/null || touch "$TEMP_SUBS/assetfinder.txt"
+        timeout "$ASSETFINDER_TIMEOUT" assetfinder --subs-only "$TARGET" > "$TEMP_SUBS/assetfinder.txt" 2>/dev/null || touch "$TEMP_SUBS/assetfinder.txt"
     ) &
     tool_pids[assetfinder]=$!
     pids+=($!)
@@ -214,7 +233,7 @@ fi
 if command -v subfinder &> /dev/null; then
     log_info "Launching Subfinder..."
     (
-        timeout 600 subfinder -d "$TARGET" -silent -o "$TEMP_SUBS/subfinder.txt" 2>/dev/null || touch "$TEMP_SUBS/subfinder.txt"
+        timeout "$SUBFINDER_TIMEOUT" subfinder -d "$TARGET" -silent -t "$SUBFINDER_THREADS" -o "$TEMP_SUBS/subfinder.txt" 2>/dev/null || touch "$TEMP_SUBS/subfinder.txt"
     ) &
     tool_pids[subfinder]=$!
     pids+=($!)
@@ -239,7 +258,7 @@ done
 if command -v subdominator &> /dev/null || [ -n "$SUBDOMINATOR_PY" ]; then
     log_info "Launching Subdominator..."
     (
-        timeout 600 bash -c "
+        timeout "$SUBDOMINATOR_TIMEOUT" bash -c "
             if command -v subdominator &> /dev/null; then
                 subdominator -d '$TARGET' -o '$TEMP_SUBS/subdominator.txt' -nc
             else
@@ -257,7 +276,7 @@ fi
 # 6. crt.sh via curl
 log_info "Launching crt.sh..."
 (
-    timeout 300 bash -c "
+    timeout "$CRT_TIMEOUT" bash -c "
         curl -s 'https://crt.sh/?q=%25.$TARGET&output=json' 2>/dev/null | \
             jq -r '.[].name_value' 2>/dev/null | \
             sed 's/\*\.//g' | \
@@ -271,7 +290,7 @@ pids+=($!)
 if [ ! -z "$SECURITYTRAILS_API_KEY" ]; then
     log_info "Launching SecurityTrails..."
     (
-        timeout 300 bash -c "
+        timeout "$SECURITYTRAILS_TIMEOUT" bash -c "
             curl -s 'https://api.securitytrails.com/v1/domain/$TARGET/subdomains' \
                 -H 'APIKEY: $SECURITYTRAILS_API_KEY' 2>/dev/null | \
                 jq -r '.subdomains[]' 2>/dev/null | \
@@ -332,11 +351,11 @@ if [ "$PASSIVE_COUNT" -gt 0 ] || [ -s "$PHASE_DIR/passive_subdomains.txt" ]; the
     done
 
     if command -v dnsbruter &> /dev/null; then
-        run_tool "dnsbruter" "$TEMP_SUBS/dnsbruter.txt" 900 \
+        run_tool "dnsbruter" "$TEMP_SUBS/dnsbruter.txt" "$DNSBRUTER_TIMEOUT" \
             "dnsbruter -d '$TARGET' -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -wd -o '$TEMP_SUBS/dnsbruter.txt'" || true
     elif [ -n "$DNSBRUTER_PY" ]; then
         log_info "Running Dnsbruter (Python)..."
-        timeout 900 python3 "$DNSBRUTER_PY" -d "$TARGET" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -wd -o "$TEMP_SUBS/dnsbruter.txt" 2>/dev/null || log_warn "Dnsbruter failed"
+        timeout "$DNSBRUTER_TIMEOUT" python3 "$DNSBRUTER_PY" -d "$TARGET" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -wd -o "$TEMP_SUBS/dnsbruter.txt" 2>/dev/null || log_warn "Dnsbruter failed"
     else
         log_warn "Dnsbruter not found"
         ((TOOLS_SKIPPED++))
@@ -344,7 +363,7 @@ if [ "$PASSIVE_COUNT" -gt 0 ] || [ -s "$PHASE_DIR/passive_subdomains.txt" ]; the
 
     # 9. Dnsprober (DNS probing)
     if command -v dnsprober &> /dev/null && [ -s "$PHASE_DIR/passive_subdomains.txt" ]; then
-        run_tool "dnsprober" "$TEMP_SUBS/dnsprober.txt" 600 \
+        run_tool "dnsprober" "$TEMP_SUBS/dnsprober.txt" "$DNSPROBER_TIMEOUT" \
             "dnsprober -l '$PHASE_DIR/passive_subdomains.txt' -o '$TEMP_SUBS/dnsprober.txt'" || true
     else
         log_warn "Dnsprober not found or no passive subdomains"
@@ -388,7 +407,7 @@ if [ "$TOTAL_SUBS" -gt 0 ] && [ -s "$PHASE_DIR/all_subdomains.txt" ]; then
     # DNSx for resolution
     if command -v dnsx &> /dev/null; then
         log_info "Running DNSx for resolution..."
-        timeout 900 bash -c "cat '$PHASE_DIR/all_subdomains.txt' | dnsx -silent -a -resp -json -o '$PHASE_DIR/dnsx_resolved.json'" 2>/dev/null || log_warn "DNSx failed or timed out"
+        timeout "$DNSX_TIMEOUT" bash -c "cat '$PHASE_DIR/all_subdomains.txt' | dnsx -silent -a -resp -json -t $DNSX_THREADS -o '$PHASE_DIR/dnsx_resolved.json'" 2>/dev/null || log_warn "DNSx failed or timed out"
 
         # Extract resolved domains
         if [ -f "$PHASE_DIR/dnsx_resolved.json" ] && [ -s "$PHASE_DIR/dnsx_resolved.json" ]; then
@@ -419,7 +438,7 @@ if [ "$RESOLVED_COUNT" -gt 0 ] && [ -s "$PHASE_DIR/resolved_subdomains.txt" ]; t
     # HTTPx for live host detection
     if command -v httpx &> /dev/null; then
         log_info "Running HTTPx to find alive hosts..."
-        timeout 1800 bash -c "cat '$PHASE_DIR/resolved_subdomains.txt' | httpx -silent -json -status-code -follow-redirects -threads 50 -timeout 10 -o '$PHASE_DIR/httpx_alive.json'" 2>/dev/null || log_warn "HTTPx failed or timed out"
+        timeout "$HTTPX_RUN_TIMEOUT" bash -c "cat '$PHASE_DIR/resolved_subdomains.txt' | httpx -silent -json -status-code -follow-redirects -threads $HTTPX_THREADS -timeout $HTTPX_TIMEOUT -o '$PHASE_DIR/httpx_alive.json'" 2>/dev/null || log_warn "HTTPx failed or timed out"
 
         # Extract alive hosts
         if [ -f "$PHASE_DIR/httpx_alive.json" ] && [ -s "$PHASE_DIR/httpx_alive.json" ]; then

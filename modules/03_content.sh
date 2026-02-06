@@ -18,6 +18,16 @@ PHASE_DIR="$OUTPUT_DIR/phase3_content"
 PHASE1_DIR="$OUTPUT_DIR/phase1_discovery"
 mkdir -p "$PHASE_DIR"
 
+# Tunables (increase threads for speed; timeouts handled by phase)
+GAU_THREADS="${RECONX_GAU_THREADS:-10}"
+GOSPIDER_THREADS="${RECONX_GOSPIDER_THREADS:-20}"
+GOSPIDER_CONCURRENCY="${RECONX_GOSPIDER_CONCURRENCY:-20}"
+KATANA_CONCURRENCY="${RECONX_KATANA_CONCURRENCY:-30}"
+FFUF_THREADS="${RECONX_FFUF_THREADS:-80}"
+FFUF_TIMEOUT="${RECONX_FFUF_TIMEOUT:-15}"
+FEROX_THREADS="${RECONX_FEROX_THREADS:-80}"
+DIRSEARCH_THREADS="${RECONX_DIRSEARCH_THREADS:-80}"
+
 echo "[*] Phase 3: Deep Web & Content Discovery for $TARGET"
 echo "[*] Output directory: $PHASE_DIR"
 
@@ -92,7 +102,7 @@ KATANA_AVAILABLE=0
 if command -v gau &> /dev/null; then
     log_info "Launching GAU (GetAllUrls)..."
     (
-        cat "$URLS_DIR/targets.txt" | gau --threads 5 --blacklist png,jpg,gif,jpeg,svg,css,woff,woff2,ttf,eot \
+        cat "$URLS_DIR/targets.txt" | gau --threads "$GAU_THREADS" --blacklist png,jpg,gif,jpeg,svg,css,woff,woff2,ttf,eot \
             > "$URLS_DIR/gau.txt" 2>/dev/null || log_warn "GAU failed"
     ) &
     pids+=($!)
@@ -152,7 +162,7 @@ if command -v gospider &> /dev/null; then
     (
         while IFS= read -r host; do
             url="https://$host"
-            gospider -s "$url" -d 3 -c 10 -t 10 --sitemap --robots \
+            gospider -s "$url" -d 3 -c "$GOSPIDER_CONCURRENCY" -t "$GOSPIDER_THREADS" --sitemap --robots \
                 >> "$URLS_DIR/gospider_raw.txt" 2>/dev/null || true
         done < "$ALIVE_HOSTS"
 
@@ -184,7 +194,7 @@ if command -v katana &> /dev/null; then
     KATANA_AVAILABLE=1
     log_info "Launching Katana..."
     (
-        cat "$ALIVE_HOSTS" | katana -d 5 -c 20 -silent -jc -kf all \
+        cat "$ALIVE_HOSTS" | katana -d 5 -c "$KATANA_CONCURRENCY" -silent -jc -kf all \
             > "$URLS_DIR/katana.txt" 2>/dev/null || log_warn "Katana failed"
     ) &
     pids+=($!)
@@ -279,7 +289,7 @@ if command -v ffuf &> /dev/null; then
 
         ffuf -u "$url" -w "$WORDLIST" \
             -mc 200,201,202,203,204,301,302,307,308,401,403 \
-            -t 50 -timeout 10 -s -json \
+            -t "$FFUF_THREADS" -timeout "$FFUF_TIMEOUT" -s -json \
             -o "$BRUTE_DIR/ffuf_${host//[^a-zA-Z0-9]/_}.json" 2>/dev/null || log_warn "FFUF failed for $host"
     done < "$BRUTE_DIR/brute_targets.txt"
 
@@ -298,7 +308,7 @@ if command -v feroxbuster &> /dev/null; then
         log_info "Feroxbuster: $host"
 
         feroxbuster -u "$url" -w "$WORDLIST" \
-            -t 50 -d 2 --auto-bail --random-agent \
+            -t "$FEROX_THREADS" -d 2 --auto-bail --random-agent \
             -o "$BRUTE_DIR/feroxbuster_${host//[^a-zA-Z0-9]/_}.txt" 2>/dev/null || log_warn "Feroxbuster failed for $host"
     done < "$BRUTE_DIR/brute_targets.txt"
 
@@ -317,7 +327,7 @@ if command -v dirsearch &> /dev/null; then
         log_info "Dirsearch: $host"
 
         dirsearch -u "$url" -w "$WORDLIST" \
-            -t 50 --random-agent --exclude-status 404,400,500,502,503 \
+            -t "$DIRSEARCH_THREADS" --random-agent --exclude-status 404,400,500,502,503 \
             -o "$BRUTE_DIR/dirsearch_${host//[^a-zA-Z0-9]/_}.txt" 2>/dev/null || log_warn "Dirsearch failed for $host"
     done < "$BRUTE_DIR/brute_targets.txt"
 

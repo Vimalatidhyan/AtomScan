@@ -53,11 +53,12 @@ class ReconX:
         self.threads = threads
         self.modules_dir = Path(__file__).parent / "modules"
         self.phase_timeout_default = int(os.getenv("RECONX_PHASE_TIMEOUT", "3600"))
+        self.continue_on_fail = os.getenv("RECONX_CONTINUE_ON_FAIL", "1").lower() in ("1", "true", "yes")
         self.phase_timeouts = {
             1: int(os.getenv("RECONX_PHASE1_TIMEOUT", str(self.phase_timeout_default))),
-            2: int(os.getenv("RECONX_PHASE2_TIMEOUT", str(self.phase_timeout_default))),
-            3: int(os.getenv("RECONX_PHASE3_TIMEOUT", str(self.phase_timeout_default))),
-            4: int(os.getenv("RECONX_PHASE4_TIMEOUT", str(self.phase_timeout_default))),
+            2: int(os.getenv("RECONX_PHASE2_TIMEOUT", str(max(self.phase_timeout_default, 7200)))),
+            3: int(os.getenv("RECONX_PHASE3_TIMEOUT", str(max(self.phase_timeout_default, 10800)))),
+            4: int(os.getenv("RECONX_PHASE4_TIMEOUT", str(max(self.phase_timeout_default, 14400)))),
         }
 
         # Initialize output directory
@@ -187,6 +188,16 @@ Attack Surface Management Framework
             if alive_hosts:
                 self.db.insert_subdomains_bulk(target, alive_hosts)
                 self.log_info(f"Updated {len(alive_hosts)} alive hosts")
+        else:
+            # Fallback to alive_hosts.txt when httpx output is missing
+            alive_file = phase_dir / "alive_hosts.txt"
+            if alive_file.exists():
+                alive_hosts = self.subdomain_parser.parse_generic_list(str(alive_file), 'alive_hosts')
+                for entry in alive_hosts:
+                    entry['is_alive'] = True
+                if alive_hosts:
+                    self.db.insert_subdomains_bulk(target, alive_hosts)
+                    self.log_info(f"Updated {len(alive_hosts)} alive hosts (fallback)")
 
         # Parse DNSx results
         dnsx_file = phase_dir / "dnsx_resolved.json"
@@ -362,9 +373,11 @@ Attack Surface Management Framework
                     else:
                         self.log_error("Phase 1 failed")
                         success = False
+                        if self.continue_on_fail:
+                            self.log_warn("Continuing to next phases despite Phase 1 failure")
 
             # Phase 2: Intelligence
-            if 2 in phases and success:
+            if 2 in phases and (success or self.continue_on_fail):
                 progress = self.db.get_progress(target)
                 if progress and progress['phase2_done']:
                     self.log_warn("Phase 2 already completed, skipping...")
@@ -376,9 +389,11 @@ Attack Surface Management Framework
                     else:
                         self.log_error("Phase 2 failed")
                         success = False
+                        if self.continue_on_fail:
+                            self.log_warn("Continuing to next phases despite Phase 2 failure")
 
             # Phase 3: Content Discovery
-            if 3 in phases and success:
+            if 3 in phases and (success or self.continue_on_fail):
                 progress = self.db.get_progress(target)
                 if progress and progress['phase3_done']:
                     self.log_warn("Phase 3 already completed, skipping...")
@@ -390,9 +405,11 @@ Attack Surface Management Framework
                     else:
                         self.log_error("Phase 3 failed")
                         success = False
+                        if self.continue_on_fail:
+                            self.log_warn("Continuing to next phases despite Phase 3 failure")
 
             # Phase 4: Vulnerability Scanning
-            if 4 in phases and success:
+            if 4 in phases and (success or self.continue_on_fail):
                 progress = self.db.get_progress(target)
                 if progress and progress['phase4_done']:
                     self.log_warn("Phase 4 already completed, skipping...")
@@ -404,6 +421,8 @@ Attack Surface Management Framework
                     else:
                         self.log_error("Phase 4 failed")
                         success = False
+                        if self.continue_on_fail:
+                            self.log_warn("Continuing after Phase 4 failure")
 
         except Exception as e:
             self.log_error(f"Error scanning {target}: {e}")

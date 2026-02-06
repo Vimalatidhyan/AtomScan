@@ -250,8 +250,16 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
                 2>/dev/null || log_warn "Nmap failed for $host"
         done < "$PORTS_DIR/targets.txt"
 
-        # Merge all XML outputs
-        safe_cat "$PORTS_DIR/nmap_all.xml" "$PORTS_DIR"/nmap_*.xml
+        # Merge all XML outputs into a single valid XML (host nodes only)
+        echo '<?xml version="1.0" encoding="UTF-8"?>' > "$PORTS_DIR/nmap_all.xml"
+        echo '<nmaprun>' >> "$PORTS_DIR/nmap_all.xml"
+        for xml_file in "$PORTS_DIR"/nmap_*.xml; do
+            if [ -f "$xml_file" ] && [ -s "$xml_file" ]; then
+                sed -n '/<host /,/<\/host>/p' "$xml_file" >> "$PORTS_DIR/nmap_all.xml"
+                sed -n '/<host>/,/<\/host>/p' "$xml_file" >> "$PORTS_DIR/nmap_all.xml"
+            fi
+        done
+        echo '</nmaprun>' >> "$PORTS_DIR/nmap_all.xml"
     fi
 else
     log_warn "Nmap not found or no scan targets"

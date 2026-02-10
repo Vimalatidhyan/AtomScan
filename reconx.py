@@ -332,6 +332,19 @@ Attack Surface Management Framework
                 self.db.insert_leaks_bulk(target, leaks)
                 self.logger.info(f"Found {len(leaks)} git leaks in {gitleaks_file.name}")
 
+        # Parse TruffleHog results
+        trufflehog_files = list((phase_dir / "leaks").glob("trufflehog*.json"))
+        for trufflehog_file in trufflehog_files:
+            try:
+                leaks = self.leak_parser.parse_trufflehog(str(trufflehog_file))
+                if leaks:
+                    self.db.insert_leaks_bulk(target, leaks)
+                    self.logger.info(f"Found {len(leaks)} TruffleHog leaks in {trufflehog_file.name}")
+                else:
+                    self.logger.info(f"No leaks found in {trufflehog_file.name}")
+            except Exception as e:
+                self.logger.error(f"Failed to parse TruffleHog file {trufflehog_file.name}: {e}")
+
     def parse_phase3_output(self, target: str, output_dir: Path):
         """Parse Phase 3 (Content) outputs into database"""
         self.logger.info(f"Parsing Phase 3 outputs for {target}")

@@ -1,0 +1,40 @@
+# ReconX - Gitleaks Ignore Patterns
+# Prevent false positives from scan outputs
+
+# Exclude all output directories (contains URLs with JWT tokens from discovery)
+output/
+logs/
+
+# Exclude specific file types that contain discovered data, not committed secrets
+**/*_urls.txt
+**/*_subdomains.txt
+**/*_hosts.txt
+**/*resolved*.txt
+**/*alive*.txt
+
+# Exclude temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Exclude test files and examples that may contain dummy credentials
+**/test*
+**/example*
+**/mock*
+**/demo*
+**/*test*
+**/*example*
+
+# Exclude ReconX database and cache
+reconx.db
+reconx.db-*
+*.cache
+
+# Exclude common false positive patterns
+**/*.pyc
+**/__pycache__/
+**/node_modules/
+
+# Exclude documentation that might contain example credentials
+docs/examples/
+*.md.bak

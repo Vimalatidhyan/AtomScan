@@ -79,7 +79,16 @@ phase2_intel:
     enabled: true
     gitleaks: true
     trufflehog: true
-    max_repos: 10
+    max_repos: 5                     # Maximum repos to scan per organization
+    validate_org: true               # Validate GitHub org exists before scanning
+    skip_reconx_project: true        # Skip scanning if running from ReconX directory
+    timeout_seconds: 300            # Timeout for individual tool scans
+    ignore_patterns:                # Patterns to exclude from scanning
+      - "output/"
+      - "logs/"
+      - "**/*_urls.txt"
+      - "**/*_subdomains.txt"
+      - "**/*.cache"
 
 # Phase 3: Content Discovery Settings
 phase3_content:

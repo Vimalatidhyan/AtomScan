@@ -431,13 +431,25 @@ Attack Surface Management Framework
         self.logger.info(f"[TEST MODE] Simulating scan for {target}")
         target_dir = self.output_dir / target.replace('.', '_')
 
-        # Write mock output files to disk so parsers can read them normally
-        for phase_dir_name, files in MOCK_FILES.items():
-            phase_dir = target_dir / phase_dir_name
-            for file_path_str, content in files.items():
-                full_path = phase_dir / file_path_str
-                full_path.parent.mkdir(parents=True, exist_ok=True)
-                full_path.write_text(content)
+        # MOCK_FILES is a flat {filename: content} dict.
+        # Map each mock filename → (subdirectory, filename-on-disk) so the files
+        # land exactly where parse_phase*_output expects them.
+        _file_mapping = {
+            # source name          subdir                      dest filename
+            "subfinder.txt":    ("phase1_discovery",           "all_subdomains.txt"),
+            "httpx.jsonl":      ("phase1_discovery",           "httpx_alive.json"),
+            "nmap_all.xml":     ("phase2_intel/ports",         "nmap_all.xml"),
+            "ffuf_all.json":    ("phase3_content/bruteforce",  "ffuf_all.json"),
+            "nuclei_all.json":  ("phase4_vulnscan/nuclei",     "nuclei_all.json"),
+            "gau.txt":          ("phase3_content/urls",        "gau.txt"),
+            "katana.txt":       ("phase3_content/urls",        "katana.txt"),
+            "trufflehog.txt":   ("phase2_intel/leaks",         "trufflehog.txt"),
+        }
+        for src_filename, content in MOCK_FILES.items():
+            subdir, dest_filename = _file_mapping.get(src_filename, ("phase1_discovery", src_filename))
+            dest = target_dir / subdir / dest_filename
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text(content)
 
         # Initialize target in database
         self.db.init_target(target)

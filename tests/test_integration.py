@@ -33,7 +33,7 @@ class TestIntegrationTestMode(unittest.TestCase):
             pass
 
     def test_scan_populates_database(self):
-        reconx = ReconX(db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
+        reconx = ReconX(targets=[TARGET], db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
         reconx.scan_target(TARGET)
 
         stats = reconx.db.get_stats(TARGET)
@@ -48,7 +48,7 @@ class TestIntegrationTestMode(unittest.TestCase):
         reconx.db.close()
 
     def test_scan_progress_marked_complete(self):
-        reconx = ReconX(db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
+        reconx = ReconX(targets=[TARGET], db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
         reconx.scan_target(TARGET)
 
         progress = reconx.db.get_progress(TARGET)
@@ -61,7 +61,7 @@ class TestIntegrationTestMode(unittest.TestCase):
         reconx.db.close()
 
     def test_scan_only_selected_phases(self):
-        reconx = ReconX(db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
+        reconx = ReconX(targets=[TARGET], db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
         reconx.scan_target(TARGET, phases=[1, 2])
 
         progress = reconx.db.get_progress(TARGET)

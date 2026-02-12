@@ -4,13 +4,9 @@
   <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/Platform-Linux-red.svg" alt="Platform">
-  <img src="https://img.shields.io/badge/Status-Production%20CLI%20%2B%20Enterprise%20Roadmap-brightgreen.svg" alt="Status">
 </p>
 
 **ReconX** is a comprehensive, database-driven Attack Surface Management (ASM) framework designed for maximum coverage through tool redundancy. It orchestrates over **50+ reconnaissance and vulnerability assessment tools** across 4 distinct phases to provide complete visibility into your attack surface.
-
-> 📖 **[Full Documentation Available Here](DOCUMENTATION.md)** - Includes architecture, roadmap, use cases, and future features
-> Quick reference: [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
 
 ## 🎯 Features
 

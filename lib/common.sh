@@ -73,11 +73,34 @@ run_tool() {
     "$@" 2>/dev/null || true
 }
 
+# run_timeout SECONDS cmd [args...]
+# Portable timeout: use timeout/gtimeout if available, else run in background and kill after SECONDS (macOS).
+run_timeout() {
+    local t="$1"
+    shift
+    if command -v timeout &>/dev/null; then
+        timeout "$t" "$@"
+        return $?
+    fi
+    if command -v gtimeout &>/dev/null; then
+        gtimeout "$t" "$@"
+        return $?
+    fi
+    # Fallback when timeout not installed (e.g. macOS): run in background, sleep, kill
+    "$@" &
+    local pid=$!
+    sleep "$t" 2>/dev/null
+    kill "$pid" 2>/dev/null
+    wait "$pid" 2>/dev/null
+    return 0
+}
+
 export -f log_info
 export -f log_error
 export -f log_warn
 export -f safe_cat
 export -f safe_grep
+export -f run_timeout
 export -f check_disk_space
 export -f tool_supports_flag
 export -f run_tool

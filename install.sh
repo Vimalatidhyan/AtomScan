@@ -97,6 +97,7 @@ if [ "$OS" = "kali" ] || [ "$OS" = "debian" ] || [ "$OS" = "ubuntu" ]; then
         nmap masscan \
         nikto sqlmap \
         skipfish \
+        p0f \
         $CHROMIUM_PKG \
         default-jre \
         nodejs npm \
@@ -115,6 +116,7 @@ elif [ "$OS" = "arch" ] || [ "$OS" = "manjaro" ]; then
         whois bind-tools \
         nmap masscan \
         nikto sqlmap \
+        p0f \
         chromium \
         jre-openjdk \
         nodejs npm \
@@ -212,6 +214,7 @@ go install -v github.com/tomnomnom/goblob@latest
 
 # DNS Tools
 go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
+go install -v github.com/ProjectAnte/dnsgen@latest || log_warn "dnsgen install failed"
 
 # HTTP Probing
 go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
@@ -435,6 +438,20 @@ fi
 log_info "Installing Arjun..."
 "$PIP_CMD" install arjun || log_warn "Arjun install failed"
 
+# altdns (subdomain permutation)
+log_info "Installing altdns..."
+"$PIP_CMD" install py-altdns || "$PIP_CMD" install altdns 2>/dev/null || log_warn "altdns install failed (try: pip install py-altdns)"
+
+# WhatWeb (technology detection)
+log_info "Installing WhatWeb..."
+git_clone_or_pull "https://github.com/urbanadventurer/WhatWeb.git" "$INSTALL_DIR/WhatWeb"
+if [ -d "$INSTALL_DIR/WhatWeb" ]; then
+    cd "$INSTALL_DIR/WhatWeb" && bundle install 2>/dev/null || true
+    if [ -f "$INSTALL_DIR/WhatWeb/whatweb" ]; then
+        ln -sf "$INSTALL_DIR/WhatWeb/whatweb" /usr/local/bin/whatweb || true
+    fi
+fi
+
 # GitHunt
 log_info "Installing GitHunt..."
 git_clone_or_pull "https://github.com/tillson/git-hound.git" "$INSTALL_DIR/GitHunt"
@@ -513,6 +530,9 @@ log_info "Installing Censys CLI..."
 log_info "Installing ct-monitor..."
 "$PIP_CMD" install ct-monitor || log_warn "ct-monitor install failed"
 
+# VirusTotal CLI / requests (for scripts that use VT_API_KEY)
+# HaveIBeenPwned, AbuseIPDB, etc. are typically used via curl in bash; keys go in .env
+
 # Newman (Postman CLI)
 log_info "Installing Newman..."
 npm install -g newman || log_warn "Newman install failed"
@@ -567,7 +587,7 @@ log_section "Verifying Installation"
 
 TOOLS=(
     "subfinder" "assetfinder" "amass"
-    "asnmap" "mapcidr"
+    "asnmap" "mapcidr" "dnsgen"
     "dnsx" "httpx"
     "gau" "waybackurls" "hakrawler" "katana"
     "ffuf" "feroxbuster"
@@ -576,7 +596,7 @@ TOOLS=(
     "nmap" "sqlmap" "nikto"
     "subdominator" "subprober" "shodanx" "dorker" "spideyx" "dnsbruter"
     "cloud_enum" "s3scanner" "gcpbucketbrute" "goblob" "ct-monitor"
-    "skipfish"
+    "skipfish" "p0f"
 )
 
 INSTALLED=0
@@ -611,26 +631,21 @@ cat << 'EOF'
 
 ReconX requires API keys for certain services. Please configure them:
 
-1. Create a .env file in the ReconX directory:
+1. Copy the env template and add your keys:
 
-   # Shodan
-   export SHODAN_API_KEY="your_shodan_key"
+   cp .env.example .env
+   # Edit .env - it lists all API keys (Phase 1-5, threat intel, optional).
 
-   # Censys
-   export CENSYS_API_ID="your_censys_id"
-   export CENSYS_API_SECRET="your_censys_secret"
+   # Examples (see .env.example for full list):
+   # SHODAN_API_KEY=...
+   # CENSYS_API_ID=...  CENSYS_API_SECRET=...
+   # GITHUB_TOKEN=...
+   # SECURITYTRAILS_API_KEY=...
+   # VT_API_KEY=...  ABUSEIPDB_API_KEY=...  OTX_API_KEY=...
 
-   # GitHub
-   export GITHUB_TOKEN="your_github_token"
-
-   # SecurityTrails
-   export SECURITYTRAILS_API_KEY="your_securitytrails_key"
-
-   # Pastebin
-   export PASTEBIN_API_KEY="your_pastebin_key"
-
-2. Source the file before running ReconX:
+2. Load env before running ReconX (or run via python which loads .env automatically):
    source .env
+   python3 reconx.py -t example.com
 
 EOF
 

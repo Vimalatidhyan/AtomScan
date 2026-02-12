@@ -1,0 +1,48 @@
+# ReconX Enterprise - Docker Compose
+# Usage: from project root: docker compose -f deployment/docker/docker-compose.yml up -d
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.api
+    image: reconx-api:latest
+    container_name: reconx-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../output:/app/output
+      - ../../logs:/app/logs
+      - reconx-data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - RECONX_DB_PATH=/app/data/reconx.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: scanner worker (run one-off scans via CLI)
+  scanner:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.scanner
+    image: reconx-scanner:latest
+    container_name: reconx-scanner
+    volumes:
+      - ../../output:/app/output
+      - reconx-data:/app/data
+      - ../../config.yaml:/app/config.yaml
+    profiles:
+      - tools
+    environment:
+      - RECONX_DB_PATH=/app/data/reconx.db
+    # Only start when explicitly run: docker compose --profile tools run scanner -t example.com
+    command: ["--help"]
+
+volumes:
+  reconx-data:
+

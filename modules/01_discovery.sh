@@ -34,8 +34,8 @@ SUBFINDER_TIMEOUT="${RECONX_SUBFINDER_TIMEOUT:-900}"
 SUBFINDER_THREADS="${RECONX_SUBFINDER_THREADS:-50}"
 ASSETFINDER_TIMEOUT="${RECONX_ASSETFINDER_TIMEOUT:-900}"
 SUBDOMINATOR_TIMEOUT="${RECONX_SUBDOMINATOR_TIMEOUT:-1200}"
-CRT_TIMEOUT="${RECONX_CRTSH_TIMEOUT:-600}"
-SECURITYTRAILS_TIMEOUT="${RECONX_SECURITYTRAILS_TIMEOUT:-600}"
+CRT_TIMEOUT="${RECONX_CRTSH_TIMEOUT:-60}"
+SECURITYTRAILS_TIMEOUT="${RECONX_SECURITYTRAILS_TIMEOUT:-60}"
 DNSBRUTER_TIMEOUT="${RECONX_DNSBRUTER_TIMEOUT:-1800}"
 DNSPROBER_TIMEOUT="${RECONX_DNSPROBER_TIMEOUT:-1200}"
 DNSX_TIMEOUT="${RECONX_DNSX_TIMEOUT:-1800}"
@@ -43,7 +43,7 @@ DNSX_THREADS="${RECONX_DNSX_THREADS:-100}"
 HTTPX_TIMEOUT="${RECONX_HTTPX_TIMEOUT:-15}"
 HTTPX_THREADS="${RECONX_HTTPX_THREADS:-100}"
 HTTPX_RUN_TIMEOUT="${RECONX_HTTPX_RUN_TIMEOUT:-3600}"
-CERTSPOTTER_TIMEOUT="${RECONX_CERTSPOTTER_TIMEOUT:-600}"
+CERTSPOTTER_TIMEOUT="${RECONX_CERTSPOTTER_TIMEOUT:-60}"
 CT_MONITOR_TIMEOUT="${RECONX_CT_MONITOR_TIMEOUT:-900}"
 ASNMAP_TIMEOUT="${RECONX_ASNMAP_TIMEOUT:-900}"
 MAPCIDR_TIMEOUT="${RECONX_MAPCIDR_TIMEOUT:-1200}"
@@ -84,8 +84,8 @@ run_tool() {
     log_info "Running $tool_name (timeout: ${timeout_duration}s)..."
     local start_time=$(date +%s)
 
-    # Run with timeout and capture exit code
-    if timeout "$timeout_duration" bash -c "$cmd" 2>"${output_file}.err"; then
+    # Run with timeout and capture exit code (run_timeout is portable on macOS)
+    if run_timeout "$timeout_duration" bash -c "$cmd" 2>"${output_file}.err"; then
         local end_time=$(date +%s)
         local duration=$((end_time - start_time))
         log_info "$tool_name completed successfully (${duration}s)"
@@ -126,7 +126,7 @@ log_info "=== HORIZONTAL DISCOVERY ==="
 # Whois domain information
 if command -v whois &> /dev/null; then
     log_info "Running whois..."
-    timeout "$WHOIS_TIMEOUT" whois "$TARGET" > "$PHASE_DIR/whois.txt" 2>/dev/null || log_warn "Whois failed or timed out"
+    run_timeout "$WHOIS_TIMEOUT" whois "$TARGET" > "$PHASE_DIR/whois.txt" 2>/dev/null || log_warn "Whois failed or timed out"
 else
     log_warn "whois not found"
     ((TOOLS_SKIPPED++))
@@ -150,7 +150,7 @@ fi
 # Get subsidiaries (if tool exists)
 if [ -f "/opt/getSubsidiaries/getSubsidiaries.py" ]; then
     log_info "Running getSubsidiaries..."
-    timeout 600 python3 /opt/getSubsidiaries/getSubsidiaries.py "$TARGET" > "$PHASE_DIR/subsidiaries.txt" 2>/dev/null || log_warn "getSubsidiaries failed"
+    run_timeout 600 python3 /opt/getSubsidiaries/getSubsidiaries.py "$TARGET" > "$PHASE_DIR/subsidiaries.txt" 2>/dev/null || log_warn "getSubsidiaries failed"
 else
     log_warn "getSubsidiaries not found"
     ((TOOLS_SKIPPED++))
@@ -172,13 +172,12 @@ mkdir -p "$CT_DIR"
 
 # Launch all subdomain enumeration tools in parallel with proper error handling
 pids=()
-declare -A tool_pids
 
 # 1. Sublist3r
 if command -v sublist3r &> /dev/null || [ -f "/opt/Sublist3r/sublist3r.py" ]; then
     log_info "Launching Sublist3r..."
     (
-        timeout "$SUBLIST3R_TIMEOUT" bash -c "
+        run_timeout "$SUBLIST3R_TIMEOUT" bash -c "
             if [ -f '/opt/Sublist3r/sublist3r.py' ]; then
                 python3 /opt/Sublist3r/sublist3r.py -d '$TARGET' -o '$TEMP_SUBS/sublist3r.txt'
             else
@@ -186,7 +185,6 @@ if command -v sublist3r &> /dev/null || [ -f "/opt/Sublist3r/sublist3r.py" ]; th
             fi
         " 2>/dev/null || touch "$TEMP_SUBS/sublist3r.txt"
     ) &
-    tool_pids[sublist3r]=$!
     pids+=($!)
 else
     log_warn "Sublist3r not found"
@@ -197,9 +195,8 @@ fi
 if command -v amass &> /dev/null; then
     log_info "Launching Amass enum..."
     (
-        timeout "$AMASS_ENUM_TIMEOUT" amass enum -d "$TARGET" -passive -timeout 20 -o "$TEMP_SUBS/amass.txt" 2>/dev/null || touch "$TEMP_SUBS/amass.txt"
+        run_timeout "$AMASS_ENUM_TIMEOUT" amass enum -d "$TARGET" -passive -timeout 20 -o "$TEMP_SUBS/amass.txt" 2>/dev/null || touch "$TEMP_SUBS/amass.txt"
     ) &
-    tool_pids[amass]=$!
     pids+=($!)
 else
     log_warn "Amass not found"
@@ -210,9 +207,8 @@ fi
 if command -v assetfinder &> /dev/null; then
     log_info "Launching Assetfinder..."
     (
-        timeout "$ASSETFINDER_TIMEOUT" assetfinder --subs-only "$TARGET" > "$TEMP_SUBS/assetfinder.txt" 2>/dev/null || touch "$TEMP_SUBS/assetfinder.txt"
+        run_timeout "$ASSETFINDER_TIMEOUT" assetfinder --subs-only "$TARGET" > "$TEMP_SUBS/assetfinder.txt" 2>/dev/null || touch "$TEMP_SUBS/assetfinder.txt"
     ) &
-    tool_pids[assetfinder]=$!
     pids+=($!)
 else
     log_warn "Assetfinder not found"
@@ -223,9 +219,8 @@ fi
 if command -v subfinder &> /dev/null; then
     log_info "Launching Subfinder..."
     (
-        timeout "$SUBFINDER_TIMEOUT" subfinder -d "$TARGET" -silent -t "$SUBFINDER_THREADS" -o "$TEMP_SUBS/subfinder.txt" 2>/dev/null || touch "$TEMP_SUBS/subfinder.txt"
+        run_timeout "$SUBFINDER_TIMEOUT" subfinder -d "$TARGET" -silent -t "$SUBFINDER_THREADS" -o "$TEMP_SUBS/subfinder.txt" 2>/dev/null || touch "$TEMP_SUBS/subfinder.txt"
     ) &
-    tool_pids[subfinder]=$!
     pids+=($!)
 else
     log_warn "Subfinder not found"
@@ -248,7 +243,7 @@ done
 if command -v subdominator &> /dev/null || [ -n "$SUBDOMINATOR_PY" ]; then
     log_info "Launching Subdominator..."
     (
-        timeout "$SUBDOMINATOR_TIMEOUT" bash -c "
+        run_timeout "$SUBDOMINATOR_TIMEOUT" bash -c "
             if command -v subdominator &> /dev/null; then
                 subdominator -d '$TARGET' -o '$TEMP_SUBS/subdominator.txt' -nc
             else
@@ -256,7 +251,6 @@ if command -v subdominator &> /dev/null || [ -n "$SUBDOMINATOR_PY" ]; then
             fi
         " 2>/dev/null || touch "$TEMP_SUBS/subdominator.txt"
     ) &
-    tool_pids[subdominator]=$!
     pids+=($!)
 else
     log_warn "Subdominator not found"
@@ -266,26 +260,24 @@ fi
 # 6. crt.sh via curl
 log_info "Launching crt.sh..."
 (
-    timeout "$CRT_TIMEOUT" bash -c "
+    run_timeout "$CRT_TIMEOUT" bash -c "
         curl -s 'https://crt.sh/?q=%25.$TARGET&output=json' 2>/dev/null | \
             jq -r '.[].name_value' 2>/dev/null | \
             sed 's/\*\.//g' | \
             sort -u > '$TEMP_SUBS/crtsh.txt'
     " || touch "$TEMP_SUBS/crtsh.txt"
 ) &
-tool_pids[crtsh]=$!
 pids+=($!)
 
 # 6.1 CertSpotter (CT API)
 log_info "Launching CertSpotter..."
 (
-    timeout "$CERTSPOTTER_TIMEOUT" bash -c "
+    run_timeout "$CERTSPOTTER_TIMEOUT" bash -c "
         curl -s 'https://api.certspotter.com/v1/issuances?domain=$TARGET&include_subdomains=true&expand=dns_names' 2>/dev/null | \
             jq -r '.[].dns_names[]' 2>/dev/null | \
             sed 's/\\*\\.//g' | sort -u > '$CT_DIR/certspotter.txt'
     " || touch "$CT_DIR/certspotter.txt"
 ) &
-tool_pids[certspotter]=$!
 pids+=($!)
 
 # 6.2 ct-monitor (optional)
@@ -299,7 +291,7 @@ if command -v ct-monitor &> /dev/null; then
             CT_CMD="ct-monitor -d '$TARGET'"
         fi
 
-        timeout "$CT_MONITOR_TIMEOUT" bash -c "$CT_CMD" > "$CT_DIR/ct_monitor_raw.txt" 2>/dev/null || true
+        run_timeout "$CT_MONITOR_TIMEOUT" bash -c "$CT_CMD" > "$CT_DIR/ct_monitor_raw.txt" 2>/dev/null || true
         if [ -s "$CT_DIR/ct_monitor_raw.txt" ]; then
             safe_grep -E '[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9-]{1,})+\\.[a-zA-Z]{2,}' "$CT_DIR/ct_monitor_raw.txt" | \
                 sed 's/\\*\\.//g' | sort -u > "$CT_DIR/ct_monitor.txt" || touch "$CT_DIR/ct_monitor.txt"
@@ -307,7 +299,6 @@ if command -v ct-monitor &> /dev/null; then
             touch "$CT_DIR/ct_monitor.txt"
         fi
     ) &
-    tool_pids[ctmonitor]=$!
     pids+=($!)
 else
     log_warn "ct-monitor not found"
@@ -318,14 +309,13 @@ fi
 if [ ! -z "$SECURITYTRAILS_API_KEY" ]; then
     log_info "Launching SecurityTrails..."
     (
-        timeout "$SECURITYTRAILS_TIMEOUT" bash -c "
+        run_timeout "$SECURITYTRAILS_TIMEOUT" bash -c "
             curl -s 'https://api.securitytrails.com/v1/domain/$TARGET/subdomains' \
                 -H 'APIKEY: $SECURITYTRAILS_API_KEY' 2>/dev/null | \
                 jq -r '.subdomains[]' 2>/dev/null | \
                 awk -v domain='$TARGET' '{print \$0\".\"domain}' > '$TEMP_SUBS/securitytrails.txt'
         " || touch "$TEMP_SUBS/securitytrails.txt"
     ) &
-    tool_pids[securitytrails]=$!
     pids+=($!)
 fi
 
@@ -386,7 +376,7 @@ if [ "$PASSIVE_COUNT" -gt 0 ] || [ -s "$PHASE_DIR/passive_subdomains.txt" ]; the
             "dnsbruter -d '$TARGET' -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -wd -o '$TEMP_SUBS/dnsbruter.txt'" || true
     elif [ -n "$DNSBRUTER_PY" ]; then
         log_info "Running Dnsbruter (Python)..."
-        timeout "$DNSBRUTER_TIMEOUT" python3 "$DNSBRUTER_PY" -d "$TARGET" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -wd -o "$TEMP_SUBS/dnsbruter.txt" 2>/dev/null || log_warn "Dnsbruter failed"
+        run_timeout "$DNSBRUTER_TIMEOUT" python3 "$DNSBRUTER_PY" -d "$TARGET" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -wd -o "$TEMP_SUBS/dnsbruter.txt" 2>/dev/null || log_warn "Dnsbruter failed"
     else
         log_warn "Dnsbruter not found"
         ((TOOLS_SKIPPED++))
@@ -424,7 +414,13 @@ else
     touch "$PHASE_DIR/all_subdomains.txt"
 fi
 
+# When no subdomains found, add root domain so at least the main host gets probed (DNS + HTTP)
 TOTAL_SUBS=$(wc -l < "$PHASE_DIR/all_subdomains.txt" 2>/dev/null | tr -d ' ')
+if [ "$TOTAL_SUBS" -eq 0 ]; then
+    log_info "No subdomains from enumeration; adding root domain $TARGET for probing"
+    echo "$TARGET" >> "$PHASE_DIR/all_subdomains.txt"
+    TOTAL_SUBS=1
+fi
 log_info "Total unique subdomains found: $TOTAL_SUBS"
 
 ################################################################################
@@ -444,7 +440,7 @@ if command -v asnmap &> /dev/null; then
     if tool_supports_flag "asnmap" "-d"; then
         ASN_CMD="asnmap -d '$TARGET' -silent > '$ASN_CIDRS_FILE'"
     fi
-    timeout "$ASNMAP_TIMEOUT" bash -c "$ASN_CMD" 2>"$ASN_DIR/asnmap.err" || log_warn "asnmap failed or timed out"
+    run_timeout "$ASNMAP_TIMEOUT" bash -c "$ASN_CMD" 2>"$ASN_DIR/asnmap.err" || log_warn "asnmap failed or timed out"
 else
     log_warn "asnmap not found"
     ((TOOLS_SKIPPED++))
@@ -456,7 +452,7 @@ if [ -s "$ASN_CIDRS_FILE" ] && command -v mapcidr &> /dev/null; then
     if tool_supports_flag "mapcidr" "-silent"; then
         MAP_CMD="mapcidr -silent < '$ASN_CIDRS_FILE' > '$ASN_IPS_FILE'"
     fi
-    timeout "$MAPCIDR_TIMEOUT" bash -c "$MAP_CMD" 2>"$ASN_DIR/mapcidr.err" || log_warn "mapcidr failed or timed out"
+    run_timeout "$MAPCIDR_TIMEOUT" bash -c "$MAP_CMD" 2>"$ASN_DIR/mapcidr.err" || log_warn "mapcidr failed or timed out"
 else
     touch "$ASN_IPS_FILE"
 fi
@@ -475,7 +471,7 @@ if [ "$TOTAL_SUBS" -gt 0 ] && [ -s "$PHASE_DIR/all_subdomains.txt" ]; then
     # DNSx for resolution
     if command -v dnsx &> /dev/null; then
         log_info "Running DNSx for resolution..."
-        timeout "$DNSX_TIMEOUT" bash -c "cat '$PHASE_DIR/all_subdomains.txt' | dnsx -silent -a -resp -json -t $DNSX_THREADS -o '$PHASE_DIR/dnsx_resolved.json'" 2>/dev/null || log_warn "DNSx failed or timed out"
+        run_timeout "$DNSX_TIMEOUT" bash -c "cat '$PHASE_DIR/all_subdomains.txt' | dnsx -silent -a -resp -json -t $DNSX_THREADS -o '$PHASE_DIR/dnsx_resolved.json'" 2>/dev/null || log_warn "DNSx failed or timed out"
 
         # Extract resolved domains
         if [ -f "$PHASE_DIR/dnsx_resolved.json" ] && [ -s "$PHASE_DIR/dnsx_resolved.json" ]; then
@@ -514,7 +510,7 @@ if [ -s "$HTTPX_TARGETS" ]; then
     # HTTPx for live host detection
     if command -v httpx &> /dev/null; then
         log_info "Running HTTPx to find alive hosts..."
-        timeout "$HTTPX_RUN_TIMEOUT" bash -c "cat '$HTTPX_TARGETS' | httpx -silent -json -status-code -follow-redirects -threads $HTTPX_THREADS -timeout $HTTPX_TIMEOUT -o '$PHASE_DIR/httpx_alive.json'" 2>/dev/null || log_warn "HTTPx failed or timed out"
+        run_timeout "$HTTPX_RUN_TIMEOUT" bash -c "cat '$HTTPX_TARGETS' | httpx -silent -json -status-code -follow-redirects -threads $HTTPX_THREADS -timeout $HTTPX_TIMEOUT -o '$PHASE_DIR/httpx_alive.json'" 2>/dev/null || log_warn "HTTPx failed or timed out"
 
         # Extract alive hosts
         if [ -f "$PHASE_DIR/httpx_alive.json" ] && [ -s "$PHASE_DIR/httpx_alive.json" ]; then
@@ -569,11 +565,11 @@ if [ -s "$CLOUD_KEYWORDS" ]; then
     if command -v cloud_enum &> /dev/null; then
         log_info "Running cloud_enum..."
         if tool_supports_flag "cloud_enum" "-l"; then
-            timeout "$CLOUD_ENUM_TIMEOUT" cloud_enum -l "$CLOUD_KEYWORDS" -t "$CLOUD_THREADS" > "$CLOUD_DIR/cloud_enum.txt" 2>/dev/null || log_warn "cloud_enum failed"
+            run_timeout "$CLOUD_ENUM_TIMEOUT" cloud_enum -l "$CLOUD_KEYWORDS" -t "$CLOUD_THREADS" > "$CLOUD_DIR/cloud_enum.txt" 2>/dev/null || log_warn "cloud_enum failed"
         elif tool_supports_flag "cloud_enum" "-k"; then
-            timeout "$CLOUD_ENUM_TIMEOUT" cloud_enum -k "$TARGET" -t "$CLOUD_THREADS" > "$CLOUD_DIR/cloud_enum.txt" 2>/dev/null || log_warn "cloud_enum failed"
+            run_timeout "$CLOUD_ENUM_TIMEOUT" cloud_enum -k "$TARGET" -t "$CLOUD_THREADS" > "$CLOUD_DIR/cloud_enum.txt" 2>/dev/null || log_warn "cloud_enum failed"
         else
-            timeout "$CLOUD_ENUM_TIMEOUT" cloud_enum "$TARGET" > "$CLOUD_DIR/cloud_enum.txt" 2>/dev/null || log_warn "cloud_enum failed"
+            run_timeout "$CLOUD_ENUM_TIMEOUT" cloud_enum "$TARGET" > "$CLOUD_DIR/cloud_enum.txt" 2>/dev/null || log_warn "cloud_enum failed"
         fi
     else
         log_warn "cloud_enum not found"
@@ -583,9 +579,9 @@ if [ -s "$CLOUD_KEYWORDS" ]; then
     if command -v s3scanner &> /dev/null; then
         log_info "Running S3Scanner..."
         if tool_supports_flag "s3scanner" "-l"; then
-            timeout "$S3SCANNER_TIMEOUT" s3scanner -l "$CLOUD_KEYWORDS" -o "$CLOUD_DIR/s3scanner.txt" 2>/dev/null || log_warn "S3Scanner failed"
+            run_timeout "$S3SCANNER_TIMEOUT" s3scanner -l "$CLOUD_KEYWORDS" -o "$CLOUD_DIR/s3scanner.txt" 2>/dev/null || log_warn "S3Scanner failed"
         else
-            timeout "$S3SCANNER_TIMEOUT" s3scanner "$CLOUD_KEYWORDS" "$CLOUD_DIR/s3scanner.txt" 2>/dev/null || log_warn "S3Scanner failed"
+            run_timeout "$S3SCANNER_TIMEOUT" s3scanner "$CLOUD_KEYWORDS" "$CLOUD_DIR/s3scanner.txt" 2>/dev/null || log_warn "S3Scanner failed"
         fi
     else
         log_warn "S3Scanner not found"
@@ -595,9 +591,9 @@ if [ -s "$CLOUD_KEYWORDS" ]; then
     if command -v goblob &> /dev/null; then
         log_info "Running goblob..."
         if tool_supports_flag "goblob" "-w"; then
-            timeout "$GOBLOB_TIMEOUT" goblob -w "$CLOUD_KEYWORDS" -o "$CLOUD_DIR/goblob.txt" 2>/dev/null || log_warn "goblob failed"
+            run_timeout "$GOBLOB_TIMEOUT" goblob -w "$CLOUD_KEYWORDS" -o "$CLOUD_DIR/goblob.txt" 2>/dev/null || log_warn "goblob failed"
         else
-            timeout "$GOBLOB_TIMEOUT" goblob "$CLOUD_KEYWORDS" > "$CLOUD_DIR/goblob.txt" 2>/dev/null || log_warn "goblob failed"
+            run_timeout "$GOBLOB_TIMEOUT" goblob "$CLOUD_KEYWORDS" > "$CLOUD_DIR/goblob.txt" 2>/dev/null || log_warn "goblob failed"
         fi
     else
         log_warn "goblob not found"
@@ -607,9 +603,9 @@ if [ -s "$CLOUD_KEYWORDS" ]; then
     if command -v gcpbucketbrute &> /dev/null; then
         log_info "Running GCPBucketBrute..."
         if tool_supports_flag "gcpbucketbrute" "-w"; then
-            timeout "$GCPBRUTE_TIMEOUT" gcpbucketbrute -w "$CLOUD_KEYWORDS" -o "$CLOUD_DIR/gcpbucketbrute.txt" 2>/dev/null || log_warn "GCPBucketBrute failed"
+            run_timeout "$GCPBRUTE_TIMEOUT" gcpbucketbrute -w "$CLOUD_KEYWORDS" -o "$CLOUD_DIR/gcpbucketbrute.txt" 2>/dev/null || log_warn "GCPBucketBrute failed"
         else
-            timeout "$GCPBRUTE_TIMEOUT" gcpbucketbrute "$CLOUD_KEYWORDS" > "$CLOUD_DIR/gcpbucketbrute.txt" 2>/dev/null || log_warn "GCPBucketBrute failed"
+            run_timeout "$GCPBRUTE_TIMEOUT" gcpbucketbrute "$CLOUD_KEYWORDS" > "$CLOUD_DIR/gcpbucketbrute.txt" 2>/dev/null || log_warn "GCPBucketBrute failed"
         fi
     else
         log_warn "GCPBucketBrute not found"

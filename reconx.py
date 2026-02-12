@@ -19,6 +19,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Any, Optional
+from urllib.parse import urlparse
 
 # Load .env before anything else that reads env vars
 from dotenv import load_dotenv
@@ -331,19 +332,6 @@ Attack Surface Management Framework
             if leaks:
                 self.db.insert_leaks_bulk(target, leaks)
                 self.logger.info(f"Found {len(leaks)} git leaks in {gitleaks_file.name}")
-
-        # Parse TruffleHog results
-        trufflehog_files = list((phase_dir / "leaks").glob("trufflehog*.json"))
-        for trufflehog_file in trufflehog_files:
-            try:
-                leaks = self.leak_parser.parse_trufflehog(str(trufflehog_file))
-                if leaks:
-                    self.db.insert_leaks_bulk(target, leaks)
-                    self.logger.info(f"Found {len(leaks)} TruffleHog leaks in {trufflehog_file.name}")
-                else:
-                    self.logger.info(f"No leaks found in {trufflehog_file.name}")
-            except Exception as e:
-                self.logger.error(f"Failed to parse TruffleHog file {trufflehog_file.name}: {e}")
 
     def parse_phase3_output(self, target: str, output_dir: Path):
         """Parse Phase 3 (Content) outputs into database"""
@@ -694,7 +682,7 @@ Phases:
     parser.add_argument('-t', '--target', help='Target domain(s), comma-separated')
     parser.add_argument('-f', '--file', help='File containing target domains (one per line)')
     parser.add_argument('-o', '--output', default='output', help='Output directory (default: output)')
-    parser.add_argument('-d', '--database', default='reconx.db', help='Database file path (default: reconx.db)')
+    parser.add_argument('-d', '--database', default=os.getenv('RECONX_DB_PATH', 'reconx.db'), help='Database file path (default: reconx.db or RECONX_DB_PATH)')
     parser.add_argument('-p', '--phases', default='1,2,3,4', help='Phases to run (default: 1,2,3,4)')
     parser.add_argument('-T', '--threads', type=int, default=5, help='Number of concurrent target scans (default: 5)')
     parser.add_argument('--resume', action='store_true', help='Resume incomplete scans')
@@ -702,18 +690,36 @@ Phases:
 
     args = parser.parse_args()
 
-    # Get targets
+    def normalize_target(raw: str) -> str:
+        """Convert URL or domain with trailing slash to bare domain (e.g. pcis.education)."""
+        s = raw.strip()
+        if not s:
+            return s
+        if "://" in s:
+            parsed = urlparse(s if "://" in s else "//" + s)
+            host = parsed.netloc or parsed.path
+        else:
+            host = s
+        # Strip trailing slash and any path
+        host = host.rstrip("/").split("/")[0].split(":")[0]
+        return host.lower() if host else s
+
+    # Get targets and normalize to bare domains (no https://, no trailing /)
     targets = []
     if args.target:
-        targets = [t.strip() for t in args.target.split(',')]
+        targets = [normalize_target(t) for t in args.target.split(",") if t.strip()]
     elif args.file:
         if not os.path.exists(args.file):
             print(f"Error: File {args.file} not found")
             sys.exit(1)
         with open(args.file, 'r') as f:
-            targets = [line.strip() for line in f if line.strip()]
+            targets = [normalize_target(line) for line in f if line.strip()]
     else:
         parser.print_help()
+        sys.exit(1)
+
+    if not targets:
+        print("Error: No valid targets after normalization")
         sys.exit(1)
 
     # Parse phases

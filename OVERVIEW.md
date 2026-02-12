@@ -107,7 +107,7 @@ reconx/
 
 **Phase 4 (04_vuln.sh)**:
 - Nuclei scanning (all templates)
-- (config/image/dependency)
+- Trivy (config/image/dependency)
 - XSS testing (Dalfox)
 - SQL injection (SQLMap)
 - CORS misconfiguration (Corsy)
@@ -126,7 +126,7 @@ reconx/
 - `PortParser` - Parse Nmap XML, RustScan
 - `UrlParser` - Parse gau, waybackurls, etc.
 - `DirectoryParser` - Parse ffuf, Feroxbuster, Dirsearch
-- `VulnerabilityParser` - Parse Nuclei, Dalfox, SQLMap, Corsy
+- `VulnerabilityParser` - Parse Nuclei, Trivy, Dalfox, SQLMap, Corsy
 - `LeakParser` - Parse Gitleaks, SecretFinder, LinkFinder
 - `TakeoverParser` - Parse Subjack
 
@@ -156,7 +156,7 @@ reconx/
 | **Directories** | ffuf, Feroxbuster, Dirsearch |
 | **JS Analysis** | LinkFinder, SecretFinder, JSScanner, Retire.js |
 | **API Discovery** | Kiterunner, Arjun, Newman |
-| **Vuln Scanning** | Nuclei, Nikto, Wapiti |
+| **Vuln Scanning** | Nuclei, Trivy, Nikto, Wapiti |
 | **XSS** | Dalfox, XSStrike |
 | **SQLi** | SQLMap |
 | **CORS** | Corsy |
@@ -268,7 +268,7 @@ CREATE TABLE vulnerabilities (
 
 ### Phase 4: Vulnerability Scanning
 1. Nuclei comprehensive scan
-2. config/image scanning
+2. Trivy config/image scanning
 3. XSS testing (Dalfox)
 4. SQL injection testing (SQLMap)
 5. CORS testing (Corsy)

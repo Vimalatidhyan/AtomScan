@@ -226,7 +226,7 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
             log_error "Aborting Nmap due to low disk space"
         else
             log_info "Nmap scanning $NMAP_TARGET_COUNT targets via -iL..."
-            timeout $((NMAP_HOST_TIMEOUT * NMAP_MAX_HOSTS)) \
+            run_timeout $((NMAP_HOST_TIMEOUT * NMAP_MAX_HOSTS)) \
                 nmap -sV -sC -T4 -Pn $NMAP_PORT_FLAG \
                 --host-timeout "${NMAP_HOST_TIMEOUT}s" \
                 --min-parallelism 10 \
@@ -406,105 +406,31 @@ log_info "=== REPOSITORY LEAK DETECTION ==="
 LEAKS_DIR="$PHASE_DIR/leaks"
 mkdir -p "$LEAKS_DIR"
 
-# Helper function to validate GitHub organization
-validate_github_org() {
-    local org_name="$1"
-    if command -v gh &> /dev/null; then
-        if gh auth status &>/dev/null; then
-            if gh org view "$org_name" &>/dev/null 2>&1; then
-                return 0  # Org exists
-            fi
-        fi
-    fi
-    return 1  # Org doesn't exist or can't validate
-}
-
 # Gitleaks - Scan for secrets in git repos
 if command -v gitleaks &> /dev/null; then
     log_info "Running Gitleaks..."
 
-    # Create .gitleaksignore if it doesn't exist
-    if [ ! -f ".gitleaksignore" ]; then
-        log_info "Creating .gitleaksignore to prevent false positives..."
-        cat > .gitleaksignore << 'EOF'
-# Exclude ReconX output and logs (contains discovered URLs with tokens)
-output/
-logs/
-**/*_urls.txt
-**/*_subdomains.txt
-**/*_hosts.txt
-**/*resolved*.txt
-**/*alive*.txt
-*.tmp
-*.cache
-reconx.db*
-**/__pycache__/
-EOF
-    fi
-
-    # Check if target is a git repository (but exclude output scanning)
+    # Check if target is a git repository or try to find company repos
     if [ -d ".git" ]; then
-        log_info "Scanning local git repository with Gitleaks (excluding output/)..."
-        
-        # Only scan if we're not in ReconX project root (to avoid scanning discovered URLs)
-        CURRENT_DIR=$(basename "$(pwd)")
-        if [[ "$CURRENT_DIR" == *"kali-linux-asm"* ]] || [[ "$CURRENT_DIR" == *"reconx"* ]]; then
-            log_warn "Skipping local git scan - running from ReconX project directory"
-            log_warn "This prevents false positives from discovered URLs in output/"
-        else
-            gitleaks detect --source . --report-path "$LEAKS_DIR/gitleaks_report.json" 2>/dev/null || log_warn "Gitleaks scan failed"
-        fi
+        log_info "Scanning local repository with Gitleaks..."
+        gitleaks detect --source . --report-path "$LEAKS_DIR/gitleaks_report.json" 2>/dev/null || log_warn "Gitleaks scan failed"
     else
         log_info "No local git repository found for Gitleaks scan"
     fi
 
-    # Try to scan GitHub organization repos
-    if command -v gh &> /dev/null && [ ! -z "$GITHUB_TOKEN" ]; then
-        # Extract and validate organization name
-        ORG_NAME=$(echo "$TARGET" | cut -d'.' -f1 | tr '[:upper:]' '[:lower:]')
-        log_info "Extracted potential GitHub org: $ORG_NAME"
-        
-        # Validate organization exists before scanning
-        if validate_github_org "$ORG_NAME"; then
-            log_info "✓ GitHub org '$ORG_NAME' exists - scanning repositories..."
-            
-            # Get repo count first
-            REPO_COUNT=$(gh repo list "$ORG_NAME" --limit 1000 --json name -q 'length' 2>/dev/null || echo "0")
-            if [ "$REPO_COUNT" -gt 0 ]; then
-                log_info "Found $REPO_COUNT repositories in org '$ORG_NAME'"
-                
-                # Limit to prevent overwhelming scans
-                MAX_REPOS=5
-                if [ "$REPO_COUNT" -gt "$MAX_REPOS" ]; then
-                    log_warn "Limiting scan to $MAX_REPOS most recent repositories"
-                fi
-                
-                gh repo list "$ORG_NAME" --limit "$MAX_REPOS" --json name -q '.[].name' 2>/dev/null | while read -r repo; do
-                    if [ -n "$repo" ]; then
-                        log_info "Scanning repo: $ORG_NAME/$repo"
-                        TEMP_DIR=$(mktemp -d)
-                        
-                        if git clone --depth 1 "https://github.com/$ORG_NAME/$repo" "$TEMP_DIR/$repo" 2>/dev/null; then
-                            gitleaks detect --source "$TEMP_DIR/$repo" --report-path "$LEAKS_DIR/gitleaks_${repo}.json" 2>/dev/null || true
-                            log_info "✓ Scanned $ORG_NAME/$repo"
-                        else
-                            log_warn "✗ Failed to clone $ORG_NAME/$repo (may be private)"
-                        fi
-                        
-                        rm -rf "$TEMP_DIR" 2>/dev/null || true
-                    fi
-                done
-            else
-                log_warn "No repositories found in GitHub org '$ORG_NAME'"
-            fi
-        else
-            log_warn "✗ GitHub org '$ORG_NAME' does not exist or is not accessible"
-            log_info "Skipping GitHub organization scan for $ORG_NAME"
-        fi
-    elif [ -z "$GITHUB_TOKEN" ]; then
-        log_warn "GITHUB_TOKEN not set - skipping GitHub organization scan"
-    else
-        log_warn "GitHub CLI (gh) not found - cannot scan GitHub organizations"
+    # Try to scan GitHub if organization name matches
+    if command -v gh &> /dev/null; then
+        ORG_NAME=$(echo "$TARGET" | cut -d'.' -f1)
+        log_info "Attempting to scan GitHub org: $ORG_NAME"
+
+        # List repos (requires gh auth)
+        gh repo list "$ORG_NAME" --limit 10 --json name -q '.[].name' 2>/dev/null | while read -r repo; do
+            log_info "Scanning repo: $ORG_NAME/$repo"
+            TEMP_DIR=$(mktemp -d)
+            git clone --depth 1 "https://github.com/$ORG_NAME/$repo" "$TEMP_DIR/$repo" 2>/dev/null || continue
+            gitleaks detect --source "$TEMP_DIR/$repo" --report-path "$LEAKS_DIR/gitleaks_${repo}.json" 2>/dev/null || true
+            rm -rf "$TEMP_DIR"
+        done
     fi
 else
     log_warn "Gitleaks not found"
@@ -525,36 +451,14 @@ fi
 if command -v trufflehog &> /dev/null; then
     log_info "Running TruffleHog..."
 
-    # Local git repo scan (with same safety checks as Gitleaks)
     if [ -d ".git" ]; then
-        CURRENT_DIR=$(basename "$(pwd)")
-        if [[ "$CURRENT_DIR" == *"kali-linux-asm"* ]] || [[ "$CURRENT_DIR" == *"reconx"* ]]; then
-            log_warn "Skipping TruffleHog local scan - running from ReconX project directory"
-        else
-            log_info "Scanning local repository with TruffleHog..."
-            trufflehog git file://. --json > "$LEAKS_DIR/trufflehog_report.json" 2>/dev/null || log_warn "TruffleHog local scan failed"
-        fi
+        trufflehog git file://. --json > "$LEAKS_DIR/trufflehog_report.json" 2>/dev/null || log_warn "TruffleHog failed"
     fi
 
-    # GitHub organization scan with validation
+    # Scan GitHub org
     if [ ! -z "$GITHUB_TOKEN" ]; then
-        ORG_NAME=$(echo "$TARGET" | cut -d'.' -f1 | tr '[:upper:]' '[:lower:]')
-        
-        if validate_github_org "$ORG_NAME"; then
-            log_info "✓ Running TruffleHog GitHub scan for org: $ORG_NAME"
-            
-            # TruffleHog with timeout and limited scope
-            timeout 300s trufflehog github --org="$ORG_NAME" --json > "$LEAKS_DIR/trufflehog_github.json" 2>/dev/null || {
-                log_warn "TruffleHog GitHub scan failed or timed out after 5 minutes"
-                # Create empty file to prevent parsing errors
-                echo '[]' > "$LEAKS_DIR/trufflehog_github.json"
-            }
-        else
-            log_warn "Skipping TruffleHog GitHub scan - org '$ORG_NAME' does not exist"
-            echo '[]' > "$LEAKS_DIR/trufflehog_github.json"  # Empty JSON array
-        fi
-    else
-        log_warn "GITHUB_TOKEN not set - skipping TruffleHog GitHub scan"
+        ORG_NAME=$(echo "$TARGET" | cut -d'.' -f1)
+        trufflehog github --org="$ORG_NAME" --json > "$LEAKS_DIR/trufflehog_github.json" 2>/dev/null || log_warn "TruffleHog GitHub scan failed"
     fi
 else
     log_warn "TruffleHog not found"

@@ -47,7 +47,7 @@ export -f log_error
 run_with_timeout() {
     local timeout_duration="$1"
     shift
-    timeout "$timeout_duration" bash -c "$*" 2>/dev/null
+    run_timeout "$timeout_duration" bash -c "$*" 2>/dev/null
 }
 
 run_parallel_from_file() {

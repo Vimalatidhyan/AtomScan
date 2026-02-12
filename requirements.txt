@@ -15,3 +15,7 @@ lxml>=4.9.3
 
 # Database
 # SQLite3 is built into Python
+
+# API server (optional)
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0

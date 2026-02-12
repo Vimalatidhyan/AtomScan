@@ -462,52 +462,6 @@ class LeakParser(OutputParser):
             })
         return results
 
-    def parse_trufflehog(self, file_path: str) -> List[Dict[str, Any]]:
-        """Parse TruffleHog JSON output"""
-        data = self.read_json(file_path)
-        if not data:
-            return []
-        
-        results = []
-        for entry in data:
-            # Handle both individual JSON objects and arrays
-            if isinstance(entry, dict):
-                # Extract detector info
-                detector_name = entry.get('DetectorName', 'Unknown')
-                detector_desc = entry.get('DetectorDescription', '')
-                raw_secret = entry.get('Raw', '')[:50] + '...' if len(entry.get('Raw', '')) > 50 else entry.get('Raw', '')
-                verified = entry.get('Verified', False)
-                
-                # Extract source metadata (GitHub repo info)
-                source_metadata = entry.get('SourceMetadata', {})
-                source_data = source_metadata.get('Data', {})
-                github_info = source_data.get('Github', {})
-                
-                repo_url = github_info.get('repository', '')
-                file_path = github_info.get('file', '')
-                commit = github_info.get('commit', '')
-                line_num = github_info.get('line', '')
-                
-                # Determine severity based on verification and detector type
-                if verified:
-                    severity = 'critical'
-                elif detector_name in ['Github', 'AWS', 'Google', 'Azure', 'Database']:
-                    severity = 'high'
-                else:
-                    severity = 'medium'
-                
-                # Skip false positives (URLs from ReconX output)
-                if 'output/' in file_path or 'all_urls.txt' in file_path or 'phase' in file_path:
-                    continue
-                    
-                results.append({
-                    'leak_type': f'TruffleHog_{detector_name}',
-                    'url': f"{repo_url}/blob/{commit}/{file_path}#L{line_num}" if all([repo_url, commit, file_path, line_num]) else repo_url,
-                    'info': f"{detector_name}: {raw_secret} ({'Verified' if verified else 'Unverified'}) - {detector_desc}",
-                    'severity': severity
-                })
-        return results
-
     def parse_secretfinder(self, file_path: str) -> List[Dict[str, Any]]:
         """Parse SecretFinder output"""
         results = []

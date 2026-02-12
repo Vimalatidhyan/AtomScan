@@ -9,7 +9,14 @@ general:
   timeout: 3600  # Timeout per phase in seconds
   user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
-# API Keys (Can also be set via environment variables)
+# API Keys - set in .env (copy from .env.example)
+# All keys are read from environment variables when running reconx or modules.
+# Phase 1: SECURITYTRAILS_API_KEY, VT_API_KEY
+# Phase 2: SHODAN_API_KEY, CENSYS_API_ID, CENSYS_API_SECRET, GITHUB_TOKEN
+# Phase 3/4: PASTEBIN_API_KEY, WPSCAN_API_TOKEN
+# Phase 5 / Threat intel: HIBP_API_KEY, ABUSEIPDB_API_KEY, GREYNOISE_API_KEY,
+#   OTX_API_KEY, EMAILREP_API_KEY, PHISHTANK_APP_KEY, URLSCAN_API_KEY,
+#   PULSEDIVE_API_KEY, BINARYEDGE_API_KEY, CROWDSEC_API_KEY, GSB_API_KEY
 api_keys:
   shodan: "${SHODAN_API_KEY}"
   censys_id: "${CENSYS_API_ID}"
@@ -17,6 +24,18 @@ api_keys:
   github: "${GITHUB_TOKEN}"
   securitytrails: "${SECURITYTRAILS_API_KEY}"
   pastebin: "${PASTEBIN_API_KEY}"
+  virustotal: "${VT_API_KEY}"
+  wpscan: "${WPSCAN_API_TOKEN}"
+  hibp: "${HIBP_API_KEY}"
+  abuseipdb: "${ABUSEIPDB_API_KEY}"
+  greynoise: "${GREYNOISE_API_KEY}"
+  otx: "${OTX_API_KEY}"
+  emailrep: "${EMAILREP_API_KEY}"
+  urlscan: "${URLSCAN_API_KEY}"
+  pulsedive: "${PULSEDIVE_API_KEY}"
+  binaryedge: "${BINARYEDGE_API_KEY}"
+  crowdsec: "${CROWDSEC_API_KEY}"
+  safe_browsing: "${GSB_API_KEY}"
 
 # Phase 1: Discovery Settings
 phase1_discovery:
@@ -46,10 +65,11 @@ phase1_discovery:
     timeout: 10
     follow_redirects: true
 
-  # Active discovery
+  # Active discovery (always runs with bundled wordlist if no crt.sh/API keys)
   active_discovery:
-    enabled: false  # Set to true for DNS bruteforcing
-    wordlist: "/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
+    enabled: true
+    # Priority: RECONX_SUBDOMAIN_WORDLIST env > data/wordlists/subdomains.txt (bundled) > seclists
+    wordlist: "data/wordlists/subdomains.txt"  # bundled; override with /usr/share/seclists/... if installed
 
 # Phase 2: Intelligence Settings
 phase2_intel:
@@ -79,16 +99,7 @@ phase2_intel:
     enabled: true
     gitleaks: true
     trufflehog: true
-    max_repos: 5                     # Maximum repos to scan per organization
-    validate_org: true               # Validate GitHub org exists before scanning
-    skip_reconx_project: true        # Skip scanning if running from ReconX directory
-    timeout_seconds: 300            # Timeout for individual tool scans
-    ignore_patterns:                # Patterns to exclude from scanning
-      - "output/"
-      - "logs/"
-      - "**/*_urls.txt"
-      - "**/*_subdomains.txt"
-      - "**/*.cache"
+    max_repos: 10
 
 # Phase 3: Content Discovery Settings
 phase3_content:

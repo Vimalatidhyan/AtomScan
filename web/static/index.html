@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReconX - Dashboard</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="app-header">
+    <h1>ReconX</h1>
+    <nav class="app-nav">
+      <a href="/" class="active">Dashboard</a>
+      <a href="/scan_viewer.html">Scan Viewer</a>
+      <a href="/findings.html">Findings</a>
+      <a href="/graph_viewer.html">Attack Graph</a>
+    </nav>
+  </header>
+
+  <main class="main">
+    <div class="card">
+      <h2>Quick scan</h2>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <input type="text" id="target" placeholder="example.com" style="min-width: 200px;">
+        <label style="color: var(--text-muted);">Phases:</label>
+        <input type="text" id="phases" value="1,2,3,4" style="width: 100px;">
+        <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+          <input type="checkbox" id="testMode" title="Use mock data so results appear in seconds (no real tools needed)">
+          <span>Quick scan (test data)</span>
+        </label>
+        <button type="button" class="btn btn-primary" id="startScan">Start scan</button>
+      </div>
+      <p id="scanMsg" class="error-msg hidden"></p>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.5rem 0 0 0;">Use <strong>Quick scan (test data)</strong> to see results immediately without installing recon tools. Uncheck for a real scan (requires tools like subfinder, httpx, nuclei). Phases: <strong>1</strong>=Discovery, <strong>2</strong>=Intel, <strong>3</strong>=Content, <strong>4</strong>=Vuln.</p>
+    </div>
+
+    <div class="card">
+      <h2>Targets &amp; stats</h2>
+      <div id="targetsLoading" class="empty-state">Loading targets…</div>
+      <div id="targetsList" class="hidden"></div>
+    </div>
+
+    <div class="card">
+      <h2>Recent scans</h2>
+      <div id="scansLoading" class="empty-state">Loading scans…</div>
+      <div id="scansList" class="hidden">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Target</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Phases (1–4)</th>
+                <th>Started</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody id="scansTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="scansEmpty" class="empty-state hidden">
+        <p>No scans yet. Start a scan above.</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="/assets/js/dashboard.js"></script>
+</body>
+</html>

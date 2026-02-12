@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReconX - Attack Graph</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="app-header">
+    <h1>ReconX</h1>
+    <nav class="app-nav">
+      <a href="/">Dashboard</a>
+      <a href="/scan_viewer.html">Scan Viewer</a>
+      <a href="/findings.html">Findings</a>
+      <a href="/graph_viewer.html" class="active">Attack Graph</a>
+    </nav>
+  </header>
+
+  <main class="main">
+    <div class="card">
+      <h2>Attack surface graph</h2>
+      <p style="color: var(--text-muted); margin: 0 0 1rem 0;">
+        Phase 9 (Attack Graph) will populate relationship data. Once implemented, the graph will show domains, IPs, services, and vulnerabilities with critical path analysis.
+      </p>
+      <div class="graph-container" id="graphContainer">
+        <div>
+          <p><strong>Graph view placeholder</strong></p>
+          <p>Run Phase 9 (Attack Graph) to generate <code>graph.json</code> and <code>critical_paths.json</code>.</p>
+          <p>Visualization will use D3.js or vis.js for interactive nodes and edges.</p>
+        </div>
+      </div>
+      <div style="margin-top: 1rem;">
+        <select id="graphTarget" style="min-width: 200px;">
+          <option value="">— Select target —</option>
+        </select>
+        <button type="button" class="btn btn-secondary" id="loadGraph" style="margin-left: 0.5rem;">Load graph data</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="/assets/js/graph_viz.js"></script>
+</body>
+</html>

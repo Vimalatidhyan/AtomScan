@@ -1,0 +1,28 @@
+# ReconX API + Web UI
+# Build: docker build -f deployment/docker/Dockerfile.api -t reconx-api .
+# Run:   docker run -p 8000:8000 -v $(pwd)/output:/app/output -v $(pwd)/reconx.db:/app/reconx.db -v $(pwd)/logs:/app/logs reconx-api
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install Python deps (API + existing reconx)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy full project (needed for db, parsers, reconx)
+COPY api/ ./api/
+COPY web/ ./web/
+COPY db/ ./db/
+COPY parsers/ ./parsers/
+COPY config.yaml .
+COPY reconx.py .
+COPY query.py .
+
+# Directories for persistent data (mount at run)
+RUN mkdir -p /app/output /app/logs && touch /app/reconx.db
+
+ENV PYTHONUNBUFFERED=1
+EXPOSE 8000
+
+CMD ["uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"]

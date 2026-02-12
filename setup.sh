@@ -46,13 +46,15 @@ if [ -f "requirements.txt" ]; then
     pip3 install -r requirements.txt 2>/dev/null || log_warn "Some Python packages may not have installed"
 fi
 
-# Setup environment file
-if [ ! -f ".env" ]; then
-    log_info "Creating .env file from template..."
+# Setup environment file (all API keys wired from .env)
+if [ ! -f ".env.example" ]; then
+    log_warn ".env.example not found; create .env and add API keys manually"
+elif [ ! -f ".env" ]; then
+    log_info "Creating .env from .env.example..."
     cp .env.example .env
-    log_warn "Please edit .env and add your API keys!"
+    log_warn "Edit .env and add your API keys (see comments in .env.example for sources)"
 else
-    log_info ".env file already exists"
+    log_info ".env already exists (API keys loaded from here)"
 fi
 
 # Make scripts executable
@@ -118,8 +120,8 @@ echo ""
 log_info "Setup complete!"
 echo ""
 echo "Next steps:"
-echo "  1. Edit .env and add your API keys"
-echo "  2. Source the environment: source .env"
+echo "  1. Edit .env and add API keys (see .env.example for full list)"
+echo "  2. Source before running: source .env   (or export vars)"
 if [ $RECON_MISSING -gt 0 ]; then
     echo "  3. Install tools: sudo bash install.sh"
     echo "  4. Run ReconX: python3 reconx.py -t example.com"

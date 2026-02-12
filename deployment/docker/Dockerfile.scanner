@@ -1,0 +1,30 @@
+# ReconX Scanner (CLI / worker)
+# Use for running scans in a container; typically invoked by API or cron.
+# Build: docker build -f deployment/docker/Dockerfile.scanner -t reconx-scanner .
+# Run:   docker run --rm -v $(pwd)/output:/app/output -v $(pwd)/reconx.db:/app/reconx.db reconx-scanner -t example.com
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# System deps often needed by recon modules (optional; add more as needed)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    dnsutils \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY db/ ./db/
+COPY parsers/ ./parsers/
+COPY lib/ ./lib/
+COPY modules/ ./modules/
+COPY config.yaml .
+COPY reconx.py .
+COPY query.py .
+
+# Default: show help. Override with e.g. -t example.com
+ENTRYPOINT ["python3", "reconx.py"]
+CMD ["--help"]

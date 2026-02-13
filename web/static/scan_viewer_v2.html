@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReconX Enterprise - Scan Viewer</title>
+  <link rel="stylesheet" href="/static/assets/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">ReconX Enterprise</div>
+    <div class="nav-links">
+      <a href="/static/index.html">Dashboard</a>
+      <a href="/static/scan_viewer_v2.html" class="active">Scans</a>
+      <a href="/static/findings_v2.html">Findings</a>
+      <a href="/static/graph_viewer_v2.html">Graph</a>
+    </div>
+  </nav>
+
+  <main class="main">
+    <!-- Scan Selection -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Select Scan</h2>
+      </div>
+      <div class="input-group">
+        <select id="scanSelect" style="flex: 1; max-width: 400px;">
+          <option value="">Loading scans...</option>
+        </select>
+        <span class="text-muted" style="margin: 0 1rem;">or</span>
+        <input type="number" id="scanIdInput" placeholder="Enter Scan ID" style="width: 150px;">
+        <button type="button" class="btn btn-primary" id="loadScanBtn">Load Scan</button>
+      </div>
+    </div>
+
+    <!-- Scan Details (hidden until loaded) -->
+    <div id="scanDetails" class="hidden">
+      <!-- KPI Cards for Scan Stats -->
+      <div class="kpi-grid">
+        <div class="kpi-card" id="statusCard">
+          <div class="kpi-header">
+            <span class="kpi-label">Status</span>
+          </div>
+          <div class="kpi-value" id="statusValue" style="font-size: 1.5rem;">—</div>
+          <div class="kpi-change">
+            <span class="text-muted" id="statusTime">—</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Progress</span>
+          </div>
+          <div class="kpi-value" id="progressValue">0%</div>
+          <div class="kpi-change">
+            <span class="text-muted" id="currentPhase">Phase 0</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Target</span>
+          </div>
+          <div class="kpi-value" id="targetValue" style="font-size: 1.25rem;">—</div>
+          <div class="kpi-change">
+            <span class="text-muted" id="scanId">ID: —</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Duration</span>
+          </div>
+          <div class="kpi-value" id="durationValue">0s</div>
+          <div class="kpi-change">
+            <span class="text-muted" id="etaValue">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase Progress -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Scan Phases</h2>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-secondary" id="pauseScanBtn">Pause</button>
+            <button class="btn btn-sm btn-danger" id="stopScanBtn">Stop</button>
+          </div>
+        </div>
+        <div class="phase-progress" id="phaseProgress">
+          <div class="phase-step" data-phase="0">
+            <div class="phase-step-number">0</div>
+            <div class="phase-step-label">Prescan</div>
+          </div>
+          <div class="phase-step" data-phase="1">
+            <div class="phase-step-number">1</div>
+            <div class="phase-step-label">Discovery</div>
+          </div>
+          <div class="phase-step" data-phase="2">
+            <div class="phase-step-number">2</div>
+            <div class="phase-step-label">Intelligence</div>
+          </div>
+          <div class="phase-step" data-phase="3">
+            <div class="phase-step-number">3</div>
+            <div class="phase-step-label">Content</div>
+          </div>
+          <div class="phase-step" data-phase="4">
+            <div class="phase-step-number">4</div>
+            <div class="phase-step-label">Vulnerability</div>
+          </div>
+        </div>
+        <div class="progress-bar" style="margin-top: 1.5rem;">
+          <div class="progress-fill" id="overallProgress" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Real-time Stats -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Real-Time Statistics</h2>
+          <span class="badge badge-success" id="liveIndicator">● LIVE</span>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div class="kpi-card">
+            <div class="kpi-label">Subdomains</div>
+            <div class="kpi-value" id="subdomainCount">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Open Ports</div>
+            <div class="kpi-value" id="portCount">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Services</div>
+            <div class="kpi-value" id="serviceCount">0</div>
+          </div>
+          <div class="kpi-card warning">
+            <div class="kpi-label">Vulnerabilities</div>
+            <div class="kpi-value" id="vulnCount">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Logs -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Live Scan Logs</h2>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-ghost" id="clearLogsBtn">Clear</button>
+            <button class="btn btn-sm btn-ghost" id="exportLogsBtn">Export</button>
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" id="autoScrollCheck" checked>
+              <span style="font-size: 0.875rem;">Auto-scroll</span>
+            </label>
+          </div>
+        </div>
+        <div class="log-stream" id="logStream">
+          <div class="empty-state" style="padding: 2rem;">
+            <p class="text-muted">Waiting for log data...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scan Summary (shown on completion) -->
+      <div class="card hidden" id="summaryCard">
+        <div class="card-header">
+          <h2 class="card-title">Scan Complete - Summary</h2>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card success">
+            <div class="kpi-label">Total Assets</div>
+            <div class="kpi-value" id="summaryAssets">0</div>
+          </div>
+          <div class="kpi-card warning">
+            <div class="kpi-label">Total Findings</div>
+            <div class="kpi-value" id="summaryFindings">0</div>
+          </div>
+          <div class="kpi-card critical">
+            <div class="kpi-label">Critical Issues</div>
+            <div class="kpi-value" id="summaryCritical">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Scan Duration</div>
+            <div class="kpi-value" id="summaryDuration" style="font-size: 1.5rem;">—</div>
+          </div>
+        </div>
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+          <button class="btn btn-primary" onclick="window.location.href='/static/findings_v2.html'">View Findings →</button>
+          <button class="btn btn-secondary" onclick="window.location.href='/static/graph_viewer_v2.html'">View Attack Graph →</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/assets/js/scan_monitor_v2.js"></script>
+</body>
+</html>

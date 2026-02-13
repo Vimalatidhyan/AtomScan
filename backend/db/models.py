@@ -217,7 +217,7 @@ class Vulnerability(Base):
         Integer, ForeignKey("subdomains.id"), nullable=True, index=True
     )
     port_scan_id: Optional[int] = Column(
-        Integer, ForeignKey("port_scans.id"), nullable=True
+        Integer, ForeignKey("port_scans.id"), nullable=True, index=True
     )
     vuln_type: str = Column(String(100), nullable=False)
     severity: Optional[int] = Column(Integer, nullable=True)
@@ -334,7 +334,7 @@ class DomainTechnology(Base):
         Integer, ForeignKey("scan_runs.id"), nullable=False, index=True
     )
     technology_id: int = Column(
-        Integer, ForeignKey("technologies.id"), nullable=False
+        Integer, ForeignKey("technologies.id"), nullable=False, index=True
     )
     version: Optional[str] = Column(String(100), nullable=True)
     discovered_method: Optional[str] = Column(String(100), nullable=True)
@@ -373,7 +373,7 @@ class VulnerabilityMetadata(Base):
 
     id: int = Column(Integer, primary_key=True)
     vulnerability_id: int = Column(
-        Integer, ForeignKey("vulnerabilities.id"), nullable=False
+        Integer, ForeignKey("vulnerabilities.id"), nullable=False, index=True
     )
     cve_id: Optional[str] = Column(String(50), nullable=True)
     cvss_v31_score: Optional[float] = Column(Float, nullable=True)
@@ -476,7 +476,7 @@ class ThreatIntelData(Base):
 
     id: int = Column(Integer, primary_key=True)
     vulnerability_id: Optional[int] = Column(
-        Integer, ForeignKey("vulnerabilities.id"), nullable=True
+        Integer, ForeignKey("vulnerabilities.id"), nullable=True, index=True
     )
     indicator_type: str = Column(String(50), nullable=False)
     indicator_value: str = Column(String(500), nullable=False)
@@ -678,10 +678,10 @@ class AssetChange(Base):
 
     id: int = Column(Integer, primary_key=True)
     previous_snapshot_id: int = Column(
-        Integer, ForeignKey("asset_snapshots.id"), nullable=False
+        Integer, ForeignKey("asset_snapshots.id"), nullable=False, index=True
     )
     current_snapshot_id: int = Column(
-        Integer, ForeignKey("asset_snapshots.id"), nullable=False
+        Integer, ForeignKey("asset_snapshots.id"), nullable=False, index=True
     )
     change_type: str = Column(String(20), nullable=False)
     asset_type: str = Column(String(50), nullable=False)
@@ -825,6 +825,7 @@ class ScanRunnerMetadata(Base):
         Integer,
         ForeignKey("scanner_integrations.id"),
         nullable=False,
+        index=True,
     )
     scanner_name: str = Column(String(100), nullable=False)
     executed_at: datetime = Column(DateTime, default=datetime.utcnow)
@@ -1021,7 +1022,7 @@ class VendorMetadata(Base):
     reputation_score: Optional[int] = Column(Integer, nullable=True)
     notes: Optional[str] = Column(String(2000), nullable=True)
     created_at: datetime = Column(DateTime, default=datetime.utcnow)
-    updated_at: datetime = Column(DateTime, default=datetime.utcnow)
+    updated_at: datetime = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self) -> str:
         """Return string representation."""
@@ -1052,6 +1053,9 @@ class DataLeak(Base):
     is_exploited: bool = Column(Boolean, default=False)
     credentials_tested: bool = Column(Boolean, default=False)
     exploit_date: Optional[datetime] = Column(DateTime, nullable=True)
+
+    # Relationships
+    scan_run = relationship("ScanRun", backref="data_leaks")
 
     __table_args__ = (
         Index("idx_data_leaks_email_breach", "email", "breach_date"),
@@ -1089,6 +1093,9 @@ class ActiveExploit(Base):
     popularity_score: Optional[int] = Column(Integer, nullable=True)
     last_updated: datetime = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
+    vulnerability = relationship("Vulnerability", backref="active_exploits")
+
     __table_args__ = (
         Index("idx_active_exploits_vuln_source", "vulnerability_id", "exploit_source"),
     )
@@ -1121,6 +1128,9 @@ class MalwareIndicator(Base):
     verdict: Optional[str] = Column(String(50), nullable=True)
     analyzed_by: Optional[str] = Column(String(100), nullable=True)
 
+    # Relationships
+    scan_run = relationship("ScanRun", backref="malware_indicators")
+
     __table_args__ = (
         Index("idx_malware_type_value", "indicator_type", "indicator_value"),
     )
@@ -1146,10 +1156,10 @@ class ComplianceEvidence(Base):
         Integer, ForeignKey("compliance_reports.id"), nullable=False, index=True
     )
     compliance_finding_id: Optional[int] = Column(
-        Integer, ForeignKey("compliance_findings.id"), nullable=True
+        Integer, ForeignKey("compliance_findings.id"), nullable=True, index=True
     )
     vulnerability_id: Optional[int] = Column(
-        Integer, ForeignKey("vulnerabilities.id"), nullable=True
+        Integer, ForeignKey("vulnerabilities.id"), nullable=True, index=True
     )
     evidence_type: str = Column(String(50), nullable=False)
     description: str = Column(String(1000), nullable=False)
@@ -1158,6 +1168,11 @@ class ComplianceEvidence(Base):
     verified: bool = Column(Boolean, default=False)
     verifier_name: Optional[str] = Column(String(255), nullable=True)
     verification_date: Optional[datetime] = Column(DateTime, nullable=True)
+
+    # Relationships
+    compliance_report = relationship("ComplianceReport", backref="evidence")
+    compliance_finding = relationship("ComplianceFinding", backref="evidence")
+    vulnerability = relationship("Vulnerability", backref="compliance_evidence")
 
     def __repr__(self) -> str:
         """Return string representation."""
@@ -1190,6 +1205,9 @@ class BaselineSnapshot(Base):
     snapshot_data: Optional[str] = Column(Text, nullable=True)
     md5_hash: Optional[str] = Column(String(32), nullable=True)
 
+    # Relationships
+    scan_run = relationship("ScanRun", backref="baseline_snapshots")
+
     __table_args__ = (
         Index("idx_baseline_scan_flag", "scan_run_id", "is_baseline"),
     )
@@ -1212,7 +1230,7 @@ class ScanProgress(Base):
 
     id: int = Column(Integer, primary_key=True)
     scan_run_id: int = Column(
-        Integer, ForeignKey("scan_runs.id"), nullable=False, unique=True
+        Integer, ForeignKey("scan_runs.id"), nullable=False, unique=True, index=True
     )
     current_phase: int = Column(Integer, default=0)
     current_tool: Optional[str] = Column(String(100), nullable=True)
@@ -1226,6 +1244,9 @@ class ScanProgress(Base):
     last_update: datetime = Column(DateTime, default=datetime.utcnow)
     estimated_completion: Optional[datetime] = Column(DateTime, nullable=True)
     duration_seconds: Optional[int] = Column(Integer, nullable=True)
+
+    # Relationships
+    scan_run = relationship("ScanRun", backref="scan_progress")
 
     def __repr__(self) -> str:
         """Return string representation."""
@@ -1261,3 +1282,28 @@ class CacheEntry(Base):
         return (
             f"<CacheEntry(key={self.cache_key[:30]}, source={self.source})>"
         )
+
+
+class Webhook(Base):
+    """Webhook configuration for event notifications.
+
+    Supports filtering by event types and stores delivery history.
+    """
+
+    __tablename__ = "webhooks"
+
+    id: int = Column(Integer, primary_key=True)
+    url: str = Column(String(500), nullable=False)
+    events: str = Column(String(500), nullable=False)  # Comma-separated event types
+    secret: Optional[str] = Column(String(255), nullable=True)
+    active: bool = Column(Boolean, default=True)
+    created_at: datetime = Column(DateTime, default=datetime.utcnow)
+    created_by: Optional[str] = Column(String(255), nullable=True)
+    last_triggered: Optional[datetime] = Column(DateTime, nullable=True)
+    success_count: int = Column(Integer, default=0)
+    failure_count: int = Column(Integer, default=0)
+
+    def __repr__(self) -> str:
+        """Return string representation."""
+        return f"<Webhook(id={self.id}, url={self.url[:50]}, active={self.active})>"
+

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attack Surface Graph | ReconX Enterprise</title>
+  <link rel="stylesheet" href="/static/assets/css/style.css">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">ReconX Enterprise</div>
+    <div class="nav-links">
+      <a href="/static/index.html">Dashboard</a>
+      <a href="/static/scan_viewer_v2.html">Scans</a>
+      <a href="/static/findings_v2.html">Findings</a>
+      <a href="/static/graph_viewer_v2.html" class="active">Graph</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="page-header">
+      <div>
+        <h1>Attack Surface Graph</h1>
+        <p class="text-muted">Visual analysis of assets, relationships, and attack paths</p>
+      </div>
+      <div>
+        <button class="btn btn-secondary" onclick="exportGraph('svg')">
+          <span>💾</span> Export SVG
+        </button>
+        <button class="btn btn-secondary" onclick="exportGraph('json')">
+          <span>📄</span> Export Data
+        </button>
+        <button class="btn btn-primary" onclick="findAttackPaths()">
+          <span>🎯</span> Find Attack Paths
+        </button>
+      </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Controls</div>
+        <button class="btn btn-ghost btn-sm" onclick="resetGraph()">Reset View</button>
+      </div>
+      <div class="card-body">
+        <div class="filter-grid">
+          <!-- Scan Selection -->
+          <div class="form-group">
+            <label>Select Scan</label>
+            <select id="scanSelect" class="form-control" onchange="loadGraph()">
+              <option value="">— Select a scan —</option>
+            </select>
+          </div>
+
+          <!-- Node Type Filter -->
+          <div class="form-group">
+            <label>Node Types</label>
+            <select id="nodeTypeFilter" class="form-control" multiple size="4" onchange="filterGraph()">
+              <option value="domain" selected>Domains</option>
+              <option value="subdomain" selected>Subdomains</option>
+              <option value="ip" selected>IP Addresses</option>
+              <option value="service" selected>Services</option>
+              <option value="vulnerability" selected>Vulnerabilities</option>
+            </select>
+          </div>
+
+          <!-- Risk Filter -->
+          <div class="form-group">
+            <label>Risk Level</label>
+            <select id="riskFilter" class="form-control" multiple size="4" onchange="filterGraph()">
+              <option value="critical" selected>Critical (9-10)</option>
+              <option value="high" selected>High (7-8.9)</option>
+              <option value="medium" selected>Medium (4-6.9)</option>
+              <option value="low" selected>Low (0-3.9)</option>
+            </select>
+          </div>
+
+          <!-- Layout Options -->
+          <div class="form-group">
+            <label>Layout</label>
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+              <label style="font-weight: normal;">
+                <input type="checkbox" id="showLabels" checked onchange="toggleLabels()">
+                Show Labels
+              </label>
+              <label style="font-weight: normal;">
+                <input type="checkbox" id="showEdges" checked onchange="toggleEdges()">
+                Show Edges
+              </label>
+              <label style="font-weight: normal;">
+                <input type="checkbox" id="highlightPaths" onchange="togglePathHighlight()">
+                Highlight Attack Paths
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Graph Stats -->
+        <div class="kpi-grid" style="margin-top: var(--spacing-md);">
+          <div class="kpi-card">
+            <div class="kpi-icon">●</div>
+            <div class="kpi-content">
+              <div class="kpi-label">Nodes</div>
+              <div class="kpi-value" id="nodeCount">0</div>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon">—</div>
+            <div class="kpi-content">
+              <div class="kpi-label">Edges</div>
+              <div class="kpi-value" id="edgeCount">0</div>
+            </div>
+          </div>
+
+          <div class="kpi-card critical">
+            <div class="kpi-icon">🎯</div>
+            <div class="kpi-content">
+              <div class="kpi-label">Attack Paths</div>
+              <div class="kpi-value" id="pathCount">0</div>
+            </div>
+          </div>
+
+          <div class="kpi-card high">
+            <div class="kpi-icon">⚠️</div>
+            <div class="kpi-content">
+              <div class="kpi-label">Critical Assets</div>
+              <div class="kpi-value" id="criticalAssets">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="card">
+      <div class="card-body">
+        <div style="display: flex; gap: var(--spacing-lg); flex-wrap: wrap;">
+          <div class="flex gap-2 align-center">
+            <svg width="20" height="20"><circle cx="10" cy="10" r="8" fill="#60A5FA"/></svg>
+            <span>Domains</span>
+          </div>
+          <div class="flex gap-2 align-center">
+            <svg width="20" height="20"><circle cx="10" cy="10" r="8" fill="#34D399"/></svg>
+            <span>IPs</span>
+          </div>
+          <div class="flex gap-2 align-center">
+            <svg width="20" height="20"><circle cx="10" cy="10" r="8" fill="#F59E0B"/></svg>
+            <span>Services</span>
+          </div>
+          <div class="flex gap-2 align-center">
+            <svg width="20" height="20"><circle cx="10" cy="10" r="8" fill="#DC2626"/></svg>
+            <span>Vulnerabilities</span>
+          </div>
+          <div class="flex gap-2 align-center">
+            <svg width="20" height="20"><circle cx="10" cy="10" r="8" fill="#A78BFA"/></svg>
+            <span>Assets</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graph Container -->
+    <div class="card" style="padding: 0;">
+      <div id="graphContainer" style="width: 100%; height: 700px; position: relative; background: var(--bg-dark); border-radius: var(--radius-md);">
+        <div class="empty-state" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+          <p class="text-muted">Select a scan to visualize the attack surface graph</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node Details Panel (Hidden by default) -->
+    <div id="nodeDetailsPanel" class="card hidden" style="position: fixed; right: 20px; top: 100px; width: 350px; max-height: 70vh; overflow-y: auto; z-index: 1000; box-shadow: var(--shadow-xl);">
+      <div class="card-header">
+        <div class="card-title" id="nodeDetailsTitle">Node Details</div>
+        <button class="btn btn-ghost btn-sm" onclick="closeNodeDetails()">✕</button>
+      </div>
+      <div class="card-body" id="nodeDetailsBody">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/assets/js/graph_viz_v2.js"></script>
+</body>
+</html>

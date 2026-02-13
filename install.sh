@@ -1,666 +1,512 @@
-#!/bin/bash
-################################################################################
-# ReconX Installation Script
-# Installs all required tools for comprehensive attack surface management
-################################################################################
-
-set -e
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-log_info() {
-    echo -e "${GREEN}[+]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[-]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[!]${NC} $1"
-}
-
-log_section() {
-    echo -e "\n${BLUE}[*] $1${NC}\n"
-}
-
-git_clone_or_pull() {
-    local repo_url="$1"
-    local dest_dir="$2"
-    local repo_name
-
-    if [ -z "$repo_url" ] || [ -z "$dest_dir" ]; then
-        return 1
-    fi
-
-    repo_name="$(basename "$dest_dir")"
-
-    if [ -d "$dest_dir/.git" ]; then
-        log_info "Updating $repo_name..."
-        (cd "$dest_dir" && GIT_TERMINAL_PROMPT=0 git pull --ff-only) || log_warn "Failed to update $repo_name"
-    else
-        log_info "Cloning $repo_name..."
-        GIT_TERMINAL_PROMPT=0 git clone --depth 1 "$repo_url" "$dest_dir" || log_warn "Failed to clone $repo_name"
-    fi
-}
-
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    log_error "Please run as root (use sudo)"
-    exit 1
-fi
-
-# Detect OS
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    OS=$ID
-else
-    log_error "Cannot detect OS"
-    exit 1
-fi
-
-log_info "Detected OS: $OS"
-
-# Create installation directory
-INSTALL_DIR="/opt"
-TOOLS_DIR="$INSTALL_DIR/reconx-tools"
-mkdir -p "$TOOLS_DIR"
-
-################################################################################
-# System Package Installation
-################################################################################
-
-log_section "Installing System Packages"
-
-if [ "$OS" = "kali" ] || [ "$OS" = "debian" ] || [ "$OS" = "ubuntu" ]; then
-    # Chromium package name varies by distro (kali/debian/ubuntu)
-    CHROMIUM_PKG=""
-    if apt-cache policy chromium-browser 2>/dev/null | awk '/Candidate:/ {print $2}' | grep -vq "(none)"; then
-        CHROMIUM_PKG="chromium-browser"
-    elif apt-cache policy chromium 2>/dev/null | awk '/Candidate:/ {print $2}' | grep -vq "(none)"; then
-        CHROMIUM_PKG="chromium"
-    else
-        log_warn "Chromium package not found; skipping browser install"
-    fi
-
-    apt-get update
-    apt-get install -y \
-        python3 python3-pip python3-venv \
-        git curl wget jq \
-        build-essential \
-        libssl-dev libffi-dev \
-        whois dnsutils \
-        nmap masscan \
-        nikto sqlmap \
-        skipfish \
-        p0f \
-        $CHROMIUM_PKG \
-        default-jre \
-        nodejs npm \
-        ruby ruby-dev \
-        golang-go \
-        docker.io \
-        unzip
-
-elif [ "$OS" = "arch" ] || [ "$OS" = "manjaro" ]; then
-    pacman -Syu --noconfirm
-    pacman -S --noconfirm \
-        python python-pip \
-        git curl wget jq \
-        base-devel \
-        openssl \
-        whois bind-tools \
-        nmap masscan \
-        nikto sqlmap \
-        p0f \
-        chromium \
-        jre-openjdk \
-        nodejs npm \
-        ruby \
-        go \
-        docker \
-        unzip
-
-else
-    log_warn "Unsupported OS. Please install dependencies manually."
-fi
-
-################################################################################
-# Python Environment Setup
-################################################################################
-
-log_section "Setting Up Python Environment"
-
-VENV_DIR="$TOOLS_DIR/venv"
-PIP_CMD="pip3"
-PYTHON_CMD="python3"
-
-create_py_wrapper() {
-    local name="$1"
-    local script_path="$2"
-
-    if [ -z "$name" ] || [ -z "$script_path" ]; then
-        return 1
-    fi
-
-    cat > "/usr/local/bin/$name" <<EOF
-#!/bin/bash
-exec "$PYTHON_CMD" "$script_path" "\$@"
-EOF
-    chmod +x "/usr/local/bin/$name" || true
-}
-
-# Kali uses PEP 668; prefer a dedicated venv for all Python tools
-if [ "$OS" = "kali" ]; then
-    log_info "Creating Python venv for tool installs (Kali PEP 668 compliant)..."
-    python3 -m venv "$VENV_DIR" || log_warn "Failed to create venv"
-    PIP_CMD="$VENV_DIR/bin/pip"
-    PYTHON_CMD="$VENV_DIR/bin/python"
-    export PATH="$VENV_DIR/bin:$PATH"
-fi
-
-################################################################################
-# Python Dependencies
-################################################################################
-
-log_section "Installing Python Dependencies"
-
-"$PIP_CMD" install --upgrade pip
-"$PIP_CMD" install \
-    requests \
-    beautifulsoup4 \
-    dnspython \
-    pyyaml \
-    colorama \
-    tqdm \
-    aiohttp \
-    lxml
-
-################################################################################
-# Go Tools Installation
-################################################################################
-
-log_section "Installing Go Tools"
-
-# Set Go environment
-export GOPATH=$HOME/go
-export PATH=$PATH:$GOPATH/bin:/usr/local/go/bin
-
-# Update Go (if needed)
-GO_VERSION="1.21.0"
-if ! command -v go &> /dev/null || [ "$(go version | awk '{print $3}' | sed 's/go//')" \< "$GO_VERSION" ]; then
-    log_info "Installing/Updating Go..."
-    wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
-    rm -rf /usr/local/go
-    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
-    rm go${GO_VERSION}.linux-amd64.tar.gz
-fi
-
-log_info "Installing Go-based reconnaissance tools..."
-
-# Subdomain Enumeration
-go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
-go install -v github.com/tomnomnom/assetfinder@latest
-go install -v github.com/owasp-amass/amass/v4/...@master
-
-# Certificate Transparency / ASN / Cloud
-go install -v github.com/projectdiscovery/asnmap/cmd/asnmap@latest
-go install -v github.com/projectdiscovery/mapcidr/cmd/mapcidr@latest
-go install -v github.com/tomnomnom/goblob@latest
-
-# DNS Tools
-go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
-go install -v github.com/ProjectAnte/dnsgen@latest || log_warn "dnsgen install failed"
-
-# HTTP Probing
-go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
-
-# Port Scanning
-go install -v github.com/RustScan/RustScan@latest || log_warn "RustScan install failed, install manually with cargo"
-
-# URL Discovery
-go install -v github.com/lc/gau/v2/cmd/gau@latest
-go install -v github.com/tomnomnom/waybackurls@latest
-go install -v github.com/hakluke/hakrawler@latest
-
-# Web Crawling
-go install -v github.com/projectdiscovery/katana/cmd/katana@latest
-
-# Directory Bruteforce
-go install -v github.com/ffuf/ffuf/v2@latest
-
-# Vulnerability Scanning
-go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-
-# Takeover Detection
-go install -v github.com/haccer/subjack@latest
-
-# Parameter Discovery
-go install -v github.com/s0md3v/Arjun@latest || log_warn "Arjun Go install failed"
-
-# XSS
-go install -v github.com/hahwul/dalfox/v2@latest
-
-# API Discovery
-log_info "Installing Kiterunner..."
-git_clone_or_pull "https://github.com/assetnote/kiterunner.git" "$TOOLS_DIR/kiterunner"
-if [ -d "$TOOLS_DIR/kiterunner" ]; then
-    cd "$TOOLS_DIR/kiterunner" && make build && ln -sf "$TOOLS_DIR/kiterunner/dist/kr" /usr/local/bin/kr || true
-fi
-
-################################################################################
-# Rust Tools
-################################################################################
-
-log_section "Installing Rust Tools"
-
-if ! command -v cargo &> /dev/null; then
-    log_info "Installing Rust..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source "$HOME/.cargo/env"
-fi
-
-# RustScan
-if ! command -v rustscan &> /dev/null; then
-    log_info "Installing RustScan..."
-    cargo install rustscan || log_warn "RustScan install failed"
-fi
-
-# Feroxbuster
-if ! command -v feroxbuster &> /dev/null; then
-    log_info "Installing Feroxbuster..."
-    cargo install feroxbuster || log_warn "Feroxbuster install failed"
-fi
-
-################################################################################
-# Python Tools from GitHub
-################################################################################
-
-log_section "Installing Python-based Tools"
-
-# Sublist3r
-log_info "Installing Sublist3r..."
-git_clone_or_pull "https://github.com/aboul3la/Sublist3r.git" "$INSTALL_DIR/Sublist3r"
-if [ -d "$INSTALL_DIR/Sublist3r" ]; then
-    cd "$INSTALL_DIR/Sublist3r" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    create_py_wrapper "sublist3r" "$INSTALL_DIR/Sublist3r/sublist3r.py" || true
-fi
-
-# Subdominator (RevoltSecurities)
-log_info "Installing Subdominator..."
-git_clone_or_pull "https://github.com/RevoltSecurities/Subdominator.git" "$INSTALL_DIR/Subdominator"
-if [ -d "$INSTALL_DIR/Subdominator" ]; then
-    cd "$INSTALL_DIR/Subdominator" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    if [ -f "$INSTALL_DIR/Subdominator/subdominator.py" ]; then
-        create_py_wrapper "subdominator" "$INSTALL_DIR/Subdominator/subdominator.py" || true
-    elif [ -f "$INSTALL_DIR/Subdominator/Subdominator.py" ]; then
-        create_py_wrapper "subdominator" "$INSTALL_DIR/Subdominator/Subdominator.py" || true
-    fi
-    ln -sfn "$INSTALL_DIR/Subdominator" "$INSTALL_DIR/SubDominator" || true
-fi
-
-# SubProber (RevoltSecurities)
-log_info "Installing SubProber..."
-git_clone_or_pull "https://github.com/RevoltSecurities/SubProber.git" "$INSTALL_DIR/SubProber"
-if [ -d "$INSTALL_DIR/SubProber" ]; then
-    cd "$INSTALL_DIR/SubProber" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    if [ -f "$INSTALL_DIR/SubProber/subprober.py" ]; then
-        create_py_wrapper "subprober" "$INSTALL_DIR/SubProber/subprober.py" || true
-    elif [ -f "$INSTALL_DIR/SubProber/SubProber.py" ]; then
-        create_py_wrapper "subprober" "$INSTALL_DIR/SubProber/SubProber.py" || true
-    fi
-    ln -sfn "$INSTALL_DIR/SubProber" "$INSTALL_DIR/subprober" || true
-fi
-
-# ShodanX (RevoltSecurities)
-log_info "Installing ShodanX..."
-git_clone_or_pull "https://github.com/RevoltSecurities/ShodanX.git" "$INSTALL_DIR/ShodanX"
-if [ -d "$INSTALL_DIR/ShodanX" ]; then
-    cd "$INSTALL_DIR/ShodanX" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    if [ -f "$INSTALL_DIR/ShodanX/shodanx.py" ]; then
-        create_py_wrapper "shodanx" "$INSTALL_DIR/ShodanX/shodanx.py" || true
-    elif [ -f "$INSTALL_DIR/ShodanX/ShodanX.py" ]; then
-        create_py_wrapper "shodanx" "$INSTALL_DIR/ShodanX/ShodanX.py" || true
-    fi
-    ln -sfn "$INSTALL_DIR/ShodanX" "$INSTALL_DIR/shodanx" || true
-fi
-
-# GoogleDorker (RevoltSecurities)
-log_info "Installing GoogleDorker..."
-git_clone_or_pull "https://github.com/RevoltSecurities/GoogleDorker.git" "$INSTALL_DIR/GoogleDorker"
-if [ -d "$INSTALL_DIR/GoogleDorker" ]; then
-    cd "$INSTALL_DIR/GoogleDorker" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    if [ -f "$INSTALL_DIR/GoogleDorker/dorker.py" ]; then
-        create_py_wrapper "dorker" "$INSTALL_DIR/GoogleDorker/dorker.py" || true
-    elif [ -f "$INSTALL_DIR/GoogleDorker/GoogleDorker.py" ]; then
-        create_py_wrapper "dorker" "$INSTALL_DIR/GoogleDorker/GoogleDorker.py" || true
-    fi
-fi
-
-# SpideyX (RevoltSecurities)
-log_info "Installing SpideyX..."
-git_clone_or_pull "https://github.com/RevoltSecurities/SpideyX.git" "$INSTALL_DIR/SpideyX"
-if [ -d "$INSTALL_DIR/SpideyX" ]; then
-    cd "$INSTALL_DIR/SpideyX" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    if [ -f "$INSTALL_DIR/SpideyX/spideyx.py" ]; then
-        create_py_wrapper "spideyx" "$INSTALL_DIR/SpideyX/spideyx.py" || true
-    elif [ -f "$INSTALL_DIR/SpideyX/SpideyX.py" ]; then
-        create_py_wrapper "spideyx" "$INSTALL_DIR/SpideyX/SpideyX.py" || true
-    fi
-fi
-
-# Dnsbruter (RevoltSecurities)
-log_info "Installing Dnsbruter..."
-git_clone_or_pull "https://github.com/RevoltSecurities/Dnsbruter.git" "$INSTALL_DIR/Dnsbruter"
-if [ -d "$INSTALL_DIR/Dnsbruter" ]; then
-    cd "$INSTALL_DIR/Dnsbruter" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    if [ -f "$INSTALL_DIR/Dnsbruter/dnsbruter.py" ]; then
-        create_py_wrapper "dnsbruter" "$INSTALL_DIR/Dnsbruter/dnsbruter.py" || true
-    fi
-    ln -sfn "$INSTALL_DIR/Dnsbruter" "$INSTALL_DIR/dnsbruter" || true
-fi
-
-# Cloud enumeration tools
-log_info "Installing cloud_enum..."
-git_clone_or_pull "https://github.com/initstring/cloud_enum.git" "$INSTALL_DIR/cloud_enum"
-if [ -d "$INSTALL_DIR/cloud_enum" ]; then
-    cd "$INSTALL_DIR/cloud_enum" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    if [ -f "$INSTALL_DIR/cloud_enum/cloud_enum.py" ]; then
-        create_py_wrapper "cloud_enum" "$INSTALL_DIR/cloud_enum/cloud_enum.py" || true
-    fi
-fi
-
-log_info "Installing S3Scanner..."
-git_clone_or_pull "https://github.com/sa7mon/S3Scanner.git" "$INSTALL_DIR/S3Scanner"
-if [ -d "$INSTALL_DIR/S3Scanner" ]; then
-    cd "$INSTALL_DIR/S3Scanner" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    if [ -f "$INSTALL_DIR/S3Scanner/s3scanner.py" ]; then
-        create_py_wrapper "s3scanner" "$INSTALL_DIR/S3Scanner/s3scanner.py" || true
-    elif [ -f "$INSTALL_DIR/S3Scanner/S3Scanner.py" ]; then
-        create_py_wrapper "s3scanner" "$INSTALL_DIR/S3Scanner/S3Scanner.py" || true
-    fi
-fi
-
-log_info "Installing GCPBucketBrute..."
-git_clone_or_pull "https://github.com/RhinoSecurityLabs/GCPBucketBrute.git" "$INSTALL_DIR/GCPBucketBrute"
-if [ -d "$INSTALL_DIR/GCPBucketBrute" ]; then
-    cd "$INSTALL_DIR/GCPBucketBrute" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    if [ -f "$INSTALL_DIR/GCPBucketBrute/gcpbucketbrute.py" ]; then
-        create_py_wrapper "gcpbucketbrute" "$INSTALL_DIR/GCPBucketBrute/gcpbucketbrute.py" || true
-    fi
-fi
-
-# Dirsearch
-log_info "Installing Dirsearch..."
-git_clone_or_pull "https://github.com/maurosoria/dirsearch.git" "$INSTALL_DIR/dirsearch"
-if [ -d "$INSTALL_DIR/dirsearch" ]; then
-    cd "$INSTALL_DIR/dirsearch" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    create_py_wrapper "dirsearch" "$INSTALL_DIR/dirsearch/dirsearch.py" || true
-fi
-
-# LinkFinder
-log_info "Installing LinkFinder..."
-git_clone_or_pull "https://github.com/GerbenJavado/LinkFinder.git" "$INSTALL_DIR/LinkFinder"
-if [ -d "$INSTALL_DIR/LinkFinder" ]; then
-    cd "$INSTALL_DIR/LinkFinder" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    create_py_wrapper "linkfinder" "$INSTALL_DIR/LinkFinder/linkfinder.py" || true
-fi
-
-# SecretFinder
-log_info "Installing SecretFinder..."
-git_clone_or_pull "https://github.com/m4ll0k/SecretFinder.git" "$INSTALL_DIR/SecretFinder"
-if [ -d "$INSTALL_DIR/SecretFinder" ]; then
-    cd "$INSTALL_DIR/SecretFinder" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    create_py_wrapper "secretfinder" "$INSTALL_DIR/SecretFinder/SecretFinder.py" || true
-fi
-
-# Corsy
-log_info "Installing Corsy..."
-git_clone_or_pull "https://github.com/s0md3v/Corsy.git" "$INSTALL_DIR/Corsy"
-if [ -d "$INSTALL_DIR/Corsy" ]; then
-    cd "$INSTALL_DIR/Corsy" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    create_py_wrapper "corsy" "$INSTALL_DIR/Corsy/corsy.py" || true
-fi
-
-# XSStrike
-log_info "Installing XSStrike..."
-git_clone_or_pull "https://github.com/s0md3v/XSStrike.git" "$INSTALL_DIR/XSStrike"
-if [ -d "$INSTALL_DIR/XSStrike" ]; then
-    cd "$INSTALL_DIR/XSStrike" && [ -f requirements.txt ] && "$PIP_CMD" install -r requirements.txt || true
-    create_py_wrapper "xsstrike" "$INSTALL_DIR/XSStrike/xsstrike.py" || true
-fi
-
-# Arjun (Python version)
-log_info "Installing Arjun..."
-"$PIP_CMD" install arjun || log_warn "Arjun install failed"
-
-# altdns (subdomain permutation)
-log_info "Installing altdns..."
-"$PIP_CMD" install py-altdns || "$PIP_CMD" install altdns 2>/dev/null || log_warn "altdns install failed (try: pip install py-altdns)"
-
-# WhatWeb (technology detection)
-log_info "Installing WhatWeb..."
-git_clone_or_pull "https://github.com/urbanadventurer/WhatWeb.git" "$INSTALL_DIR/WhatWeb"
-if [ -d "$INSTALL_DIR/WhatWeb" ]; then
-    cd "$INSTALL_DIR/WhatWeb" && bundle install 2>/dev/null || true
-    if [ -f "$INSTALL_DIR/WhatWeb/whatweb" ]; then
-        ln -sf "$INSTALL_DIR/WhatWeb/whatweb" /usr/local/bin/whatweb || true
-    fi
-fi
-
-# GitHunt
-log_info "Installing GitHunt..."
-git_clone_or_pull "https://github.com/tillson/git-hound.git" "$INSTALL_DIR/GitHunt"
-if [ -f "$INSTALL_DIR/GitHunt/githound.py" ]; then
-    create_py_wrapper "githunt" "$INSTALL_DIR/GitHunt/githound.py" || true
-fi
-
-# Get Subsidiaries
-log_info "Installing getSubsidiaries..."
-git_clone_or_pull "https://github.com/Josue87/getSubsidiaries.git" "$INSTALL_DIR/getSubsidiaries"
-if [ -f "$INSTALL_DIR/getSubsidiaries/getSubsidiaries.py" ]; then
-    create_py_wrapper "getsubsidiaries" "$INSTALL_DIR/getSubsidiaries/getSubsidiaries.py" || true
-fi
-
-################################################################################
-# Specialized Tools
-################################################################################
-
-log_section "Installing Specialized Tools"
-
-# Gitleaks
-log_info "Installing Gitleaks..."
-GITLEAKS_VERSION="8.18.0"
-wget -q https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz
-tar -xzf gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz
-mv gitleaks /usr/local/bin/
-rm gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz
-
-# TruffleHog
-log_info "Installing TruffleHog..."
-"$PIP_CMD" install trufflehog || log_warn "TruffleHog install failed"
-
-# Gospider (SpideyX alternative)
-log_info "Installing Gospider..."
-go install -v github.com/jaeles-project/gospider@latest
-
-# WPScan
-log_info "Installing WPScan..."
-gem install wpscan || log_warn "WPScan install failed"
-
-# Wapiti
-log_info "Installing Wapiti..."
-"$PIP_CMD" install wapiti3 || log_warn "Wapiti install failed"
-
-# CMSmap
-log_info "Installing CMSmap..."
-git_clone_or_pull "https://github.com/Dionach/CMSmap.git" "$INSTALL_DIR/CMSmap"
-if [ -f "$INSTALL_DIR/CMSmap/cmsmap.py" ]; then
-    create_py_wrapper "cmsmap" "$INSTALL_DIR/CMSmap/cmsmap.py" || true
-fi
-
-# Retire.js
-log_info "Installing Retire.js..."
-npm install -g retire || log_warn "Retire.js install failed"
-
-# testssl.sh
-log_info "Installing testssl.sh..."
-git_clone_or_pull "https://github.com/drwetter/testssl.sh.git" "$INSTALL_DIR/testssl.sh"
-if [ -f "$INSTALL_DIR/testssl.sh/testssl.sh" ]; then
-    ln -sf "$INSTALL_DIR/testssl.sh/testssl.sh" /usr/local/bin/testssl.sh || true
-fi
-
-# SSLyze
-log_info "Installing SSLyze..."
-"$PIP_CMD" install sslyze || log_warn "SSLyze install failed"
-
-# Shodan CLI
-log_info "Installing Shodan CLI..."
-"$PIP_CMD" install shodan || log_warn "Shodan install failed"
-
-# Censys CLI
-log_info "Installing Censys CLI..."
-"$PIP_CMD" install censys || log_warn "Censys install failed"
-
-# ct-monitor (optional)
-log_info "Installing ct-monitor..."
-"$PIP_CMD" install ct-monitor || log_warn "ct-monitor install failed"
-
-# VirusTotal CLI / requests (for scripts that use VT_API_KEY)
-# HaveIBeenPwned, AbuseIPDB, etc. are typically used via curl in bash; keys go in .env
-
-# Newman (Postman CLI)
-log_info "Installing Newman..."
-npm install -g newman || log_warn "Newman install failed"
-
-# git-secrets
-log_info "Installing git-secrets..."
-git_clone_or_pull "https://github.com/awslabs/git-secrets.git" "$INSTALL_DIR/git-secrets"
-if [ -d "$INSTALL_DIR/git-secrets" ]; then
-    cd "$INSTALL_DIR/git-secrets" && make install || true
-fi
-
-################################################################################
-# Wordlists
-################################################################################
-
-log_section "Installing Wordlists"
-
-if [ ! -d "/usr/share/seclists" ]; then
-    log_info "Installing SecLists..."
-    GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/danielmiessler/SecLists.git /usr/share/seclists || log_warn "Failed to clone SecLists"
-else
-    log_info "SecLists already installed"
-fi
-
-if [ ! -d "/usr/share/wordlists" ]; then
-    mkdir -p /usr/share/wordlists
-fi
-
-################################################################################
-# Configuration
-################################################################################
-
-log_section "Setting up Configuration"
-
-# Add Go binaries to PATH
-if ! grep -q "GOPATH" /etc/profile; then
-    echo "export GOPATH=$HOME/go" >> /etc/profile
-    echo "export PATH=\$PATH:\$GOPATH/bin:/usr/local/go/bin" >> /etc/profile
-fi
-
-# Update Nuclei templates
-if command -v nuclei &> /dev/null; then
-    log_info "Updating Nuclei templates..."
-    nuclei -update-templates || log_warn "Failed to update Nuclei templates"
-fi
-
-################################################################################
-# Verification
-################################################################################
-
-log_section "Verifying Installation"
-
-TOOLS=(
-    "subfinder" "assetfinder" "amass"
-    "asnmap" "mapcidr" "dnsgen"
-    "dnsx" "httpx"
-    "gau" "waybackurls" "hakrawler" "katana"
-    "ffuf" "feroxbuster"
-    "nuclei" "dalfox"
-    "subjack" "gitleaks"
-    "nmap" "sqlmap" "nikto"
-    "subdominator" "subprober" "shodanx" "dorker" "spideyx" "dnsbruter"
-    "cloud_enum" "s3scanner" "gcpbucketbrute" "goblob" "ct-monitor"
-    "skipfish" "p0f"
-)
-
-INSTALLED=0
-MISSING=0
-
-for tool in "${TOOLS[@]}"; do
-    if command -v "$tool" &> /dev/null; then
-        log_info "$tool installed ✓"
-        ((INSTALLED++))
-    else
-        log_warn "$tool not found ✗"
-        ((MISSING++))
-    fi
+#!/usr/bin/env bash
+# ==============================================================================
+# ReconX — Full Tool Installer
+# Installs all system packages, Go tools, Python tools, and wordlists.
+# Supports: Kali Linux, Debian 12+, Ubuntu 22.04+, Arch/Manjaro
+#
+# Usage:  sudo bash install.sh
+#         sudo bash install.sh --skip-wordlists   (skip SecLists ~2 GB)
+#         sudo bash install.sh --python-only       (Python deps only)
+# ==============================================================================
+
+set -euo pipefail
+
+# ------------------------------------------------------------------------------
+# Colours
+# ------------------------------------------------------------------------------
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
+
+log_info()    { echo -e "${GREEN}[+]${NC} $*"; }
+log_warn()    { echo -e "${YELLOW}[!]${NC} $*"; }
+log_error()   { echo -e "${RED}[-]${NC} $*" >&2; }
+log_section() { echo -e "\n${CYAN}${BOLD}[*] $*${NC}\n"; }
+log_ok()      { echo -e "${GREEN}[✓]${NC} $*"; }
+
+# ------------------------------------------------------------------------------
+# Argument parsing
+# ------------------------------------------------------------------------------
+SKIP_WORDLISTS=false
+PYTHON_ONLY=false
+for arg in "$@"; do
+    case "$arg" in
+        --skip-wordlists) SKIP_WORDLISTS=true ;;
+        --python-only)    PYTHON_ONLY=true ;;
+        --help|-h)
+            echo "Usage: sudo bash install.sh [--skip-wordlists] [--python-only]"
+            exit 0
+            ;;
+    esac
 done
 
-echo ""
-log_section "Installation Summary"
-echo "Installed: $INSTALLED"
-echo "Missing: $MISSING"
-
-if [ $MISSING -gt 0 ]; then
-    log_warn "Some tools failed to install. Please install them manually."
+# ------------------------------------------------------------------------------
+# Root check
+# ------------------------------------------------------------------------------
+if [[ $EUID -ne 0 ]]; then
+    log_error "Run as root:  sudo bash install.sh"
+    exit 1
 fi
 
-################################################################################
-# API Keys Setup
-################################################################################
+# Preserve the real user's home for Go/PATH settings
+REAL_USER="${SUDO_USER:-$USER}"
+REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
 
-log_section "API Keys Configuration"
+# ------------------------------------------------------------------------------
+# OS detection
+# ------------------------------------------------------------------------------
+if [[ -f /etc/os-release ]]; then
+    # shellcheck source=/dev/null
+    source /etc/os-release
+    OS_ID="${ID:-unknown}"
+    OS_LIKE="${ID_LIKE:-}"
+else
+    log_error "Cannot detect OS — /etc/os-release not found."
+    exit 1
+fi
 
-cat << 'EOF'
+log_info "OS: $PRETTY_NAME"
+log_info "Real user home: $REAL_HOME"
 
-ReconX requires API keys for certain services. Please configure them:
+# ------------------------------------------------------------------------------
+# Directories
+# ------------------------------------------------------------------------------
+TOOLS_DIR="/opt/reconx-tools"
+WORDLISTS_DIR="/opt/wordlists"
+mkdir -p "$TOOLS_DIR" "$WORDLISTS_DIR"
 
-1. Copy the env template and add your keys:
+# ==============================================================================
+# HELPER: safe Go install (non-fatal)
+# ==============================================================================
+go_install() {
+    local pkg="$1"
+    local bin
+    bin="$(basename "${pkg%%@*}")"
+    log_info "go install $pkg"
+    if ! go install "$pkg" 2>/dev/null; then
+        log_warn "Failed to install Go package: $pkg"
+    fi
+}
 
-   cp .env.example .env
-   # Edit .env - it lists all API keys (Phase 1-5, threat intel, optional).
+# ==============================================================================
+# HELPER: git clone or pull
+# ==============================================================================
+git_sync() {
+    local url="$1" dest="$2"
+    if [[ -d "$dest/.git" ]]; then
+        log_info "Updating $(basename "$dest")..."
+        git -C "$dest" pull --ff-only --quiet || log_warn "Update failed for $dest"
+    else
+        log_info "Cloning $(basename "$dest")..."
+        git clone --depth 1 --quiet "$url" "$dest" || log_warn "Clone failed: $url"
+    fi
+}
 
-   # Examples (see .env.example for full list):
-   # SHODAN_API_KEY=...
-   # CENSYS_API_ID=...  CENSYS_API_SECRET=...
-   # GITHUB_TOKEN=...
-   # SECURITYTRAILS_API_KEY=...
-   # VT_API_KEY=...  ABUSEIPDB_API_KEY=...  OTX_API_KEY=...
+# ==============================================================================
+# HELPER: pip install (non-fatal)
+# ==============================================================================
+pip_install() {
+    "$PIP" install --quiet --break-system-packages "$@" 2>/dev/null \
+        || "$PIP" install --quiet "$@" 2>/dev/null \
+        || log_warn "pip install failed for: $*"
+}
 
-2. Load env before running ReconX (or run via python which loads .env automatically):
-   source .env
-   python3 reconx.py -t example.com
+if $PYTHON_ONLY; then
+    log_section "Python-only mode: skipping system/Go tools"
+fi
 
-EOF
+# ==============================================================================
+# 1. SYSTEM PACKAGES
+# ==============================================================================
+if ! $PYTHON_ONLY; then
+    log_section "System Packages"
 
-log_section "Installation Complete!"
+    case "$OS_ID" in
+        kali|debian|ubuntu|parrot|linuxmint)
+            # Resolve chromium package name (differs across distros)
+            CHROMIUM_PKG=""
+            for pkg in chromium-browser chromium; do
+                if apt-cache show "$pkg" &>/dev/null; then
+                    CHROMIUM_PKG="$pkg"; break
+                fi
+            done
 
-cat << 'EOF'
+            DEBIAN_FRONTEND=noninteractive apt-get update -qq
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+                python3 python3-pip python3-venv python3-dev \
+                git curl wget jq unzip \
+                build-essential libssl-dev libffi-dev \
+                whois dnsutils \
+                nmap masscan \
+                nikto sqlmap \
+                ruby ruby-dev \
+                nodejs npm \
+                default-jre \
+                ${CHROMIUM_PKG:+"$CHROMIUM_PKG"} \
+                2>/dev/null || log_warn "Some apt packages failed — continuing"
+            ;;
 
-To get started with ReconX:
+        arch|manjaro|endeavouros)
+            pacman -Syu --noconfirm --needed \
+                python python-pip \
+                git curl wget jq unzip \
+                base-devel openssl \
+                whois bind \
+                nmap masscan \
+                nikto sqlmap \
+                ruby nodejs npm \
+                jre-openjdk chromium \
+                2>/dev/null || log_warn "Some pacman packages failed — continuing"
+            ;;
 
-1. cd to the ReconX directory
-2. Run: python3 reconx.py -t example.com
-3. For help: python3 reconx.py -h
+        fedora|rhel|centos|rocky|almalinux)
+            dnf install -y \
+                python3 python3-pip python3-devel \
+                git curl wget jq unzip \
+                gcc openssl-devel libffi-devel \
+                whois bind-utils \
+                nmap masscan \
+                ruby nodejs \
+                chromium \
+                2>/dev/null || log_warn "Some dnf packages failed — continuing"
+            ;;
 
-Happy Hunting! 🎯
+        *)
+            log_warn "Unsupported OS '$OS_ID' — skipping system packages. Install manually."
+            ;;
+    esac
+    log_ok "System packages done"
+fi
 
-EOF
+# ==============================================================================
+# 2. GO INSTALLATION
+# ==============================================================================
+if ! $PYTHON_ONLY; then
+    log_section "Go Language Runtime"
+
+    GO_VERSION="1.22.4"
+    ARCH="$(uname -m)"
+    case "$ARCH" in
+        x86_64)  GO_ARCH="amd64" ;;
+        aarch64) GO_ARCH="arm64" ;;
+        armv7l)  GO_ARCH="armv6l" ;;
+        *)       GO_ARCH="amd64" ;;
+    esac
+
+    CURRENT_GO=""
+    if command -v /usr/local/go/bin/go &>/dev/null; then
+        CURRENT_GO="$(/usr/local/go/bin/go version 2>/dev/null | awk '{print $3}' | sed 's/go//')"
+    fi
+
+    if [[ "$CURRENT_GO" < "$GO_VERSION" ]] || [[ -z "$CURRENT_GO" ]]; then
+        log_info "Installing Go $GO_VERSION (${GO_ARCH})..."
+        GO_TAR="go${GO_VERSION}.linux-${GO_ARCH}.tar.gz"
+        wget -q "https://go.dev/dl/${GO_TAR}" -O "/tmp/${GO_TAR}"
+        rm -rf /usr/local/go
+        tar -C /usr/local -xzf "/tmp/${GO_TAR}"
+        rm -f "/tmp/${GO_TAR}"
+        log_ok "Go $GO_VERSION installed"
+    else
+        log_ok "Go $CURRENT_GO already installed"
+    fi
+
+    export GOROOT=/usr/local/go
+    export GOPATH="${REAL_HOME}/go"
+    export PATH="${GOROOT}/bin:${GOPATH}/bin:${PATH}"
+
+    # Write Go env to real user's profile
+    PROFILE_FILE="${REAL_HOME}/.bashrc"
+    if ! grep -q 'GOROOT=/usr/local/go' "$PROFILE_FILE" 2>/dev/null; then
+        cat >> "$PROFILE_FILE" <<'GOENV'
+
+# --- Go environment (added by ReconX installer) ---
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
+export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
+GOENV
+        log_ok "Go paths added to $PROFILE_FILE"
+    fi
+fi
+
+# ==============================================================================
+# 3. GO TOOLS
+# ==============================================================================
+if ! $PYTHON_ONLY; then
+    log_section "Go Security Tools"
+
+    declare -A GO_TOOLS=(
+        # Subdomain enumeration
+        ["subfinder"]="github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"
+        ["amass"]="github.com/owasp-amass/amass/v4/...@master"
+        ["assetfinder"]="github.com/tomnomnom/assetfinder@latest"
+        ["shuffledns"]="github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest"
+
+        # HTTP probing
+        ["httpx"]="github.com/projectdiscovery/httpx/cmd/httpx@latest"
+        ["katana"]="github.com/projectdiscovery/katana/cmd/katana@latest"
+
+        # DNS
+        ["dnsx"]="github.com/projectdiscovery/dnsx/cmd/dnsx@latest"
+        ["puredns"]="github.com/d3mondev/puredns/v2@latest"
+
+        # Port scanning
+        ["naabu"]="github.com/projectdiscovery/naabu/v2/cmd/naabu@latest"
+
+        # Vulnerability scanning
+        ["nuclei"]="github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"
+
+        # Content discovery
+        ["ffuf"]="github.com/ffuf/ffuf/v2@latest"
+        ["feroxbuster"]="github.com/epi052/feroxbuster@latest"
+
+        # URL collection
+        ["gau"]="github.com/lc/gau/v2/cmd/gau@latest"
+        ["waybackurls"]="github.com/tomnomnom/waybackurls@latest"
+        ["hakrawler"]="github.com/hakluke/hakrawler@latest"
+
+        # Takeover / misconfiguration
+        ["subjack"]="github.com/haccer/subjack@latest"
+        ["subzy"]="github.com/LukaSikic/subzy@latest"
+
+        # Leak detection
+        ["gitleaks"]="github.com/gitleaks/gitleaks/v8@latest"
+
+        # Miscellaneous
+        ["anew"]="github.com/tomnomnom/anew@latest"
+        ["qsreplace"]="github.com/tomnomnom/qsreplace@latest"
+    )
+
+    for bin in "${!GO_TOOLS[@]}"; do
+        if ! command -v "$bin" &>/dev/null; then
+            go_install "${GO_TOOLS[$bin]}"
+        else
+            log_ok "$bin already installed"
+        fi
+    done
+
+    # Update Nuclei templates
+    if command -v nuclei &>/dev/null; then
+        log_info "Updating Nuclei templates..."
+        nuclei -update-templates -silent 2>/dev/null || log_warn "Nuclei template update failed"
+    fi
+fi
+
+# ==============================================================================
+# 4. RUST TOOLS
+# ==============================================================================
+if ! $PYTHON_ONLY; then
+    log_section "Rust-based Tools"
+
+    # Install RustScan via cargo if available
+    if command -v cargo &>/dev/null; then
+        if ! command -v rustscan &>/dev/null; then
+            log_info "Installing RustScan..."
+            cargo install rustscan --quiet 2>/dev/null || log_warn "RustScan install failed"
+        else
+            log_ok "RustScan already installed"
+        fi
+    else
+        log_warn "Rust/cargo not found — install Rust from https://rustup.rs to get RustScan"
+    fi
+fi
+
+# ==============================================================================
+# 5. PYTHON ENVIRONMENT
+# ==============================================================================
+log_section "Python Dependencies"
+
+# Kali uses PEP 668 managed environment — create a project venv instead
+VENV_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")/.venv"
+if python3 -m venv --help &>/dev/null; then
+    if [[ ! -d "$VENV_DIR" ]]; then
+        log_info "Creating Python venv at $VENV_DIR..."
+        python3 -m venv "$VENV_DIR"
+    fi
+    PIP="$VENV_DIR/bin/pip"
+    PYTHON="$VENV_DIR/bin/python"
+else
+    PIP="pip3"
+    PYTHON="python3"
+fi
+
+log_info "Upgrading pip..."
+"$PIP" install --quiet --upgrade pip
+
+log_info "Installing Python requirements..."
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+if [[ -f "$SCRIPT_DIR/requirements.txt" ]]; then
+    "$PIP" install --quiet -r "$SCRIPT_DIR/requirements.txt"
+    log_ok "Python requirements installed"
+else
+    log_warn "requirements.txt not found — skipping Python deps"
+fi
+
+# ==============================================================================
+# 6. PYTHON-BASED TOOLS (system-wide)
+# ==============================================================================
+if ! $PYTHON_ONLY; then
+    log_section "Python-based Security Tools"
+
+    # These are installed system-wide (or per-venv for Kali)
+    PYTOOLS=(
+        "sublist3r"
+        "truffleHog"
+        "arjun"
+        "wafw00f"
+        "sqlmap"
+    )
+
+    for tool in "${PYTOOLS[@]}"; do
+        log_info "pip install $tool..."
+        pip_install "$tool"
+    done
+
+    # WPScan (Ruby gem)
+    if command -v gem &>/dev/null && ! command -v wpscan &>/dev/null; then
+        log_info "Installing WPScan..."
+        gem install wpscan --quiet 2>/dev/null || log_warn "WPScan install failed"
+    fi
+
+    # testssl.sh
+    if [[ ! -f "$TOOLS_DIR/testssl.sh/testssl.sh" ]]; then
+        git_sync "https://github.com/drwetter/testssl.sh.git" "$TOOLS_DIR/testssl.sh"
+        ln -sf "$TOOLS_DIR/testssl.sh/testssl.sh" /usr/local/bin/testssl.sh 2>/dev/null || true
+    else
+        log_ok "testssl.sh already installed"
+    fi
+
+    # LinkFinder
+    if [[ ! -d "$TOOLS_DIR/LinkFinder" ]]; then
+        git_sync "https://github.com/GerbenJavado/LinkFinder.git" "$TOOLS_DIR/LinkFinder"
+        pip_install -r "$TOOLS_DIR/LinkFinder/requirements.txt"
+    else
+        log_ok "LinkFinder already installed"
+    fi
+fi
+
+# ==============================================================================
+# 7. WORDLISTS
+# ==============================================================================
+if ! $PYTHON_ONLY && ! $SKIP_WORDLISTS; then
+    log_section "Wordlists"
+
+    if [[ ! -d "$WORDLISTS_DIR/SecLists" ]]; then
+        log_info "Downloading SecLists (~2 GB)..."
+        git_sync "https://github.com/danielmiessler/SecLists.git" "$WORDLISTS_DIR/SecLists"
+        log_ok "SecLists installed at $WORDLISTS_DIR/SecLists"
+    else
+        log_ok "SecLists already installed"
+    fi
+else
+    [[ "$SKIP_WORDLISTS" == "true" ]] && log_warn "Skipping wordlists (--skip-wordlists)"
+fi
+
+# ==============================================================================
+# 8. CONFIGURATION
+# ==============================================================================
+log_section "Configuration"
+
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+
+# Create .env from example if not present
+if [[ ! -f "$SCRIPT_DIR/.env" ]]; then
+    if [[ -f "$SCRIPT_DIR/.env.example" ]]; then
+        cp "$SCRIPT_DIR/.env.example" "$SCRIPT_DIR/.env"
+        chown "$REAL_USER":"$REAL_USER" "$SCRIPT_DIR/.env"
+        log_ok ".env created from .env.example — add your API keys"
+    else
+        cat > "$SCRIPT_DIR/.env" <<'ENVFILE'
+# ReconX API Keys — see README.md for how to obtain each key
+SHODAN_API_KEY=
+CENSYS_API_ID=
+CENSYS_API_SECRET=
+SECURITYTRAILS_API_KEY=
+VIRUSTOTAL_API_KEY=
+GREYNOISE_API_KEY=
+ABUSEIPDB_API_KEY=
+OTX_API_KEY=
+CROWDSEC_API_KEY=
+DEHASHED_EMAIL=
+DEHASHED_KEY=
+GITHUB_TOKEN=
+NVD_API_KEY=
+EMAILREP_API_KEY=
+DATABASE_URL=sqlite:///./reconx.db
+SECRET_KEY=change-me-to-a-random-64-char-string
+LOG_LEVEL=INFO
+ENVFILE
+        chown "$REAL_USER":"$REAL_USER" "$SCRIPT_DIR/.env"
+        log_ok ".env created — fill in your API keys (see README.md)"
+    fi
+else
+    log_ok ".env already exists"
+fi
+
+# Create directories
+mkdir -p "$SCRIPT_DIR/output" "$SCRIPT_DIR/logs"
+chown -R "$REAL_USER":"$REAL_USER" "$SCRIPT_DIR/output" "$SCRIPT_DIR/logs"
+
+# Make scripts executable
+chmod +x "$SCRIPT_DIR/reconx.py" \
+         "$SCRIPT_DIR/setup.sh" \
+         "$SCRIPT_DIR/install.sh" \
+         "$SCRIPT_DIR"/modules/*.sh 2>/dev/null || true
+
+# ==============================================================================
+# 9. VERIFICATION
+# ==============================================================================
+log_section "Verification"
+
+PASS=0; FAIL=0
+
+check_tool() {
+    local name="$1"
+    if command -v "$name" &>/dev/null; then
+        log_ok "$name"
+        ((PASS++))
+    else
+        log_warn "$name not found"
+        ((FAIL++))
+    fi
+}
+
+CORE_TOOLS=(python3 pip3 nmap sqlite3 curl wget git jq)
+GO_BINS=(subfinder httpx nuclei ffuf dnsx gau waybackurls anew subjack gitleaks)
+OPTIONAL=(amass katana naabu feroxbuster rustscan wpscan)
+
+echo "── Core ──────────────────────"
+for t in "${CORE_TOOLS[@]}"; do check_tool "$t"; done
+echo "── Go tools ──────────────────"
+for t in "${GO_BINS[@]}"; do check_tool "$t"; done
+echo "── Optional ──────────────────"
+for t in "${OPTIONAL[@]}"; do check_tool "$t"; done
+
+echo ""
+log_info "Results: ${GREEN}${PASS} ok${NC}  ${YELLOW}${FAIL} missing${NC}"
+echo ""
+
+# ==============================================================================
+# 10. SUMMARY
+# ==============================================================================
+log_section "Installation Complete"
+
+cat <<SUMMARY
+${BOLD}Next steps:${NC}
+  1. ${YELLOW}Add API keys${NC} to .env:
+        nano $SCRIPT_DIR/.env
+
+  2. ${YELLOW}Activate the Python venv${NC} (Kali/Debian) before running:
+        source $VENV_DIR/bin/activate
+
+  3. ${YELLOW}Run ReconX${NC}:
+        python3 $SCRIPT_DIR/reconx.py -t example.com
+
+  4. ${YELLOW}Optional — start the web API${NC}:
+        uvicorn backend.api.server:app --host 0.0.0.0 --port 8000
+
+  5. ${YELLOW}Reload Go paths${NC} in current shell:
+        source $REAL_HOME/.bashrc
+
+See README.md for full documentation.
+SUMMARY
 
 exit 0

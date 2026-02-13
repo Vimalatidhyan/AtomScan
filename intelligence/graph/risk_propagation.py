@@ -1,12 +1,17 @@
 """Risk propagation — spread vulnerability risk scores across the asset graph."""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+try:
+    import networkx as nx
+    _NX_AVAILABLE = True
+except ImportError:
+    _NX_AVAILABLE = False
 
 # ── constants ────────────────────────────────────────────────────────────────
 
@@ -24,7 +29,7 @@ PROPAGATION_DECAY = 0.5  # each hop reduces propagated risk by 50 %
 # ── public API ───────────────────────────────────────────────────────────────
 
 def propagate_risk(
-    graph: Dict[str, Any],
+    graph: Union[Dict[str, Any], "nx.DiGraph"],  # type: ignore[name-defined]
     max_depth: int = 3,
 ) -> Dict[str, Any]:
     """Propagate vulnerability risk scores through the graph.
@@ -32,10 +37,19 @@ def propagate_risk(
     For each vulnerability node the base risk is spread to connected
     asset nodes, decaying by *PROPAGATION_DECAY* per hop up to *max_depth*.
 
-    Returns *graph* with an added ``risk_score`` field on every node.
+    Args:
+        graph: Either a dict with nodes/edges structure or a NetworkX DiGraph
+        max_depth: Maximum propagation depth (hops)
+
+    Returns:
+        Dict with nodes (with added risk_score field) and edges
     """
+    # Convert NetworkX graph to dict if necessary
+    if _NX_AVAILABLE and isinstance(graph, nx.DiGraph):
+        graph = nx.node_link_data(graph)
+    
     nodes: List[Dict[str, Any]] = graph.get("nodes", [])
-    edges: List[Dict[str, Any]] = graph.get("edges", graph.get("relationships", []))
+    edges: List[Dict[str, Any]] = graph.get("edges", graph.get("links", graph.get("relationships", [])))
 
     # Index nodes by id for O(1) lookup
     node_by_id: Dict[Any, Dict[str, Any]] = {n["id"]: n for n in nodes}

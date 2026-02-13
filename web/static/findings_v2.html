@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Findings | ReconX Enterprise</title>
+  <link rel="stylesheet" href="/static/assets/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">ReconX Enterprise</div>
+    <div class="nav-links">
+      <a href="/static/index.html">Dashboard</a>
+      <a href="/static/scan_viewer_v2.html">Scans</a>
+      <a href="/static/findings_v2.html" class="active">Findings</a>
+      <a href="/static/graph_viewer_v2.html">Graph</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="page-header">
+      <div>
+        <h1>Findings</h1>
+        <p class="text-muted">Vulnerability and security findings from all scans</p>
+      </div>
+      <div>
+        <button class="btn btn-secondary" onclick="exportFindings()">
+          <span>📥</span> Export
+        </button>
+        <button class="btn btn-primary" onclick="bulkRemediate()">
+          <span>🛠️</span> Bulk Remediate
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Filters</div>
+        <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear All</button>
+      </div>
+      <div class="card-body">
+        <div class="filter-grid">
+          <!-- Search -->
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Search</label>
+            <input type="text" id="searchInput" placeholder="Search by title, CVE, CWE, or description..." class="form-control">
+          </div>
+
+          <!-- Severity Filter -->
+          <div class="form-group">
+            <label>Severity</label>
+            <select id="severityFilter" class="form-control" multiple size="4">
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <!-- Type Filter -->
+          <div class="form-group">
+            <label>Type</label>
+            <select id="typeFilter" class="form-control" multiple size="4">
+              <option value="vulnerability">Vulnerability</option>
+              <option value="misconfiguration">Misconfiguration</option>
+              <option value="exposure">Exposure</option>
+              <option value="weakness">Weakness</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="form-group">
+            <label>Status</label>
+            <select id="statusFilter" class="form-control" multiple size="4">
+              <option value="open" selected>Open</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="resolved">Resolved</option>
+              <option value="false_positive">False Positive</option>
+            </select>
+          </div>
+
+          <!-- Scan Filter -->
+          <div class="form-group">
+            <label>Scan</label>
+            <select id="scanFilter" class="form-control">
+              <option value="">All Scans</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-2" style="margin-top: var(--spacing-md);">
+          <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+          <button class="btn btn-secondary" onclick="toggleAdvancedFilters()">Advanced ▾</button>
+        </div>
+
+        <!-- Advanced Filters (Hidden by default) -->
+        <div id="advancedFilters" class="hidden" style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--border-color);">
+          <div class="filter-grid">
+            <div class="form-group">
+              <label>CVSS Score Range</label>
+              <div class="flex gap-2">
+                <input type="number" id="cvssMin" placeholder="Min" min="0" max="10" step="0.1" class="form-control">
+                <input type="number" id="cvssMax" placeholder="Max" min="0" max="10" step="0.1" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Asset Type</label>
+              <select id="assetTypeFilter" class="form-control">
+                <option value="">All Assets</option>
+                <option value="subdomain">Subdomain</option>
+                <option value="ip">IP Address</option>
+                <option value="service">Service</option>
+                <option value="webapp">Web Application</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Date Range</label>
+              <input type="date" id="dateFrom" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <input type="date" id="dateTo" class="form-control">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="kpi-grid">
+      <div class="kpi-card critical">
+        <div class="kpi-icon">🔴</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Critical</div>
+          <div class="kpi-value" id="criticalCount">0</div>
+        </div>
+      </div>
+
+      <div class="kpi-card high">
+        <div class="kpi-icon">🟠</div>
+        <div class="kpi-content">
+          <div class="kpi-label">High</div>
+          <div class="kpi-value" id="highCount">0</div>
+        </div>
+      </div>
+
+      <div class="kpi-card medium">
+        <div class="kpi-icon">🟡</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Medium</div>
+          <div class="kpi-value" id="mediumCount">0</div>
+        </div>
+      </div>
+
+      <div class="kpi-card low">
+        <div class="kpi-icon">🔵</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Low</div>
+          <div class="kpi-value" id="lowCount">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Findings Table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          Findings (<span id="findingsTotal">0</span>)
+        </div>
+        <div>
+          <label style="font-weight: normal;">
+            <input type="checkbox" id="selectAllCheck" onchange="toggleSelectAll()">
+            Select All
+          </label>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-container">
+          <table class="table sortable">
+            <thead>
+              <tr>
+                <th style="width: 40px;"></th>
+                <th class="sortable" data-sort="severity">Severity</th>
+                <th class="sortable" data-sort="title">Title</th>
+                <th class="sortable" data-sort="type">Type</th>
+                <th class="sortable" data-sort="asset">Asset</th>
+                <th class="sortable" data-sort="cvss">CVSS</th>
+                <th class="sortable" data-sort="discovered">Discovered</th>
+                <th class="sortable" data-sort="status">Status</th>
+                <th style="width: 100px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="findingsTable">
+              <tr>
+                <td colspan="9" class="text-center">
+                  <div class="spinner"></div>
+                  <p>Loading findings...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+          <div>
+            <label>
+              Rows per page:
+              <select id="perPageSelect" class="form-control" style="width: auto; display: inline-block;" onchange="changePerPage()">
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="paginationInfo" class="text-muted">
+            Showing 0-0 of 0
+          </div>
+
+          <div class="pagination-controls">
+            <button class="btn btn-ghost btn-sm" onclick="goToPage(1)" id="firstPageBtn" disabled>«</button>
+            <button class="btn btn-ghost btn-sm" onclick="previousPage()" id="prevPageBtn" disabled>‹</button>
+            <span id="pageNumbers"></span>
+            <button class="btn btn-ghost btn-sm" onclick="nextPage()" id="nextPageBtn" disabled>›</button>
+            <button class="btn btn-ghost btn-sm" onclick="goToLastPage()" id="lastPageBtn" disabled>»</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Finding Detail Modal -->
+  <div id="findingModal" class="modal">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h2 id="modalTitle">Finding Details</h2>
+        <button class="btn btn-ghost" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Severity and Status -->
+        <div class="flex gap-2" style="margin-bottom: var(--spacing-md);">
+          <span id="modalSeverity" class="badge"></span>
+          <span id="modalType" class="badge badge-info"></span>
+          <span id="modalStatus" class="badge badge-warning"></span>
+        </div>
+
+        <!-- CVSS Score -->
+        <div class="card" style="margin-bottom: var(--spacing-md);">
+          <div class="card-body">
+            <div class="flex justify-between">
+              <div>
+                <div class="text-muted" style="font-size: 0.875rem;">CVSS Score</div>
+                <div style="font-size: 2rem; font-weight: bold;" id="modalCVSS">0.0</div>
+              </div>
+              <div>
+                <div class="text-muted" style="font-size: 0.875rem;">Vector</div>
+                <div style="font-family: var(--font-mono); font-size: 0.875rem;" id="modalVector">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div style="margin-bottom: var(--spacing-md);">
+          <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">Description</h3>
+          <p id="modalDescription" class="text-muted"></p>
+        </div>
+
+        <!-- Asset Details -->
+        <div style="margin-bottom: var(--spacing-md);">
+          <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">Affected Asset</h3>
+          <div class="card">
+            <div class="card-body">
+              <div id="modalAsset"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- References -->
+        <div id="modalReferences" style="margin-bottom: var(--spacing-md);">
+          <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">References</h3>
+          <div id="modalReferencesList"></div>
+        </div>
+
+        <!-- Evidence -->
+        <div id="modalEvidence" style="margin-bottom: var(--spacing-md);">
+          <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">Evidence</h3>
+          <pre id="modalEvidenceContent" style="background: var(--bg-elevated); padding: var(--spacing-md); border-radius: var(--radius-md); overflow-x: auto;"></pre>
+        </div>
+
+        <!-- Remediation -->
+        <div id="modalRemediation" style="margin-bottom: var(--spacing-md);">
+          <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">Remediation</h3>
+          <div id="modalRemediationContent" class="card">
+            <div class="card-body"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="markAsResolved()">Mark Resolved</button>
+        <button class="btn btn-secondary" onclick="markAsFalsePositive()">False Positive</button>
+        <button class="btn btn-primary" onclick="remediateFinding()">Start Remediation</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/assets/js/findings_v2.js"></script>
+</body>
+</html>

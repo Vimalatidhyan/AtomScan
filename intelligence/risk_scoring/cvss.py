@@ -4,7 +4,10 @@ from typing import Dict, Optional
 METRIC_VALUES = {
     "AV": {"N": 0.85, "A": 0.62, "L": 0.55, "P": 0.2},
     "AC": {"L": 0.77, "H": 0.44},
-    "PR": {"N": 0.85, "L": 0.62, "H": 0.27},
+    "PR": {
+        "U": {"N": 0.85, "L": 0.62, "H": 0.27},  # Scope Unchanged
+        "C": {"N": 0.85, "L": 0.68, "H": 0.50},  # Scope Changed
+    },
     "UI": {"N": 0.85, "R": 0.62},
     "S":  {"U": 0.0, "C": 1.0},
     "C":  {"N": 0.0, "L": 0.22, "H": 0.56},
@@ -37,9 +40,15 @@ class CVSSv31Calculator:
         try:
             AV = METRIC_VALUES["AV"].get(m.get("AV", "N"), 0.85)
             AC = METRIC_VALUES["AC"].get(m.get("AC", "L"), 0.77)
-            PR = METRIC_VALUES["PR"].get(m.get("PR", "N"), 0.85)
+            
+            # Fix: Use scope-dependent PR values
+            scope = m.get("S", "U")
+            scope_changed = (scope == "C")
+            scope_key = "C" if scope_changed else "U"
+            pr_value = m.get("PR", "N")
+            PR = METRIC_VALUES["PR"][scope_key].get(pr_value, 0.85)
+            
             UI = METRIC_VALUES["UI"].get(m.get("UI", "N"), 0.85)
-            scope_changed = m.get("S", "U") == "C"
             C = METRIC_VALUES["C"].get(m.get("C", "N"), 0.0)
             I = METRIC_VALUES["I"].get(m.get("I", "N"), 0.0)
             A = METRIC_VALUES["A"].get(m.get("A", "N"), 0.0)

@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api.middleware.auth import AuthMiddleware
 from backend.api.middleware.rate_limit import RateLimitMiddleware
 from backend.api.middleware.logging import LoggingMiddleware
+from backend.api.middleware.csrf import CSRFMiddleware
 from backend.db.database import Database
 
 logging.basicConfig(level=logging.INFO)
@@ -35,8 +36,16 @@ app = FastAPI(
 )
 
 # Middleware (order matters — outermost first)
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+# CORS: Specific origins in production, localhost for dev (don't use wildcard with credentials)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(RateLimitMiddleware, requests_per_hour=1000)
+app.add_middleware(CSRFMiddleware)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(AuthMiddleware)
 

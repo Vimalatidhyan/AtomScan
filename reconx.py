@@ -780,8 +780,8 @@ Phases:
     phases = [int(p.strip()) for p in args.phases.split(',')]
 
     # Validate phases
-    if not all(p in [1, 2, 3, 4] for p in phases):
-        print("Error: Phases must be 1, 2, 3, or 4")
+    if not all(p in list(range(10)) for p in phases):
+        print("Error: Phases must be 0-9")
         sys.exit(1)
 
     # Initialize and run ReconX

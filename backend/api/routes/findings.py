@@ -1,6 +1,7 @@
 """Vulnerability findings API routes."""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func, case
 from typing import Optional
 from backend.db.database import get_db
 from backend.db.models import Vulnerability
@@ -32,31 +33,49 @@ def list_findings(
 
 @router.get("/by-severity", summary="Findings grouped by severity")
 def findings_by_severity(scan_run_id: Optional[int] = None, db: Session = Depends(get_db)):
-    """Get finding counts grouped by severity tier."""
-    q = db.query(Vulnerability)
+    """Get finding counts grouped by severity tier using SQL aggregation."""
+    q = db.query(Vulnerability.severity)
     if scan_run_id:
         q = q.filter(Vulnerability.scan_run_id == scan_run_id)
-    findings = q.all()
+    
+    # Use SQL CASE to group by severity in database
+    severity_case = case(
+        (Vulnerability.severity >= 90, "critical"),
+        (Vulnerability.severity >= 70, "high"),
+        (Vulnerability.severity >= 40, "medium"),
+        (Vulnerability.severity >= 10, "low"),
+        else_="info"
+    )
+    
+    results = db.query(
+        severity_case.label("tier"),
+        func.count().label("count")
+    ).select_from(Vulnerability)
+    
+    if scan_run_id:
+        results = results.filter(Vulnerability.scan_run_id == scan_run_id)
+    
+    results = results.group_by("tier").all()
+    
+    # Convert to dict
     groups = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
-    for f in findings:
-        s = f.severity or 0
-        if s >= 90: groups["critical"] += 1
-        elif s >= 70: groups["high"] += 1
-        elif s >= 40: groups["medium"] += 1
-        elif s >= 10: groups["low"] += 1
-        else: groups["info"] += 1
+    for tier, count in results:
+        groups[tier] = count
+    
     return groups
 
 @router.get("/by-type", summary="Findings grouped by type")
 def findings_by_type(scan_run_id: Optional[int] = None, db: Session = Depends(get_db)):
-    """Get finding counts grouped by vulnerability type."""
-    q = db.query(Vulnerability)
+    """Get finding counts grouped by vulnerability type using SQL aggregation."""
+    q = db.query(
+        Vulnerability.vuln_type,
+        func.count().label("count")
+    )
     if scan_run_id:
         q = q.filter(Vulnerability.scan_run_id == scan_run_id)
-    groups: dict = {}
-    for f in q.all():
-        groups[f.vuln_type] = groups.get(f.vuln_type, 0) + 1
-    return groups
+    
+    results = q.group_by(Vulnerability.vuln_type).all()
+    return {vuln_type: count for vuln_type, count in results}
 
 @router.get("/{finding_id}", response_model=FindingResponse, summary="Get finding")
 def get_finding(finding_id: int, db: Session = Depends(get_db)):
@@ -96,4 +115,8 @@ def remediate_finding(finding_id: int, db: Session = Depends(get_db)):
     finding = db.query(Vulnerability).filter(Vulnerability.id == finding_id).first()
     if not finding:
         raise HTTPException(status_code=404, detail="Finding not found")
+    # Actually update the database
+    finding.status = "in_remediation"
+    db.commit()
+    db.refresh(finding)
     return StatusResponse(status="in_remediation", message=f"Finding {finding_id} marked for remediation")

@@ -23,13 +23,56 @@ class AlertGenerator:
     def generate_alerts(self) -> List[Dict]:
         """Generate alerts based on configured thresholds."""
         alerts = []
+        
+        # Alert type 1: New critical/high vulnerabilities
         for vuln in self.delta.get("new_vulnerabilities", []):
             if (vuln.get("severity") or 0) >= self.thresholds["critical_severity"]:
-                alerts.append({"type": "CRITICAL_FINDING_NEW", "severity": "critical", "data": vuln})
-
+                alerts.append({
+                    "type": "CRITICAL_FINDING_NEW",
+                    "severity": "critical",
+                    "title": f"New critical vulnerability: {vuln.get('title', 'Unknown')}",
+                    "data": vuln
+                })
+        
+        # Alert type 2: Service down
+        for service in self.delta.get("changed_services", []):
+            if service.get("status_before") == "up" and service.get("status_after") == "down":
+                alerts.append({
+                    "type": "SERVICE_DOWN",
+                    "severity": "high",
+                    "title": f"Service down: {service.get('service_name', 'Unknown')}",
+                    "data": service
+                })
+        
+        # Alert type 3: Mass asset churn
         summary = self.delta.get("summary", {})
         if summary.get("assets_added", 0) + summary.get("assets_removed", 0) >= self.thresholds["mass_churn"]:
-            alerts.append({"type": "MASS_ASSET_CHURN", "severity": "high", "data": summary})
+            alerts.append({
+                "type": "MASS_ASSET_CHURN",
+                "severity": "high",
+                "title": f"Mass asset change: {summary.get('assets_added', 0)} added, {summary.get('assets_removed', 0)} removed",
+                "data": summary
+            })
+        
+        # Alert type 4: Configuration drift
+        if self.delta.get("technology_changes", []):
+            for tech_change in self.delta.get("technology_changes", []):
+                alerts.append({
+                    "type": "CONFIGURATION_DRIFT",
+                    "severity": "medium",
+                    "title": f"Technology changed: {tech_change.get('name', 'Unknown')}",
+                    "data": tech_change
+                })
+        
+        # Alert type 5: Compliance degradation
+        compliance_impact = self.delta.get("compliance_impact", {})
+        if compliance_impact.get("newly_affected_controls", 0) > 0:
+            alerts.append({
+                "type": "COMPLIANCE_DEGRADATION",
+                "severity": "high",
+                "title": f"Compliance affected: {compliance_impact.get('newly_affected_controls')} controls impacted",
+                "data": compliance_impact
+            })
 
         logger.info(f"Generated {len(alerts)} alerts for scan {self.scan_run_id}")
         return alerts

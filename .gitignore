@@ -1,3 +1,7 @@
+# ==============================================================================
+# ReconX .gitignore
+# ==============================================================================
+
 # Python
 __pycache__/
 *.py[cod]
@@ -5,64 +9,86 @@ __pycache__/
 *.so
 .Python
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
 *.egg
+.eggs/
 
-# Virtual Environment
+# Virtual Environments
+.venv/
 venv/
 ENV/
 env/
 
-# Output and Results
-
-results/
+# Databases & scan data
 *.db
 *.db-shm
 *.db-wal
+output/
+results/
 
 # Logs
 logs/
 *.log
 
-# API Keys and Secrets
+# Secrets — NEVER commit real keys
 .env
 *.key
 secrets.txt
+config/api_keys_local.yaml
 
-# IDE
+# IDE / OS
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Temporary files
+# Test artefacts
+.pytest_cache/
+.coverage
+htmlcov/
+test_*.db
+
+# Temp
 *.tmp
 *.temp
 tmp/
 temp/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
+# ==============================================================================
+# Repo-specific exclusions
+# ==============================================================================
 
-# ReconX specific
-reconx.db*
-output/
-*.err
+# Subproject with its own tracking
+reconx-enterprise/
+
+# Backup & generated docs
+*.bak
+docs/*.bak
+*.pdf
+*.tmp.html
+progress_docs/
+
+# Planning / prompt files (internal)
+ALL_REMAINING_PROMPTS.md
+CLAUDE_SONNET_FIX_PROMPTS.md
+CLEANUP_REPORT.md
+COPY_PASTE_PROMPTS.md
+CRITICAL_NEXT_STEPS.md
+DETAILED_API_PROMPTS.md
+DETAILED_DATABASE_PROMPTS.md
+DETAILED_INTELLIGENCE_ORCHESTRATOR_PROMPTS.md
+MASTER_CLAUDE_PROMPT.md
+MASTER_EXECUTION_GUIDE.md
+MERGE_COMPLETE_STATUS.md
+OPUS_VALIDATION_PROMPT.md
+PHASE_ROADMAP_AND_PROMPTS.md
+PRODUCTION_READINESS_FIX_PLAN.md
+PRODUCTION_READINESS_REPORT.md
+QUICK_REFERENCE.md
+START_HERE_TODO.md
+VALIDATION_REPORT.md
+complete_plan.md

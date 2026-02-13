@@ -1,5 +1,5 @@
-"""Finding Pydantic schemas."""
-from pydantic import BaseModel
+"""Finding Pydantic schemas with enhanced validation."""
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional, List
 
@@ -21,5 +21,29 @@ class FindingListResponse(BaseModel):
     items: List[FindingResponse]
 
 class FindingUpdateRequest(BaseModel):
-    severity: Optional[int] = None
-    remediation: Optional[str] = None
+    severity: Optional[int] = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="Severity score (0-100)"
+    )
+    remediation: Optional[str] = Field(
+        default=None,
+        max_length=10000,
+        description="Remediation instructions"
+    )
+    status: Optional[str] = Field(
+        default=None,
+        pattern=r'^(open|confirmed|resolved|false_positive|wont_fix)$',
+        description="Finding status"
+    )
+    
+    @field_validator('remediation')
+    @classmethod
+    def validate_remediation(cls, v: Optional[str]) -> Optional[str]:
+        """Sanitize remediation text."""
+        if v is not None:
+            v = v.strip()
+            if len(v) == 0:
+                return None
+        return v

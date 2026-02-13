@@ -30,7 +30,7 @@ async function checkApiHealth() {
   const dot = el('apiHealthDot');
   if (!dot) return;
   try {
-    const res = await fetch(`${API}/health`);
+    const res = await fetch('/api/health');
     dot.style.color = res.ok ? 'var(--green)' : 'var(--red)';
     dot.title = res.ok ? 'API Online' : 'API Error';
   } catch {

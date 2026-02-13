@@ -76,6 +76,36 @@ async def page_graph():
     return _serve("graph_viewer_v2.html")
 
 
+@app.get("/attack-surface")
+async def page_attack_surface():
+    return _serve("attack_surface_v2.html")
+
+
+@app.get("/reports")
+async def page_reports():
+    return _serve("reports_v2.html")
+
+
+@app.get("/compliance")
+async def page_compliance():
+    return _serve("compliance_v2.html")
+
+
+@app.get("/alerts")
+async def page_alerts():
+    return _serve("alerts_v2.html")
+
+
+@app.get("/settings")
+async def page_settings():
+    return _serve("settings_v2.html")
+
+
+@app.get("/threat-intel")
+async def page_threat_intel():
+    return _serve("scan_viewer_v2.html")
+
+
 # Legacy routes (v1 pages still in web/static/)
 @app.get("/scan_viewer.html")
 async def legacy_scan_viewer():

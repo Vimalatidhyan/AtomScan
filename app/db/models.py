@@ -1308,3 +1308,75 @@ class Webhook(Base):
         """Return string representation."""
         return f"<Webhook(id={self.id}, url={self.url[:50]}, active={self.active})>"
 
+
+# ---------------------------------------------------------------------------
+# Queue & Event Models (added Round 6 — prod hardening)
+# ---------------------------------------------------------------------------
+
+
+class ScanJob(Base):
+    """Persistent job queue record — one row per enqueued scan execution.
+
+    The Python worker polls this table for ``status='queued'`` rows, claims
+    one atomically, and transitions it through queued → running → done/failed.
+    """
+
+    __tablename__ = "scan_jobs"
+
+    id: int = Column(Integer, primary_key=True)
+    scan_run_id: int = Column(
+        Integer, ForeignKey("scan_runs.id"), nullable=False, index=True
+    )
+    status: str = Column(String(20), nullable=False, default="queued", index=True)
+    worker_id: Optional[str] = Column(String(100), nullable=True)
+    queued_at: datetime = Column(DateTime, default=datetime.utcnow)
+    started_at: Optional[datetime] = Column(DateTime, nullable=True)
+    finished_at: Optional[datetime] = Column(DateTime, nullable=True)
+    error: Optional[str] = Column(Text, nullable=True)
+
+    scan_run = relationship("ScanRun", backref="scan_jobs")
+
+    __table_args__ = (
+        Index("idx_scan_jobs_status_id", "status", "id"),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<ScanJob(id={self.id}, scan_run_id={self.scan_run_id}, "
+            f"status={self.status})>"
+        )
+
+
+class ScanEvent(Base):
+    """Persisted scan event / log line for real-time streaming.
+
+    The worker writes one row per output line from the scan harness.
+    The SSE stream endpoint reads rows with ``id > last_seen_id`` and
+    delivers them to the client — no synthetic data, no mocks.
+    """
+
+    __tablename__ = "scan_events"
+
+    id: int = Column(Integer, primary_key=True)
+    scan_run_id: int = Column(
+        Integer, ForeignKey("scan_runs.id"), nullable=False, index=True
+    )
+    event_type: str = Column(String(50), nullable=False, default="log")
+    level: str = Column(String(20), nullable=False, default="info")
+    message: Optional[str] = Column(Text, nullable=True)
+    data: Optional[str] = Column(Text, nullable=True)  # JSON-serialized extra fields
+    phase: Optional[int] = Column(Integer, nullable=True)
+    created_at: datetime = Column(DateTime, default=datetime.utcnow)
+
+    scan_run = relationship("ScanRun", backref="scan_events")
+
+    __table_args__ = (
+        Index("idx_scan_events_run_id", "scan_run_id", "id"),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<ScanEvent(id={self.id}, scan_run_id={self.scan_run_id}, "
+            f"type={self.event_type})>"
+        )
+

@@ -1,29 +1,49 @@
 # ReconX Enterprise — Docker Compose
-# Usage (from project root):
-#   docker compose -f deployment/docker/docker-compose.yml up -d
 #
 # Profiles:
-#   (default)  api + worker
-#   tools      scanner (one-off CLI scans)
+#   dev   — SQLite, no external services (default for local dev)
+#   prod  — PostgreSQL + Redis + API + Worker
+#   tools — one-off CLI scanner (either profile)
+#
+# Usage:
+#   # Local dev (SQLite)
+#   docker compose -f deployment/docker/docker-compose.yml --profile dev up -d
+#
+#   # Production (PostgreSQL + Redis)
+#   RECONX_SECRET_KEY=... POSTGRES_PASSWORD=... \
+#   docker compose -f deployment/docker/docker-compose.yml --profile prod up -d
+
+x-api-common: &api-common
+  build:
+    context: ../..
+    dockerfile: deployment/docker/Dockerfile.api
+  image: reconx-api:latest
+
+x-worker-common: &worker-common
+  build:
+    context: ../..
+    dockerfile: deployment/docker/Dockerfile.worker
+  image: reconx-worker:latest
+
+# ── DEV profile (SQLite, no external deps) ─────────────────────────────────
 
 services:
-  api:
-    build:
-      context: ../..
-      dockerfile: deployment/docker/Dockerfile.api
-    image: reconx-api:latest
-    container_name: reconx-api
+
+  api-dev:
+    <<: *api-common
+    container_name: reconx-api-dev
+    profiles: [dev]
     ports:
       - "8000:8000"
     volumes:
       - ../../output:/app/output
       - ../../logs:/app/logs
-      - reconx-data:/app/data
+      - reconx-dev-data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=sqlite:////app/data/reconx.db
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - RECONX_SECRET_KEY=${RECONX_SECRET_KEY:?RECONX_SECRET_KEY must be set}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - RECONX_SECRET_KEY=${RECONX_SECRET_KEY:-dev-insecure-key-change-in-prod}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
@@ -32,46 +52,128 @@ services:
       retries: 3
       start_period: 15s
 
-  worker:
-    build:
-      context: ../..
-      dockerfile: deployment/docker/Dockerfile.worker
-    image: reconx-worker:latest
-    container_name: reconx-worker
+  worker-dev:
+    <<: *worker-common
+    container_name: reconx-worker-dev
+    profiles: [dev]
     volumes:
       - ../../output:/app/output
       - ../../logs:/app/logs
-      - reconx-data:/app/data
+      - reconx-dev-data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=sqlite:////app/data/reconx.db
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
       - WORKER_POLL_SEC=${WORKER_POLL_SEC:-5}
-      - WORKER_MAX_JOBS=${WORKER_MAX_JOBS:-2}
+      - WORKER_MAX_JOBS=${WORKER_MAX_JOBS:-1}
       - RECONX_NUCLEI_UPDATE=${RECONX_NUCLEI_UPDATE:-false}
     restart: unless-stopped
     depends_on:
-      api:
+      api-dev:
         condition: service_healthy
 
-  # Optional: scanner CLI (one-off scans)
+# ── PROD profile (PostgreSQL + Redis) ─────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: reconx-postgres
+    profiles: [prod]
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-reconx}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-REQUIRED_IN_PROD}
+      - POSTGRES_DB=${POSTGRES_DB:-reconx}
+    volumes:
+      - reconx-pg-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-reconx}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: reconx-redis
+    profiles: [prod]
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - reconx-redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  api-prod:
+    <<: *api-common
+    container_name: reconx-api-prod
+    profiles: [prod]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../output:/app/output
+      - ../../logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-reconx}:${POSTGRES_PASSWORD:-REQUIRED_IN_PROD}@postgres:5432/${POSTGRES_DB:-reconx}
+      - REDIS_URL=redis://redis:6379/0
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - RECONX_SECRET_KEY=${RECONX_SECRET_KEY:?RECONX_SECRET_KEY must be set}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  worker-prod:
+    <<: *worker-common
+    container_name: reconx-worker-prod
+    profiles: [prod]
+    volumes:
+      - ../../output:/app/output
+      - ../../logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-reconx}:${POSTGRES_PASSWORD:-REQUIRED_IN_PROD}@postgres:5432/${POSTGRES_DB:-reconx}
+      - REDIS_URL=redis://redis:6379/0
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - WORKER_POLL_SEC=${WORKER_POLL_SEC:-5}
+      - WORKER_MAX_JOBS=${WORKER_MAX_JOBS:-4}
+      - RECONX_NUCLEI_UPDATE=${RECONX_NUCLEI_UPDATE:-false}
+    restart: unless-stopped
+    depends_on:
+      api-prod:
+        condition: service_healthy
+
+  # Optional: one-off CLI scanner (any profile)
   scanner:
     build:
       context: ../..
       dockerfile: deployment/docker/Dockerfile.scanner
     image: reconx-scanner:latest
     container_name: reconx-scanner
+    profiles: [tools]
     volumes:
       - ../../output:/app/output
-      - reconx-data:/app/data
       - ../../config.yaml:/app/config.yaml
-    profiles:
-      - tools
     environment:
-      - DATABASE_URL=sqlite:////app/data/reconx.db
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./reconx.db}
       - RECONX_NUCLEI_UPDATE=${RECONX_NUCLEI_UPDATE:-false}
     command: ["--help"]
 
 volumes:
-  reconx-data:
+  reconx-dev-data:
+    driver: local
+  reconx-pg-data:
+    driver: local
+  reconx-redis-data:
     driver: local

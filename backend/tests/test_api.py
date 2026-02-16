@@ -48,6 +48,9 @@ VALID_KEY = "a" * 32
 @pytest.fixture(scope="function")
 def db_session():
     """Create test database and session."""
+    # Re-apply per-test: prevents cross-module import order from overwriting these.
+    _db_module.SessionLocal = TestingSessionLocal
+    app.dependency_overrides[get_db] = override_get_db
     Base.metadata.create_all(bind=engine)
     # Ensure Vulnerability.status column exists (safe migration for old schemas)
     with engine.connect() as conn:

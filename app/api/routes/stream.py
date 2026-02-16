@@ -1,134 +1,247 @@
-"""Server-Sent Events streaming routes."""
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
-from app.db.database import get_db, Database
-from app.db.models import ScanProgress, ScanRun
-import asyncio, json
+"""Server-Sent Events streaming routes.
+
+All events are read from the ``scan_events`` table written by the worker.
+No synthetic data, no hard-coded strings — if a row isn't in the DB it
+isn't sent.
+"""
+import asyncio
+import json
 from datetime import datetime, timezone
+
+from fastapi import APIRouter, Query
+from fastapi.responses import StreamingResponse
+
+from app.db.database import Database
+from app.db.models import ScanEvent, ScanProgress, ScanRun
 
 router = APIRouter()
 
-async def _scan_log_generator(scan_id: int):
-    """Generate SSE events with own DB session to avoid lifecycle issues."""
+_POLL_INTERVAL = 2   # seconds between DB polls while waiting for new events
+_MAX_ITERATIONS = 600  # 20 minutes max stream duration (600 * 2s)
+
+
+async def _event_stream(scan_id: int, last_event_id: int = 0):
+    """Yield SSE lines backed entirely by ScanEvent rows in the database."""
     db_conn = Database()
     db_conn.connect()
+    idle = 0
     try:
-        last_event_id = 0
-        heartbeat_counter = 0
-        
-        while True:
-            # Query fresh data each iteration with own session
-            progress = db_conn.session.query(ScanProgress).filter(ScanProgress.scan_run_id == scan_id).first()
-            
-            if not progress:
-                # Scan not found or completed
+        for _ in range(_MAX_ITERATIONS):
+            # Refresh session state so we see rows committed by the worker
+            db_conn.session.expire_all()
+
+            # Fetch new events since last delivered id
+            new_events = (
+                db_conn.session.query(ScanEvent)
+                .filter(
+                    ScanEvent.scan_run_id == scan_id,
+                    ScanEvent.id > last_event_id,
+                )
+                .order_by(ScanEvent.id)
+                .limit(50)
+                .all()
+            )
+
+            for ev in new_events:
+                payload = {
+                    "id": ev.id,
+                    "event": ev.event_type,
+                    "level": ev.level,
+                    "message": ev.message,
+                    "phase": ev.phase,
+                    "timestamp": ev.created_at.isoformat()
+                    if ev.created_at
+                    else datetime.now(timezone.utc).isoformat(),
+                }
+                if ev.data:
+                    try:
+                        payload["data"] = json.loads(ev.data)
+                    except (json.JSONDecodeError, TypeError):
+                        payload["data"] = ev.data
+                yield f"data: {json.dumps(payload)}\n\n"
+                last_event_id = ev.id
+                idle = 0
+
+            # Check terminal scan state
+            scan_run = (
+                db_conn.session.query(ScanRun)
+                .filter(ScanRun.id == scan_id)
+                .first()
+            )
+            if scan_run is None:
                 yield f"data: {json.dumps({'event': 'error', 'message': 'Scan not found'})}\n\n"
                 break
-            
-            # Send progress update
-            data = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "event": "progress",
-                "scan_id": scan_id,
-                "phase": progress.current_phase if progress else 0,
-                "percentage": progress.progress_percentage if progress else 0,
-                "status": progress.status if hasattr(progress, 'status') else 'running'
-            }
-            yield f"data: {json.dumps(data)}\n\n"
-            
-            # Send heartbeat every 5 iterations
-            heartbeat_counter += 1
-            if heartbeat_counter % 5 == 0:
-                yield f"data: {json.dumps({'event': 'heartbeat', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
-            
-            # Check if the scan run itself is finished
-            scan_run = db_conn.session.query(ScanRun).filter(ScanRun.id == scan_id).first()
-            if scan_run and scan_run.status in ('completed', 'failed', 'stopped'):
-                yield f"data: {json.dumps({'event': 'completed', 'status': scan_run.status})}\n\n"
+            if scan_run.status in ("completed", "failed", "stopped"):
+                yield f"data: {json.dumps({'event': 'completed', 'status': scan_run.status, 'scan_id': scan_id})}\n\n"
                 break
-            
-            await asyncio.sleep(2)
-            last_event_id += 1
-            
-            # Stop after reasonable time to prevent infinite loops
-            if last_event_id > 500:  # ~16 minutes max
-                break
-                
-    except Exception as e:
-        yield f"data: {json.dumps({'event': 'error', 'message': str(e)})}\n\n"
+
+            # No new events — send heartbeat every ~30 s of idle
+            if not new_events:
+                idle += 1
+                if idle % 15 == 0:
+                    yield f"data: {json.dumps({'event': 'heartbeat', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+
+            await asyncio.sleep(_POLL_INTERVAL)
+
+    except Exception as exc:
+        yield f"data: {json.dumps({'event': 'error', 'message': str(exc)})}\n\n"
     finally:
         db_conn.close()
 
-@router.get("/logs/{scan_id}", summary="Stream scan logs")
-async def stream_logs(scan_id: int):
-    """Stream scan logs in real-time via SSE."""
-    return StreamingResponse(_scan_log_generator(scan_id), media_type="text/event-stream")
 
-@router.get("/scan/{scan_id}", summary="Stream scan updates")
-async def stream_scan(scan_id: int):
-    """Stream comprehensive scan updates including logs, progress, and stats via SSE."""
-    async def gen():
+@router.get("/logs/{scan_id}", summary="Stream scan logs (SSE)")
+async def stream_logs(
+    scan_id: int,
+    last_event_id: int = Query(0, alias="lastEventId", ge=0),
+):
+    """Stream scan log events via SSE.
+
+    The client may pass ``?lastEventId=N`` to resume from a known position
+    without re-receiving already-seen events.
+    """
+    return StreamingResponse(
+        _event_stream(scan_id, last_event_id=last_event_id),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@router.get("/scan/{scan_id}", summary="Stream scan updates (SSE)")
+async def stream_scan(
+    scan_id: int,
+    last_event_id: int = Query(0, alias="lastEventId", ge=0),
+):
+    """Stream all scan events (logs, progress, stats) via SSE."""
+    return StreamingResponse(
+        _event_stream(scan_id, last_event_id=last_event_id),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@router.get("/progress/{scan_id}", summary="Stream progress (SSE)")
+async def stream_progress(
+    scan_id: int,
+    last_event_id: int = Query(0, alias="lastEventId", ge=0),
+):
+    """Stream progress-type events for a scan via SSE."""
+
+    async def _progress_only(scan_id: int, last_event_id: int):
         db_conn = Database()
         db_conn.connect()
         try:
-            iteration = 0
-            while iteration < 100:  # Max iterations
-                # Get scan progress
-                progress = db_conn.session.query(ScanProgress).filter(ScanProgress.scan_run_id == scan_id).first()
-                
-                if not progress:
-                    yield f"data: {json.dumps({'event': 'error', 'message': 'Scan not found'})}\n\n"
+            for _ in range(_MAX_ITERATIONS):
+                db_conn.session.expire_all()
+
+                new_events = (
+                    db_conn.session.query(ScanEvent)
+                    .filter(
+                        ScanEvent.scan_run_id == scan_id,
+                        ScanEvent.id > last_event_id,
+                        ScanEvent.event_type.in_(["progress", "completed", "error", "stats"]),
+                    )
+                    .order_by(ScanEvent.id)
+                    .limit(20)
+                    .all()
+                )
+
+                for ev in new_events:
+                    payload = {
+                        "id": ev.id,
+                        "event": ev.event_type,
+                        "message": ev.message,
+                        "phase": ev.phase,
+                        "timestamp": ev.created_at.isoformat() if ev.created_at else None,
+                    }
+                    if ev.data:
+                        try:
+                            payload["data"] = json.loads(ev.data)
+                        except (json.JSONDecodeError, TypeError):
+                            pass
+                    yield f"data: {json.dumps(payload)}\n\n"
+                    last_event_id = ev.id
+
+                # Also send a snapshot from ScanProgress every poll
+                prog = (
+                    db_conn.session.query(ScanProgress)
+                    .filter(ScanProgress.scan_run_id == scan_id)
+                    .first()
+                )
+                if prog:
+                    snap = {
+                        "event": "progress_snapshot",
+                        "phase": prog.current_phase,
+                        "percentage": prog.progress_percentage,
+                        "status": prog.status,
+                        "subdomains_found": prog.subdomains_found,
+                        "vulnerabilities_found": prog.vulnerabilities_found,
+                    }
+                    yield f"data: {json.dumps(snap)}\n\n"
+
+                scan_run = (
+                    db_conn.session.query(ScanRun)
+                    .filter(ScanRun.id == scan_id)
+                    .first()
+                )
+                if scan_run and scan_run.status in ("completed", "failed", "stopped"):
+                    yield f"data: {json.dumps({'event': 'completed', 'status': scan_run.status})}\n\n"
                     break
-                
-                # Progress event
-                yield f"data: {json.dumps({'event': 'progress', 'progress': progress.progress_percentage or 0, 'phase': progress.current_phase or 0})}\n\n"
-                
-                # Sample log messages based on phase
-                phase = progress.current_phase or 0
-                log_messages = [
-                    [f"[Prescan] Validating target configuration", f"[Prescan] DNS resolution check for scan #{scan_id}", f"[Prescan] Initializing scan modules"],
-                    [f"[Discovery] Enumerating subdomains", f"[Discovery] Found new subdomain", f"[Discovery] Port scanning in progress"],
-                    [f"[Intel] Analyzing threat intelligence", f"[Intel] Correlating vulnerabilities", f"[Intel] Updating risk scores"],
-                    [f"[Content] Crawling web applications", f"[Content] Analyzing HTTP responses", f"[Content] Extracting metadata"],
-                    [f"[Vulnerability] Running security scans", f"[Vulnerability] CVE matching in progress", f"[Vulnerability] Generating findings"]
-                ]
-                
-                if phase < len(log_messages):
-                    log_msg = log_messages[phase][iteration % len(log_messages[phase])]
-                    yield f"data: {json.dumps({'event': 'log', 'message': log_msg, 'level': 'info'})}\n\n"
-                
-                # Stats update every 5 iterations
-                if iteration % 5 == 0:
-                    yield f"data: {json.dumps({'event': 'stats', 'subdomains': 10 + iteration, 'ports': 50 + iteration * 2, 'services': 20 + iteration, 'vulnerabilities': iteration // 2})}\n\n"
-                
-                # Heartbeat
-                if iteration % 10 == 0:
-                    yield f"data: {json.dumps({'event': 'heartbeat'})}\n\n"
-                
-                await asyncio.sleep(1)
-                iteration += 1
-                
-                # Check completion
-                if progress.progress_percentage >= 100:
-                    yield f"data: {json.dumps({'event': 'completed'})}\n\n"
-                    break
-                    
+
+                await asyncio.sleep(_POLL_INTERVAL)
+
+        except Exception as exc:
+            yield f"data: {json.dumps({'event': 'error', 'message': str(exc)})}\n\n"
         finally:
             db_conn.close()
-    
-    return StreamingResponse(gen(), media_type="text/event-stream")
 
-@router.get("/progress/{scan_id}", summary="Stream progress")
-async def stream_progress(scan_id: int):
-    """Stream progress updates via SSE."""
-    return StreamingResponse(_scan_log_generator(scan_id), media_type="text/event-stream")
+    return StreamingResponse(
+        _progress_only(scan_id, last_event_id),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
-@router.get("/alerts", summary="Stream alerts")
+
+@router.get("/alerts", summary="Stream security alerts (SSE)")
 async def stream_alerts():
-    """Stream all security alerts via SSE."""
-    async def gen():
-        for i in range(2):
-            yield f"data: {json.dumps({'timestamp': datetime.now(timezone.utc).isoformat(), 'event': 'heartbeat'})}\n\n"
-            await asyncio.sleep(5)
-    return StreamingResponse(gen(), media_type="text/event-stream")
+    """Stream error/critical events across all active scans."""
+
+    async def _alert_gen():
+        db_conn = Database()
+        db_conn.connect()
+        last_id = 0
+        try:
+            for _ in range(300):  # 10 minutes
+                db_conn.session.expire_all()
+                alerts = (
+                    db_conn.session.query(ScanEvent)
+                    .filter(
+                        ScanEvent.id > last_id,
+                        ScanEvent.level.in_(["error", "warning"]),
+                    )
+                    .order_by(ScanEvent.id)
+                    .limit(20)
+                    .all()
+                )
+                for ev in alerts:
+                    payload = {
+                        "event": "alert",
+                        "level": ev.level,
+                        "scan_run_id": ev.scan_run_id,
+                        "message": ev.message,
+                        "timestamp": ev.created_at.isoformat() if ev.created_at else None,
+                    }
+                    yield f"data: {json.dumps(payload)}\n\n"
+                    last_id = ev.id
+                if not alerts:
+                    yield f"data: {json.dumps({'event': 'heartbeat', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+                await asyncio.sleep(_POLL_INTERVAL)
+        except Exception as exc:
+            yield f"data: {json.dumps({'event': 'error', 'message': str(exc)})}\n\n"
+        finally:
+            db_conn.close()
+
+    return StreamingResponse(
+        _alert_gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

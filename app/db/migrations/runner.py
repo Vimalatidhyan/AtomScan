@@ -29,9 +29,23 @@ class Migration:
     downgrade_sql: list[str] = field(default_factory=list)
 
 
-def register(version: str, description: str, upgrade: list[str], downgrade: list[str] | None = None) -> None:
-    """Register a migration."""
-    _MIGRATIONS.append(Migration(version, description, upgrade, downgrade or []))
+def register(
+    version: str,
+    description: str,
+    upgrade_sql: list[str] | None = None,
+    downgrade_sql: list[str] | None = None,
+    # Legacy aliases kept for backward compat
+    upgrade: list[str] | None = None,
+    downgrade: list[str] | None = None,
+) -> None:
+    """Register a migration.
+
+    Accepts both ``upgrade_sql``/``downgrade_sql`` (canonical) and
+    the older ``upgrade``/``downgrade`` parameter names.
+    """
+    up = upgrade_sql if upgrade_sql is not None else (upgrade or [])
+    dn = downgrade_sql if downgrade_sql is not None else (downgrade or [])
+    _MIGRATIONS.append(Migration(version, description, up, dn))
 
 
 def _ensure_migrations_table(engine: Engine) -> None:

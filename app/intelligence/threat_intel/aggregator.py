@@ -150,16 +150,24 @@ def main() -> None:
 
     if args.db and Path(args.db).exists():
         try:
-            import sys
-            sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-            from db.database import DatabaseManager
-            db = DatabaseManager(args.db)
-            db.execute(
-                """INSERT INTO threat_intelligence (target, type, source, indicator, severity, raw_json)
-                   VALUES (?, 'summary', 'aggregator', '', 'info', ?)""",
-                (args.target, json.dumps(summary))
-            )
-            print("Inserted summary into threat_intelligence table")
+            import os
+            os.environ.setdefault("DATABASE_URL", f"sqlite:///{args.db}")
+            from app.db.database import SessionLocal
+            from app.db.models import ThreatIntelData
+            db_session = SessionLocal()
+            try:
+                record = ThreatIntelData(
+                    source="aggregator",
+                    indicator_type="summary",
+                    indicator_value=args.target,
+                    severity=None,
+                    description=json.dumps(summary),
+                )
+                db_session.add(record)
+                db_session.commit()
+                print("Inserted summary into threat_intel_data table")
+            finally:
+                db_session.close()
         except Exception as e:
             print(f"DB insert skipped: {e}")
 

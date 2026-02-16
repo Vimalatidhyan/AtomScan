@@ -42,3 +42,43 @@ register(
     upgrade_sql=["SELECT 1"],
     downgrade_sql=[],
 )
+
+# ── 004: scan_jobs table ─────────────────────────────────────────────────────
+register(
+    version="004",
+    description="Add scan_jobs table for durable worker queue",
+    upgrade_sql=[
+        """CREATE TABLE IF NOT EXISTS scan_jobs (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            scan_run_id INTEGER NOT NULL REFERENCES scan_runs(id),
+            status      VARCHAR(20) NOT NULL DEFAULT 'queued',
+            worker_id   VARCHAR(100),
+            queued_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            started_at  TIMESTAMP,
+            finished_at TIMESTAMP,
+            error       TEXT
+        )""",
+        "CREATE INDEX IF NOT EXISTS idx_scan_jobs_status_id ON scan_jobs(status, id)",
+    ],
+    downgrade_sql=["DROP TABLE IF EXISTS scan_jobs"],
+)
+
+# ── 005: scan_events table ───────────────────────────────────────────────────
+register(
+    version="005",
+    description="Add scan_events table for persisted SSE telemetry",
+    upgrade_sql=[
+        """CREATE TABLE IF NOT EXISTS scan_events (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            scan_run_id INTEGER NOT NULL REFERENCES scan_runs(id),
+            event_type  VARCHAR(50) NOT NULL DEFAULT 'log',
+            level       VARCHAR(20) NOT NULL DEFAULT 'info',
+            message     TEXT,
+            data        TEXT,
+            phase       INTEGER,
+            created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""",
+        "CREATE INDEX IF NOT EXISTS idx_scan_events_run_id ON scan_events(scan_run_id, id)",
+    ],
+    downgrade_sql=["DROP TABLE IF EXISTS scan_events"],
+)

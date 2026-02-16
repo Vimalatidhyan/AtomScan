@@ -6,10 +6,10 @@ from typing import Optional, List
 class AssetResponse(BaseModel):
     id: int
     subdomain: str
-    is_alive: bool
-    scan_run_id: int
-    priority: int
-    first_seen: datetime
+    is_alive: Optional[bool] = False
+    scan_run_id: Optional[int] = None
+    priority: Optional[int] = 0
+    first_seen: Optional[datetime] = None
     model_config = {"from_attributes": True}
 
 class AssetListResponse(BaseModel):

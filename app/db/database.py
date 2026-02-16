@@ -12,7 +12,7 @@ import logging
 import os
 from typing import Generator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 
 logger = logging.getLogger(__name__)
@@ -34,12 +34,30 @@ def apply_migrations() -> None:
     from app.db.migrations.versions import register  # noqa: F401 — side-effect: registers migrations
     from app.db.migrations.runner import run_migrations
 
+    # Fix known schema issues before create_all
+    _fix_legacy_scan_progress(engine)
+
     # Ensure all tables defined by the ORM exist (creates new tables only,
     # never drops existing ones).
     Base.metadata.create_all(bind=engine)
 
     # Apply any pending versioned migrations.
     run_migrations(engine)
+
+
+def _fix_legacy_scan_progress(eng) -> None:
+    """Detect and fix the old scan_progress table that has wrong columns."""
+    import sqlite3
+    try:
+        with eng.connect() as conn:
+            result = conn.execute(text("PRAGMA table_info(scan_progress)"))
+            cols = {row[1] for row in result.fetchall()}
+            # Old schema had 'target', 'phase1_done' etc.; new ORM needs 'scan_run_id'
+            if cols and "scan_run_id" not in cols:
+                conn.execute(text("ALTER TABLE scan_progress RENAME TO _old_scan_progress_backup"))
+                conn.commit()
+    except Exception:
+        pass  # table might not exist yet — that's fine
 
 
 def get_db() -> Generator[Session, None, None]:

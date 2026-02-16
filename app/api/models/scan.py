@@ -82,11 +82,11 @@ class ScanUpdateRequest(BaseModel):
 class ScanResponse(BaseModel):
     id: int
     domain: str
-    scan_type: str
-    status: str
+    scan_type: Optional[str] = "full"
+    status: Optional[str] = "pending"
     risk_score: Optional[int] = None
-    phase: int
-    created_at: datetime
+    phase: Optional[int] = 0
+    created_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     model_config = {"from_attributes": True}
 

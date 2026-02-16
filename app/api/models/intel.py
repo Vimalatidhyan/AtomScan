@@ -9,5 +9,5 @@ class ThreatIntelResponse(BaseModel):
     indicator_value: str
     severity: Optional[int] = None
     source: str
-    last_updated: datetime
+    last_updated: Optional[datetime] = None
     model_config = {"from_attributes": True}

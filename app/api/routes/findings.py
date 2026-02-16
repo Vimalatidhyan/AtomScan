@@ -96,9 +96,12 @@ def findings_domain_summary(target: str, db: Session = Depends(get_db)):
     """Return severity-count summary for a specific target domain.
 
     Uses the most recent scan for the given domain.
-    The path /domain/{target}/summary is unambiguous; the legacy alias
-    /{target}/summary below is kept for UI backward compatibility.
     """
+    return _findings_summary_for_target(target, db)
+
+
+def _findings_summary_for_target(target: str, db: Session):
+    """Shared logic for findings summary by target domain."""
     scan = (
         db.query(ScanRun)
         .filter(ScanRun.domain == target)
@@ -113,14 +116,82 @@ def findings_domain_summary(target: str, db: Session = Depends(get_db)):
     return {"target": target, **counts, "total": len(vulns)}
 
 
+def _findings_for_target(target: str, db: Session, page: int = 1, per_page: int = 100):
+    """Return findings list for a target domain."""
+    scan = (
+        db.query(ScanRun)
+        .filter(ScanRun.domain == target)
+        .order_by(ScanRun.id.desc())
+        .first()
+    )
+    if not scan:
+        return {"findings": [], "total": 0, "target": target}
+
+    q = db.query(Vulnerability).filter(Vulnerability.scan_run_id == scan.id)
+    total = q.count()
+    vulns = q.offset((page - 1) * per_page).limit(per_page).all()
+    findings = []
+    for v in vulns:
+        sev_val = v.severity or 0
+        if sev_val >= 90:
+            sev_label = "critical"
+        elif sev_val >= 70:
+            sev_label = "high"
+        elif sev_val >= 40:
+            sev_label = "medium"
+        elif sev_val >= 10:
+            sev_label = "low"
+        else:
+            sev_label = "info"
+        findings.append({
+            "id": v.id,
+            "name": v.title,
+            "title": v.title,
+            "severity": sev_label,
+            "severity_score": v.severity,
+            "host": getattr(v, 'subdomain', None) and v.subdomain.subdomain if v.subdomain else target,
+            "cve": v.cve_ids or "",
+            "tool": v.vuln_type,
+            "source": v.vuln_type,
+            "description": v.description or "",
+            "info": v.description or "",
+            "remediation": v.remediation or "",
+            "status": v.status or "open",
+            "discovered_at": v.discovered_at.isoformat() if v.discovered_at else None,
+        })
+    return {"findings": findings, "total": total, "target": target}
+
+
+# ── Legacy UI compat routes — must come before /{finding_id} ─────────────────
+# The dashboard-v2.js calls GET /api/v1/findings/{target}/summary
+# and findings_v2.js calls GET /api/v1/findings/{target}
+
+@router.get("/{target:path}/summary", summary="Findings summary (legacy UI compat)",
+            include_in_schema=False)
+def findings_summary_legacy(target: str, db: Session = Depends(get_db)):
+    """Legacy alias: /{target}/summary → domain summary."""
+    # Avoid matching integer IDs followed by /summary
+    if target.replace("/", "").isdigit():
+        raise HTTPException(status_code=404, detail="Not found")
+    # Strip /domain/ prefix if present
+    if target.startswith("domain/"):
+        target = target[7:]
+    return _findings_summary_for_target(target, db)
+
+
 # ── Item routes (parameterised — must come AFTER all static paths) ───────────
 
-@router.get("/{finding_id}", response_model=FindingResponse, summary="Get finding")
-def get_finding(finding_id: int, db: Session = Depends(get_db)):
-    finding = db.query(Vulnerability).filter(Vulnerability.id == finding_id).first()
-    if not finding:
-        raise HTTPException(status_code=404, detail="Finding not found")
-    return finding
+@router.get("/{finding_id_or_target}", summary="Get finding or target findings")
+def get_finding_or_target(finding_id_or_target: str, db: Session = Depends(get_db)):
+    """Get a single finding by integer ID, or list findings for a target domain."""
+    # If it's a pure integer, look up the finding
+    if finding_id_or_target.isdigit():
+        finding = db.query(Vulnerability).filter(Vulnerability.id == int(finding_id_or_target)).first()
+        if not finding:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        return finding
+    # Otherwise treat as target domain
+    return _findings_for_target(finding_id_or_target, db)
 
 
 @router.put("/{finding_id}", response_model=FindingResponse, summary="Update finding")

@@ -5,13 +5,13 @@ from typing import Optional, List
 
 class FindingResponse(BaseModel):
     id: int
-    scan_run_id: int
-    vuln_type: str
-    severity: Optional[int] = None
-    title: str
+    scan_run_id: Optional[int] = None
+    vuln_type: Optional[str] = None
+    severity: Optional[str] = None
+    title: Optional[str] = None
     description: Optional[str] = None
     remediation: Optional[str] = None
-    discovered_at: datetime
+    discovered_at: Optional[datetime] = None
     model_config = {"from_attributes": True}
 
 class FindingListResponse(BaseModel):
@@ -21,11 +21,9 @@ class FindingListResponse(BaseModel):
     items: List[FindingResponse]
 
 class FindingUpdateRequest(BaseModel):
-    severity: Optional[int] = Field(
+    severity: Optional[str] = Field(
         default=None,
-        ge=0,
-        le=100,
-        description="Severity score (0-100)"
+        description="Severity level (critical, high, medium, low, info)"
     )
     remediation: Optional[str] = Field(
         default=None,

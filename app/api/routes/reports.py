@@ -31,9 +31,9 @@ class ReportSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    report_type: str
-    scan_run_id: int
-    generated_at: datetime
+    report_type: Optional[str] = None
+    scan_run_id: Optional[int] = None
+    generated_at: Optional[datetime] = None
 
 
 class ReportListResponse(BaseModel):
@@ -47,9 +47,9 @@ class ReportDetail(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    report_type: str
-    scan_run_id: int
-    generated_at: datetime
+    report_type: Optional[str] = None
+    scan_run_id: Optional[int] = None
+    generated_at: Optional[datetime] = None
     content: Optional[str] = None
 
 

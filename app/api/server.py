@@ -15,7 +15,7 @@ import logging
 import os
 import secrets
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.middleware.auth import AuthMiddleware
@@ -63,6 +63,13 @@ async def lifespan(app: FastAPI):
     db = Database()
     db.connect()
     app.state.db = db
+
+    # Auto-create bootstrap API key if none exists
+    from app.api.middleware.auth import ensure_bootstrap_key
+    bootstrap_key = ensure_bootstrap_key()
+    if bootstrap_key:
+        app.state.bootstrap_api_key = bootstrap_key
+        logger.info("Bootstrap API key available. Use it in Settings or via X-API-Key header.")
     yield
     logger.info("ReconX Enterprise API shutting down...")
     db.close()
@@ -172,6 +179,7 @@ async def _page_attack_surface():
 
 
 @app.get("/reports-ui", include_in_schema=False)
+@app.get("/reports", include_in_schema=False)
 async def _page_reports():
     return _serve_page("reports_v2.html")
 
@@ -189,6 +197,20 @@ async def _page_alerts():
 @app.get("/settings", include_in_schema=False)
 async def _page_settings():
     return _serve_page("settings_v2.html")
+
+
+@app.get("/threat-intel", include_in_schema=False)
+async def _page_threat_intel():
+    return _serve_page("threat_intel_v2.html")
+
+
+@app.get("/api/v1/bootstrap-key", include_in_schema=False)
+async def get_bootstrap_key(request: Request):
+    """Return bootstrap API key for first-time UI setup (dev only)."""
+    key = getattr(request.app.state, 'bootstrap_api_key', None)
+    if key:
+        return {"key": key, "message": "Save this key in Settings. It won't be shown again after restart if RECONX_API_KEY is set."}
+    return {"key": None, "message": "No bootstrap key. Create one with: python scripts/manage_keys.py create --name ui"}
 
 
 # Static assets — mount after explicit routes

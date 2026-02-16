@@ -13,7 +13,14 @@ import time
 from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
-EXEMPT_PATHS = {"/health", "/version", "/docs", "/openapi.json", "/redoc"}
+# Paths always exempt from API key auth
+EXEMPT_PATHS = {"/health", "/api/health", "/version", "/docs", "/openapi.json", "/redoc"}
+
+# Path prefixes for UI pages (no auth needed — static HTML)
+_UI_PREFIXES = ("/assets/", "/static/")
+
+# Only paths under this prefix require API key authentication
+_PROTECTED_PREFIX = "/api/v1/"
 
 # In-memory cache: key_hash -> (user_identifier, key_name, expires_at, cache_until)
 _key_cache: dict = {}
@@ -39,7 +46,12 @@ def _cache_store(key_hash: str, user: str, name: str, expires_at: Optional[datet
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        if request.url.path in EXEMPT_PATHS or request.method == "OPTIONS":
+        path = request.url.path
+        # Exempt: health/version/docs, UI pages, static assets, OPTIONS preflight
+        if (path in EXEMPT_PATHS
+                or request.method == "OPTIONS"
+                or path.startswith(_UI_PREFIXES)
+                or not path.startswith(_PROTECTED_PREFIX)):
             return await call_next(request)
 
         # Extract API key from headers

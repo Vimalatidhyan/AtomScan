@@ -1,8 +1,19 @@
-"""FastAPI server for ReconX Enterprise v2.0."""
+"""FastAPI server for ReconX Enterprise v2.0.
+
+Environment variables
+---------------------
+RECONX_SECRET_KEY       Required in production. Minimum 32 characters.
+                        Used for CSRF token signing.
+RECONX_ALLOWED_ORIGINS  Comma-separated CORS origins (default: localhost dev origins).
+                        Example: "https://app.example.com,https://admin.example.com"
+DATABASE_URL            SQLAlchemy DB URL (default: sqlite:///./reconx.db)
+LOG_LEVEL               Logging verbosity (default: INFO)
+"""
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 import logging
 import os
+import secrets
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,11 +28,37 @@ _LOG_LEVEL = getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper(), loggi
 configure_json_logging(level=_LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
+# ── CORS origins ─────────────────────────────────────────────────────────────
+# Dev defaults allow localhost. In production, set RECONX_ALLOWED_ORIGINS.
+_DEFAULT_DEV_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://localhost:8080",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8080",
+]
+_allowed_origins_env = os.environ.get("RECONX_ALLOWED_ORIGINS", "")
+ALLOWED_ORIGINS = (
+    [o.strip() for o in _allowed_origins_env.split(",") if o.strip()]
+    if _allowed_origins_env
+    else _DEFAULT_DEV_ORIGINS
+)
+
+# ── CSRF / secret key ─────────────────────────────────────────────────────────
+_SECRET_KEY = os.environ.get("RECONX_SECRET_KEY", "")
+if not _SECRET_KEY:
+    _SECRET_KEY = secrets.token_urlsafe(32)
+    logger.warning(
+        "RECONX_SECRET_KEY not set — using a random ephemeral key. "
+        "Set RECONX_SECRET_KEY in production for stable CSRF tokens."
+    )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan — startup and shutdown."""
-    logger.info("ReconX Enterprise API v2.0 starting...")
+    logger.info("ReconX Enterprise API v2.0 starting...", extra={"origins": ALLOWED_ORIGINS})
     apply_migrations()
     db = Database()
     db.connect()
@@ -39,16 +76,15 @@ app = FastAPI(
 )
 
 # Middleware (order matters — outermost first)
-# CORS: Specific origins in production, localhost for dev (don't use wildcard with credentials)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 app.add_middleware(RateLimitMiddleware, requests_per_hour=1000)
-app.add_middleware(CSRFMiddleware)
+app.add_middleware(CSRFMiddleware, secret_key=_SECRET_KEY)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(AuthMiddleware)
 
@@ -68,14 +104,96 @@ app.include_router(metrics_router.router, prefix="/api/v1/metrics", tags=["obser
 
 @app.get("/health", tags=["system"])
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy", "version": "2.0.0", "timestamp": datetime.now(timezone.utc).isoformat()}
+    """Health check endpoint (no auth required)."""
+    return {
+        "status": "healthy",
+        "version": "2.0.0",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get("/api/health", tags=["system"], include_in_schema=False)
+async def health_check_compat():
+    """Compatibility alias for /health — some UI versions call /api/health."""
+    return await health_check()
 
 
 @app.get("/version", tags=["system"])
 async def version():
     """Version endpoint."""
     return {"version": "2.0.0", "name": "ReconX Enterprise"}
+
+
+# ── Static web-UI routes ─────────────────────────────────────────────────────
+# These are registered here so that `uvicorn app.api.server:app` works fully.
+# The api/server.py shim also registers these (via re-export) for backward
+# compatibility with the original launch command.
+from pathlib import Path as _Path
+from fastapi.staticfiles import StaticFiles as _StaticFiles
+from fastapi.responses import FileResponse as _FileResponse
+
+_ROOT = _Path(__file__).resolve().parents[2]
+_STATIC_DIR = _ROOT / "web" / "static"
+_ASSETS_DIR = _STATIC_DIR / "assets"
+
+
+def _serve_page(filename: str):
+    """Return a static HTML page, or JSON fallback when file is absent."""
+    p = _STATIC_DIR / filename
+    if p.exists():
+        return _FileResponse(p, media_type="text/html")
+    return {"message": "ReconX API — no UI found", "docs": "/docs"}
+
+
+@app.get("/", include_in_schema=False)
+@app.get("/dashboard", include_in_schema=False)
+async def _page_dashboard():
+    return _serve_page("index.html")
+
+
+@app.get("/assessments", include_in_schema=False)
+async def _page_assessments():
+    return _serve_page("scan_viewer_v2.html")
+
+
+@app.get("/vulnerabilities", include_in_schema=False)
+async def _page_vulnerabilities():
+    return _serve_page("findings_v2.html")
+
+
+@app.get("/graph", include_in_schema=False)
+async def _page_graph():
+    return _serve_page("graph_viewer_v2.html")
+
+
+@app.get("/attack-surface", include_in_schema=False)
+async def _page_attack_surface():
+    return _serve_page("attack_surface_v2.html")
+
+
+@app.get("/reports-ui", include_in_schema=False)
+async def _page_reports():
+    return _serve_page("reports_v2.html")
+
+
+@app.get("/compliance", include_in_schema=False)
+async def _page_compliance():
+    return _serve_page("compliance_v2.html")
+
+
+@app.get("/alerts", include_in_schema=False)
+async def _page_alerts():
+    return _serve_page("alerts_v2.html")
+
+
+@app.get("/settings", include_in_schema=False)
+async def _page_settings():
+    return _serve_page("settings_v2.html")
+
+
+# Static assets — mount after explicit routes
+if _ASSETS_DIR.exists():
+    app.mount("/assets", _StaticFiles(directory=str(_ASSETS_DIR)), name="assets")
 
 
 if __name__ == "__main__":

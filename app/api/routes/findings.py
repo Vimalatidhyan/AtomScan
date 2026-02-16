@@ -1,14 +1,41 @@
-"""Vulnerability findings API routes."""
+"""Vulnerability findings API routes.
+
+Route order: static paths (/by-severity, /by-type, /domain/{target}/summary)
+must be registered BEFORE parameterised paths (/{finding_id}) to avoid
+FastAPI type-coercion shadowing.
+"""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, case
+from sqlalchemy import func, case, distinct
 from typing import Optional
+
 from app.db.database import get_db
-from app.db.models import Vulnerability
+from app.db.models import Vulnerability, ScanRun
 from app.api.models.finding import FindingListResponse, FindingResponse, FindingUpdateRequest
 from app.api.models.common import StatusResponse
 
 router = APIRouter()
+
+
+def _severity_counts(vulns):
+    """Aggregate vulnerability list into tier counts."""
+    counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+    for v in vulns:
+        sev = v.severity or 0
+        if sev >= 90:
+            counts["critical"] += 1
+        elif sev >= 70:
+            counts["high"] += 1
+        elif sev >= 40:
+            counts["medium"] += 1
+        elif sev >= 10:
+            counts["low"] += 1
+        else:
+            counts["info"] += 1
+    return counts
+
+
+# ── Static / aggregate routes ────────────────────────────────────────────────
 
 @router.get("/", response_model=FindingListResponse, summary="List findings")
 def list_findings(
@@ -31,63 +58,75 @@ def list_findings(
     items = q.offset((page - 1) * per_page).limit(per_page).all()
     return FindingListResponse(total=total, page=page, per_page=per_page, items=items)
 
+
 @router.get("/by-severity", summary="Findings grouped by severity")
 def findings_by_severity(scan_run_id: Optional[int] = None, db: Session = Depends(get_db)):
     """Get finding counts grouped by severity tier using SQL aggregation."""
-    q = db.query(Vulnerability.severity)
-    if scan_run_id:
-        q = q.filter(Vulnerability.scan_run_id == scan_run_id)
-    
-    # Use SQL CASE to group by severity in database
     severity_case = case(
         (Vulnerability.severity >= 90, "critical"),
         (Vulnerability.severity >= 70, "high"),
         (Vulnerability.severity >= 40, "medium"),
         (Vulnerability.severity >= 10, "low"),
-        else_="info"
+        else_="info",
     )
-    
-    results = db.query(
-        severity_case.label("tier"),
-        func.count().label("count")
-    ).select_from(Vulnerability)
-    
-    if scan_run_id:
-        results = results.filter(Vulnerability.scan_run_id == scan_run_id)
-    
-    results = results.group_by("tier").all()
-    
-    # Convert to dict
-    groups = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
-    for tier, count in results:
-        groups[tier] = count
-    
-    return groups
-
-@router.get("/by-type", summary="Findings grouped by type")
-def findings_by_type(scan_run_id: Optional[int] = None, db: Session = Depends(get_db)):
-    """Get finding counts grouped by vulnerability type using SQL aggregation."""
-    q = db.query(
-        Vulnerability.vuln_type,
-        func.count().label("count")
+    q = db.query(severity_case.label("tier"), func.count().label("count")).select_from(
+        Vulnerability
     )
     if scan_run_id:
         q = q.filter(Vulnerability.scan_run_id == scan_run_id)
-    
+    results = q.group_by("tier").all()
+    groups = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+    for tier, count in results:
+        groups[tier] = count
+    return groups
+
+
+@router.get("/by-type", summary="Findings grouped by type")
+def findings_by_type(scan_run_id: Optional[int] = None, db: Session = Depends(get_db)):
+    """Get finding counts grouped by vulnerability type."""
+    q = db.query(Vulnerability.vuln_type, func.count().label("count"))
+    if scan_run_id:
+        q = q.filter(Vulnerability.scan_run_id == scan_run_id)
     results = q.group_by(Vulnerability.vuln_type).all()
     return {vuln_type: count for vuln_type, count in results}
 
+
+@router.get("/domain/{target:path}/summary", summary="Findings summary for a target domain")
+def findings_domain_summary(target: str, db: Session = Depends(get_db)):
+    """Return severity-count summary for a specific target domain.
+
+    Uses the most recent scan for the given domain.
+    The path /domain/{target}/summary is unambiguous; the legacy alias
+    /{target}/summary below is kept for UI backward compatibility.
+    """
+    scan = (
+        db.query(ScanRun)
+        .filter(ScanRun.domain == target)
+        .order_by(ScanRun.id.desc())
+        .first()
+    )
+    if not scan:
+        return {"target": target, "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0, "total": 0}
+
+    vulns = db.query(Vulnerability).filter(Vulnerability.scan_run_id == scan.id).all()
+    counts = _severity_counts(vulns)
+    return {"target": target, **counts, "total": len(vulns)}
+
+
+# ── Item routes (parameterised — must come AFTER all static paths) ───────────
+
 @router.get("/{finding_id}", response_model=FindingResponse, summary="Get finding")
 def get_finding(finding_id: int, db: Session = Depends(get_db)):
-    """Get a specific vulnerability finding."""
     finding = db.query(Vulnerability).filter(Vulnerability.id == finding_id).first()
     if not finding:
         raise HTTPException(status_code=404, detail="Finding not found")
     return finding
 
+
 @router.put("/{finding_id}", response_model=FindingResponse, summary="Update finding")
-def update_finding(finding_id: int, req: FindingUpdateRequest, db: Session = Depends(get_db)):
-    """Update a vulnerability finding."""
+def update_finding(
+    finding_id: int, req: FindingUpdateRequest, db: Session = Depends(get_db)
+):
     finding = db.query(Vulnerability).filter(Vulnerability.id == finding_id).first()
     if not finding:
         raise HTTPException(status_code=404, detail="Finding not found")
@@ -101,9 +140,9 @@ def update_finding(finding_id: int, req: FindingUpdateRequest, db: Session = Dep
     db.refresh(finding)
     return finding
 
+
 @router.delete("/{finding_id}", response_model=StatusResponse, summary="Delete finding")
 def delete_finding(finding_id: int, db: Session = Depends(get_db)):
-    """Delete a vulnerability finding."""
     finding = db.query(Vulnerability).filter(Vulnerability.id == finding_id).first()
     if not finding:
         raise HTTPException(status_code=404, detail="Finding not found")
@@ -111,14 +150,16 @@ def delete_finding(finding_id: int, db: Session = Depends(get_db)):
     db.commit()
     return StatusResponse(status="deleted", message=f"Finding {finding_id} deleted")
 
+
 @router.post("/{finding_id}/remediate", response_model=StatusResponse, summary="Mark in remediation")
 def remediate_finding(finding_id: int, db: Session = Depends(get_db)):
-    """Mark a finding as in remediation."""
     finding = db.query(Vulnerability).filter(Vulnerability.id == finding_id).first()
     if not finding:
         raise HTTPException(status_code=404, detail="Finding not found")
-    # Actually update the database
     finding.status = "in_remediation"
     db.commit()
     db.refresh(finding)
-    return StatusResponse(status="in_remediation", message=f"Finding {finding_id} marked for remediation")
+    return StatusResponse(
+        status="in_remediation",
+        message=f"Finding {finding_id} marked for remediation",
+    )

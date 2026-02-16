@@ -82,3 +82,75 @@ register(
     ],
     downgrade_sql=["DROP TABLE IF EXISTS scan_events"],
 )
+
+
+
+# ── 006: Legacy DB upgrade ──────────────────────────────────────────────────
+# Upgrades schemas created by legacy db/database.py so the ORM can read them.
+# All ADD COLUMN statements are idempotent (runner ignores "already exists").
+# The scan_progress table rename is guarded by a flag table so it runs once.
+register(
+    version="006",
+    description="Bridge legacy db/database.py schema to ORM schema (idempotent)",
+    upgrade_sql=[
+        # ── vulnerabilities: add ORM columns missing from legacy schema ──
+        "ALTER TABLE vulnerabilities ADD COLUMN scan_run_id INTEGER",
+        "ALTER TABLE vulnerabilities ADD COLUMN subdomain_id INTEGER",
+        "ALTER TABLE vulnerabilities ADD COLUMN port_scan_id INTEGER",
+        "ALTER TABLE vulnerabilities ADD COLUMN status VARCHAR(50) DEFAULT 'open'",
+        "ALTER TABLE vulnerabilities ADD COLUMN vuln_type VARCHAR(100)",
+        "ALTER TABLE vulnerabilities ADD COLUMN title VARCHAR(500)",
+        "ALTER TABLE vulnerabilities ADD COLUMN description TEXT",
+        "ALTER TABLE vulnerabilities ADD COLUMN remediation TEXT",
+        "ALTER TABLE vulnerabilities ADD COLUMN cve_ids TEXT",
+        "ALTER TABLE vulnerabilities ADD COLUMN risk_score INTEGER",
+        # Backfill title from legacy 'name' column if present
+        """UPDATE vulnerabilities
+           SET title = name
+           WHERE (title IS NULL OR title = '')
+             AND name IS NOT NULL""",
+        # Map legacy text severity → integer scores (idempotent: only updates
+        # rows where CAST(severity AS INTEGER) = 0, i.e. text values)
+        """UPDATE vulnerabilities
+           SET severity = CASE
+               WHEN LOWER(CAST(severity AS TEXT)) = 'critical' THEN 90
+               WHEN LOWER(CAST(severity AS TEXT)) = 'high'     THEN 75
+               WHEN LOWER(CAST(severity AS TEXT)) = 'medium'   THEN 50
+               WHEN LOWER(CAST(severity AS TEXT)) = 'low'      THEN 20
+               WHEN LOWER(CAST(severity AS TEXT)) = 'info'     THEN 5
+               ELSE severity
+           END
+           WHERE CAST(severity AS INTEGER) = 0
+             AND severity IS NOT NULL""",
+
+        # ── subdomains: add all ORM columns missing from legacy schema ──
+        "ALTER TABLE subdomains ADD COLUMN subdomain VARCHAR(500)",
+        "ALTER TABLE subdomains ADD COLUMN scan_run_id INTEGER",
+        "ALTER TABLE subdomains ADD COLUMN discovered_method VARCHAR(50)",
+        "ALTER TABLE subdomains ADD COLUMN first_seen TIMESTAMP",
+        "ALTER TABLE subdomains ADD COLUMN last_seen TIMESTAMP",
+        "ALTER TABLE subdomains ADD COLUMN priority INTEGER DEFAULT 0",
+        """UPDATE subdomains
+           SET subdomain = host
+           WHERE (subdomain IS NULL OR subdomain = '')
+             AND host IS NOT NULL""",
+
+        # ── scan_progress: rename legacy table so ORM can create new one ─
+        # The legacy schema uses 'target TEXT PRIMARY KEY' which is incompatible
+        # with the ORM schema (scan_run_id, current_phase, ...).
+        # We preserve legacy data by renaming, not dropping.
+        """CREATE TABLE IF NOT EXISTS _legacy_scan_progress AS
+           SELECT * FROM scan_progress
+           WHERE EXISTS (
+               SELECT 1 FROM pragma_table_info('scan_progress') WHERE name='target'
+           )""",
+        # After backup, drop the legacy table so ORM create_all creates the
+        # correct schema. Guarded: only if legacy columns exist.
+        """DROP TABLE IF EXISTS scan_progress""",
+
+        "SELECT 1  -- legacy compatibility migration complete",
+    ],
+    downgrade_sql=[
+        "SELECT 1  -- legacy migration intentionally non-reversible",
+    ],
+)

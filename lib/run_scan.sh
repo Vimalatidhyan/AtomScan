@@ -35,9 +35,11 @@ OUTPUT_BASE="${RECONX_OUTPUT_DIR:-./output}"
 OUTPUT_DIR="${OUTPUT_BASE}/${DOMAIN//\./_}_${SCAN_RUN_ID}"
 mkdir -p "$OUTPUT_DIR"
 
-# Do not exit on command or pipeline failure; run every phase and every tool
+# Do not exit on command or pipeline failure; run every phase and every tool.
+# Unset vars (set +u) so optional/conditional vars never abort the script.
 set +e
 set +o pipefail
+set +u
 
 # ── Logging helpers ───────────────────────────────────────────────────────
 ts()      { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
@@ -47,21 +49,23 @@ log_err() { echo "[$(ts)] [ERROR] $*" >&2; echo "[$(ts)] [ERROR] $*"; }
 
 tool_ok() { command -v "$1" >/dev/null 2>&1; }
 
+# Run a command with timeout; never exit the script (return 0 on timeout/failure so scan continues)
 run_with_timeout() {
     local t="$1"; shift
     if tool_ok timeout; then
-        timeout "$t" "$@"
+        timeout "$t" "$@" || true
     else
         "$@" &
         local pid=$!
         local elapsed=0
         while [ "$elapsed" -lt "$t" ]; do
             if ! kill -0 "$pid" 2>/dev/null; then
-                wait "$pid"; return $?
+                wait "$pid" || true
+                return 0
             fi
             sleep 1; elapsed=$(( elapsed + 1 ))
         done
-        kill -- "$pid" 2>/dev/null; wait "$pid" 2>/dev/null; return 124
+        kill -- "$pid" 2>/dev/null; wait "$pid" 2>/dev/null; true
     fi
 }
 
@@ -102,16 +106,14 @@ touch "$SUBDOMAIN_FILE"
 
 if tool_ok subfinder; then
     log_info "[subfinder] running on $DOMAIN"
-    run_with_timeout "$TIMEOUT_PHASE" \
-        subfinder -d "$DOMAIN" -silent -o "$SUBDOMAIN_FILE" 2>&1 || log_warn "[subfinder] non-zero exit"
+    ( run_with_timeout "$TIMEOUT_PHASE" subfinder -d "$DOMAIN" -silent -o "$SUBDOMAIN_FILE" 2>&1; true ) || log_warn "[subfinder] non-zero exit"
     COUNT=$(wc -l < "$SUBDOMAIN_FILE" 2>/dev/null || echo 0)
     log_info "[subfinder] found $COUNT subdomains"
 fi
 if tool_ok amass; then
     log_info "[amass] running enum on $DOMAIN"
     _amass_out="$OUTPUT_DIR/amass_subdomains.txt"
-    run_with_timeout "$TIMEOUT_PHASE" \
-        amass enum -passive -d "$DOMAIN" -o "$_amass_out" 2>&1 || log_warn "[amass] non-zero exit"
+    ( run_with_timeout "$TIMEOUT_PHASE" amass enum -passive -d "$DOMAIN" -o "$_amass_out" 2>&1; true ) || log_warn "[amass] non-zero exit"
     if [ -s "$_amass_out" ]; then
         cat "$_amass_out" >> "$SUBDOMAIN_FILE"
         sort -u "$SUBDOMAIN_FILE" -o "$SUBDOMAIN_FILE"
@@ -136,14 +138,13 @@ if ! [ -s "$SUBDOMAIN_FILE" ]; then
 fi
 COUNT=$(wc -l < "$SUBDOMAIN_FILE" 2>/dev/null || echo 0)
 log_info "[phase:1] total subdomains: $COUNT"
+log_info "[phase:1] complete — continuing to phase 2"
 
 # ── Phase 2: Port scanning (run available scanner; failure does not stop scan) ─
 log_info "[phase:2] Port scanning"
 if tool_ok nmap; then
     log_info "[nmap] scanning top ports on $DOMAIN"
-    run_with_timeout "$TIMEOUT_PHASE" \
-        nmap -T4 --open -oN "$OUTPUT_DIR/nmap.txt" "$DOMAIN" 2>&1 \
-        | grep -E "(PORT|[0-9]+/)" || true
+    ( run_with_timeout "$TIMEOUT_PHASE" nmap -T4 --open -oN "$OUTPUT_DIR/nmap.txt" "$DOMAIN" 2>&1 | grep -E "(PORT|[0-9]+/)" || true; true )
     log_info "[nmap] port scan complete"
 fi
 if tool_ok nc && [ ! -s "$OUTPUT_DIR/nmap.txt" ]; then
@@ -157,6 +158,7 @@ fi
 if ! tool_ok nmap && ! tool_ok nc; then
     log_warn "[phase:2] no port scanner available (nmap/nc); skipping"
 fi
+log_info "[phase:2] complete — continuing to phase 3"
 
 # ── Phase 3: Web service discovery (run all available tools) ──────────────
 log_info "[phase:3] Web service discovery"
@@ -169,8 +171,7 @@ fi
 
 if tool_ok httpx; then
     log_info "[httpx] probing live web services"
-    run_with_timeout "$TIMEOUT_PHASE" \
-        httpx -l "$PROBE_INPUT" -silent -status-code -title -o "$WEB_FILE" 2>&1 || log_warn "[httpx] non-zero exit"
+    ( run_with_timeout "$TIMEOUT_PHASE" httpx -l "$PROBE_INPUT" -silent -status-code -title -o "$WEB_FILE" 2>&1; true ) || log_warn "[httpx] non-zero exit"
     WEB_COUNT=$(wc -l < "$WEB_FILE" 2>/dev/null || echo 0)
     log_info "[httpx] found $WEB_COUNT live web services"
 fi
@@ -184,6 +185,7 @@ fi
 if ! tool_ok httpx && ! tool_ok curl; then
     log_warn "[phase:3] no web probe tool available (httpx/curl); skipping"
 fi
+log_info "[phase:3] complete — continuing to phase 4"
 
 # Only skip vulnerability phase for explicit "quick" scans
 if [ "$SCAN_TYPE" = "quick" ]; then
@@ -198,20 +200,19 @@ NUCLEI_OUT="$OUTPUT_DIR/nuclei.json"
 NIKTO_OUT="$OUTPUT_DIR/nikto.txt"
 if tool_ok nuclei; then
     log_info "[nuclei] running vulnerability templates on $DOMAIN"
-    run_with_timeout "$(( TIMEOUT_PHASE * 2 ))" \
-        nuclei -u "https://$DOMAIN" -silent -json -o "$NUCLEI_OUT" 2>&1 || log_warn "[nuclei] non-zero exit (may be no findings)"
+    ( run_with_timeout "$(( TIMEOUT_PHASE * 2 ))" nuclei -u "https://$DOMAIN" -silent -json -o "$NUCLEI_OUT" 2>&1; true ) || log_warn "[nuclei] non-zero exit (may be no findings)"
     VULN_COUNT=$(wc -l < "$NUCLEI_OUT" 2>/dev/null || echo 0)
     log_info "[nuclei] found $VULN_COUNT potential vulnerabilities"
 fi
 if tool_ok nikto; then
     log_info "[nikto] running web vulnerability scan on $DOMAIN"
-    run_with_timeout "$TIMEOUT_PHASE" \
-        nikto -h "https://$DOMAIN" -nointeractive 2>&1 | tee "$NIKTO_OUT" | grep -E "^[-+]" || true
+    ( run_with_timeout "$TIMEOUT_PHASE" nikto -h "https://$DOMAIN" -nointeractive 2>&1 | tee "$NIKTO_OUT" | grep -E "^[-+]" || true; true )
     log_info "[nikto] scan complete"
 fi
 if ! tool_ok nuclei && ! tool_ok nikto; then
     log_warn "[phase:4] no vulnerability scanner available (nuclei/nikto); skipping"
 fi
+log_info "[phase:4] complete — all phases finished"
 
 log_info "[scan:complete] scan finished: id=$SCAN_RUN_ID domain=$DOMAIN"
 exit 0

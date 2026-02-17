@@ -2,10 +2,7 @@
 
 Environment variables
 ---------------------
-RECONX_SECRET_KEY       Required in production. Minimum 32 characters.
-                        Used for CSRF token signing.
 RECONX_ALLOWED_ORIGINS  Comma-separated CORS origins (default: localhost dev origins).
-                        Example: "https://app.example.com,https://admin.example.com"
 DATABASE_URL            SQLAlchemy DB URL (default: sqlite:///./reconx.db)
 LOG_LEVEL               Logging verbosity (default: INFO)
 """
@@ -13,16 +10,13 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 import logging
 import os
-import secrets
 import threading
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.middleware.auth import AuthMiddleware
-from app.api.middleware.rate_limit import RateLimitMiddleware
 from app.api.middleware.logging import LoggingMiddleware, configure_json_logging
-from app.api.middleware.csrf import CSRFMiddleware
 from app.db.database import Database, apply_migrations
 
 _LOG_LEVEL = getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
@@ -45,16 +39,6 @@ ALLOWED_ORIGINS = (
     if _allowed_origins_env
     else _DEFAULT_DEV_ORIGINS
 )
-
-# ── CSRF / secret key ─────────────────────────────────────────────────────────
-_SECRET_KEY = os.environ.get("RECONX_SECRET_KEY", "")
-if not _SECRET_KEY:
-    _SECRET_KEY = secrets.token_urlsafe(32)
-    logger.warning(
-        "RECONX_SECRET_KEY not set — using a random ephemeral key. "
-        "Set RECONX_SECRET_KEY in production for stable CSRF tokens."
-    )
-
 
 # When RECONX_WORKER=true (default), the server starts the scan worker as a
 # daemon thread so `uvicorn app.api.server:app` is the only command needed.
@@ -112,7 +96,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Middleware (order matters — outermost first)
+# Middleware (order matters — outermost first). CSRF and rate-limit removed for simpler UI/backend connectivity.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -120,8 +104,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(RateLimitMiddleware, requests_per_hour=1000)
-app.add_middleware(CSRFMiddleware, secret_key=_SECRET_KEY)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(AuthMiddleware)
 

@@ -6,6 +6,23 @@
  */
 
 const API = '/api/v1';
+
+// Auto-bootstrap: fetch and store API key if none configured
+async function ensureApiKey() {
+  const stored = localStorage.getItem('reconx_api_key');
+  if (stored && stored !== 'demo_key' && stored.length >= 32) return;
+  try {
+    const res = await fetch('/api/v1/bootstrap-key');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.key) {
+        localStorage.setItem('reconx_api_key', data.key);
+        console.log('Bootstrap API key auto-configured');
+      }
+    }
+  } catch { /* ignore */ }
+}
+
 let state = {
   targets: [],
   selectedTarget: '',
@@ -23,7 +40,8 @@ let state = {
 };
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await ensureApiKey();
   initSidebar();
   bindEvents();
   initGraph();
@@ -259,6 +277,7 @@ function renderGraph() {
     .selectAll('g')
     .data(state.nodes)
     .join('g')
+    .attr('class', 'node-group')
     .attr('cursor', 'pointer')
     .call(d3.drag()
       .on('start', dragStarted)
@@ -474,13 +493,13 @@ function findAttackPaths() {
   });
 
   // Visual highlight
-  if (state.svg) {
-    state.svg.selectAll('.link').attr('opacity', l => {
+  if (state.g) {
+    state.g.selectAll('line').attr('opacity', l => {
       const src = typeof l.source === 'string' ? l.source : l.source.id;
       const tgt = typeof l.target === 'string' ? l.target : l.target.id;
       return (criticalIds.has(src) || criticalIds.has(tgt)) ? 1 : 0.1;
     });
-    state.svg.selectAll('.node').attr('opacity', d => pathNodeIds.has(d.id) ? 1 : 0.15);
+    state.g.selectAll('g.node-group').attr('opacity', d => pathNodeIds.has(d.id) ? 1 : 0.15);
   }
 
   toast(`Found ${criticalNodes.length} attack path(s) through ${pathNodeIds.size} nodes`, 'success');
@@ -488,7 +507,11 @@ function findAttackPaths() {
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
-function hdrs() { return { 'X-API-Key': localStorage.getItem('reconx_api_key') || 'demo_key' }; }
+function hdrs() {
+  const key = localStorage.getItem('reconx_api_key') || '';
+  if (!key) console.warn('reconx_api_key not set; call ensureApiKey() first');
+  return { 'X-API-Key': key };
+}
 
 async function apiGet(path) {
   const res = await fetch(`${API}${path}`, { headers: hdrs() });

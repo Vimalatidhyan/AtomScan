@@ -91,10 +91,26 @@
   <script>
   const API = '/api/v1';
   function el(id) { return document.getElementById(id); }
-  function hdrs() { return { 'X-API-Key': localStorage.getItem('reconx_api_key') || 'demo_key' }; }
+  function hdrs() {
+    const key = localStorage.getItem('reconx_api_key') || '';
+    if (!key) console.warn('reconx_api_key not set; call ensureApiKey() first');
+    return { 'X-API-Key': key };
+  }
   async function apiGet(p) { const r = await fetch(API + p, { headers: hdrs() }); if (!r.ok) throw new Error('API ' + r.status); return r.json(); }
+  async function ensureApiKey() {
+    const stored = localStorage.getItem('reconx_api_key');
+    if (stored && stored !== 'demo_key' && stored.length >= 32) return;
+    try {
+      const res = await fetch('/api/v1/bootstrap-key');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.key) { localStorage.setItem('reconx_api_key', data.key); console.log('Bootstrap API key auto-configured'); }
+      }
+    } catch { /* ignore */ }
+  }
 
   document.addEventListener('DOMContentLoaded', async () => {
+    await ensureApiKey();
     initSidebar();
     try {
       const data = await apiGet('/assets/targets');

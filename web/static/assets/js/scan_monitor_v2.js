@@ -26,6 +26,7 @@ let state = {
   scans: [],
   activeScan: null,
   eventSource: null,
+  _progressStream: null,
   filter: 'all',
   timer: null
 };
@@ -36,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSidebar();
   bindEvents();
   loadScans();
-  state.timer = setInterval(() => loadScans(true), 15000);
+  state.timer = visibilityPoll(() => loadScans(true), 15000);
 });
 
 function bindEvents() {
@@ -73,6 +74,8 @@ async function loadScanDetail(scanId) {
     renderScanDetail(data);
     openScanDetail();
     connectLogStream(scanId);
+    connectProgressStream(scanId);
+    loadJobStatus(scanId);
 
     // Load target stats
     if (data.target) {
@@ -129,7 +132,7 @@ function renderScans() {
     return;
   }
 
-  tbody.innerHTML = filtered.map((s, i) => {
+  tbody.innerHTML = filtered.map((s) => {
     const phaseItems = s.phases ? Object.entries(s.phases) : [];
     const completedPhases = phaseItems.filter(([, done]) => done).length;
     const totalPhases = Math.max(phaseItems.length, 1);
@@ -174,6 +177,28 @@ function renderScanDetail(data) {
     '4_vuln': { num: '4', name: 'Vulnerability Scan' }
   };
 
+  // Render action buttons
+  const actionsDiv = el('detailActions');
+  if (actionsDiv) {
+    const status = data.status || '';
+    const scanIdVal = data.scan_id || data.id;
+    actionsDiv.innerHTML = `
+      ${status === 'running'
+        ? `<button class="btn btn-ghost btn-sm" data-scan-id="${esc(scanIdVal)}" data-action="stop">Stop</button>`
+        : `<button class="btn btn-ghost btn-sm" data-scan-id="${esc(scanIdVal)}" data-action="start">Retry</button>`}
+      <button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-scan-id="${esc(scanIdVal)}" data-action="delete">Delete</button>`;
+    // Delegate clicks on action buttons
+    actionsDiv.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.scanId;
+        const act = btn.dataset.action;
+        if (act === 'stop') stopScan(id);
+        else if (act === 'start') startScan(id);
+        else if (act === 'delete') deleteScan(id);
+      });
+    });
+  }
+
   container.innerHTML = Object.entries(phaseNames).map(([key, info]) => {
     const done = phases[key] === true;
     const status = done ? 'completed' : (data.status === 'running' ? 'in-progress' : 'pending');
@@ -209,7 +234,8 @@ function connectLogStream(scanId) {
   container.innerHTML = '<div class="text-muted" style="padding:0.5rem;">Connecting to log stream...</div>';
 
   try {
-    state.eventSource = new EventSource(`${API}/stream/logs/${encodeURIComponent(scanId)}`);
+    const numericId = parseInt(scanId, 10);
+    state.eventSource = new EventSource(`${API}/stream/logs/${numericId}`);
 
     state.eventSource.onmessage = (e) => {
       const line = document.createElement('div');
@@ -244,6 +270,10 @@ function disconnectLogStream() {
   if (state.eventSource) {
     state.eventSource.close();
     state.eventSource = null;
+  }
+  if (state._progressStream) {
+    state._progressStream.close();
+    state._progressStream = null;
   }
 }
 
@@ -319,7 +349,11 @@ async function submitNewScan() {
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
-function hdrs() { return { 'X-API-Key': localStorage.getItem('reconx_api_key') || 'demo_key' }; }
+function hdrs() {
+  const key = localStorage.getItem('reconx_api_key') || '';
+  if (!key) console.warn('reconx_api_key not set; call ensureApiKey() first');
+  return { 'X-API-Key': key };
+}
 
 async function apiGet(path) {
   const res = await fetch(`${API}${path}`, { headers: hdrs() });
@@ -394,8 +428,95 @@ function initSidebar() {
   });
 }
 
+// ─── Scan Actions ─────────────────────────────────────────────────────────────
+async function startScan(scanId) {
+  const numId = parseInt(scanId, 10);
+  try {
+    await fetch(`${API}/scans/${numId}/start`, { method: 'POST', headers: hdrs() });
+    toast('Scan queued to start', 'success');
+    setTimeout(() => loadScans(), 500);
+    if (state.activeScan?.scan_id == scanId) loadScanDetail(scanId);
+  } catch (err) {
+    toast('Start failed: ' + err.message, 'error');
+  }
+}
+
+async function stopScan(scanId) {
+  const numId = parseInt(scanId, 10);
+  try {
+    await fetch(`${API}/scans/${numId}/stop`, { method: 'POST', headers: hdrs() });
+    toast('Stop signal sent', 'success');
+    setTimeout(() => loadScans(), 500);
+  } catch (err) {
+    toast('Stop failed: ' + err.message, 'error');
+  }
+}
+
+async function deleteScan(scanId) {
+  if (!confirm('Delete this scan and all its findings? This cannot be undone.')) return;
+  const numId = parseInt(scanId, 10);
+  try {
+    const res = await fetch(`${API}/scans/${numId}`, { method: 'DELETE', headers: hdrs() });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+    toast('Scan deleted', 'success');
+    closeScanDetail();
+    setTimeout(() => loadScans(), 300);
+  } catch (err) {
+    toast('Delete failed: ' + err.message, 'error');
+  }
+}
+
+async function loadJobStatus(scanId) {
+  const numId = parseInt(scanId, 10);
+  try {
+    const job = await apiGet(`/scans/${numId}/job`);
+    const panel = el('jobStatusPanel');
+    if (!panel) return;
+    const statusClass = job.status === 'done' ? 'completed' : job.status === 'failed' ? 'failed' : job.status;
+    panel.innerHTML = `
+      <div style="font-size:.75rem;color:var(--text-secondary);margin-bottom:.5rem;">Worker Job</div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;font-size:.8125rem;">
+        <span>Job&nbsp;<strong>#${esc(job.job_id ?? job.id ?? '—')}</strong></span>
+        <span class="status status-${statusClass}">${esc(job.status)}</span>
+        ${job.worker_id ? `<span class="text-muted font-mono" style="font-size:.7rem;">${esc(job.worker_id)}</span>` : ''}
+        ${job.started_at ? `<span class="text-muted">Started ${fmtTime(job.started_at)}</span>` : ''}
+        ${job.finished_at ? `<span class="text-muted">Finished ${fmtTime(job.finished_at)}</span>` : ''}
+        ${job.error ? `<span style="color:var(--danger);font-size:.75rem;">${esc(job.error)}</span>` : ''}
+      </div>`;
+  } catch {
+    const panel = el('jobStatusPanel');
+    if (panel) panel.innerHTML = '<span class="text-muted" style="font-size:.75rem;">No worker job found</span>';
+  }
+}
+
+function connectProgressStream(scanId) {
+  const numId = parseInt(scanId, 10);
+  const bar = el('detailProgress');
+  const pct = el('detailProgressPct');
+  if (!bar) return;
+  const es = new EventSource(`${API}/stream/progress/${numId}`);
+  es.onmessage = (e) => {
+    try {
+      const d = JSON.parse(e.data);
+      const p = d.percentage ?? d.progress_percentage ?? 0;
+      if (bar) bar.style.width = `${p}%`;
+      if (pct) pct.textContent = `${p}%`;
+      if (d.status === 'completed' || d.status === 'failed') {
+        es.close();
+        setTimeout(() => loadScans(true), 800);
+      }
+    } catch { /* ignore */ }
+  };
+  es.onerror = () => es.close();
+  // Store for cleanup
+  state._progressStream = es;
+}
+
 // Expose functions used in inline HTML handlers
 window.loadScanDetail = loadScanDetail;
+window.startScan = startScan;
+window.stopScan = stopScan;
+window.deleteScan = deleteScan;
 
 window.addEventListener('beforeunload', () => {
   disconnectLogStream();

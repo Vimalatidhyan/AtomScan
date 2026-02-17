@@ -102,6 +102,52 @@
             </div>
           </div>
         </div>
+
+        <!-- Webhooks -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Webhooks</h2>
+            <button class="btn btn-primary btn-sm" id="addWebhookBtn">+ Add Webhook</button>
+          </div>
+          <!-- Create form (hidden until Add clicked) -->
+          <div id="webhookForm" style="display:none;padding:1rem;border-bottom:1px solid var(--border);background:var(--surface-elevated,#1e293b);">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:flex-end;flex-wrap:wrap;">
+              <div>
+                <label style="display:block;font-size:.75rem;color:var(--text-secondary);margin-bottom:.25rem;">Webhook URL</label>
+                <input type="url" id="webhookUrl" class="form-control" placeholder="https://hooks.example.com/..." style="font-family:'JetBrains Mono',monospace;font-size:.8125rem;">
+              </div>
+              <div>
+                <label style="display:block;font-size:.75rem;color:var(--text-secondary);margin-bottom:.25rem;">Events (comma-separated)</label>
+                <input type="text" id="webhookEvents" class="form-control" placeholder="scan.completed,finding.new" style="font-size:.8125rem;">
+              </div>
+            </div>
+            <div style="display:flex;gap:.5rem;margin-top:.75rem;">
+              <button class="btn btn-primary btn-sm" id="saveWebhookBtn">Save</button>
+              <button class="btn btn-ghost btn-sm" id="cancelWebhookBtn">Cancel</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>URL</th><th>Events</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="webhooksTable">
+                <tr><td colspan="4" class="text-center text-muted" style="padding:1.5rem;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Supported event types -->
+          <div id="webhookEventsList" style="padding:.75rem 1rem;font-size:.75rem;color:var(--text-secondary);border-top:1px solid var(--border);"></div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="card">
+          <div class="card-header">
+            <h2>System Metrics</h2>
+            <button class="btn btn-ghost btn-sm" id="refreshMetrics">Refresh</button>
+          </div>
+          <div id="metricsPanel" style="padding:1.25rem;">
+            <div class="spinner"></div>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -109,23 +155,44 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <script>
+  const API = '/api/v1';
+  let editingWebhookId = null;
+
   function el(id) { return document.getElementById(id); }
+  function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+  function hdrs() {
+    const key = localStorage.getItem('reconx_api_key') || '';
+    if (!key) console.warn('reconx_api_key not set');
+    return { 'X-API-Key': key };
+  }
+  async function apiGet(p) { const r = await fetch(API + p, { headers: hdrs() }); if (!r.ok) throw new Error('API ' + r.status); return r.json(); }
   function toast(msg, type) {
     const c = el('toastContainer'); if (!c) return;
     const t = document.createElement('div'); t.className = 'toast ' + (type||'info'); t.textContent = msg;
     c.appendChild(t); setTimeout(() => t.remove(), 4000);
   }
+  async function ensureApiKey() {
+    const stored = localStorage.getItem('reconx_api_key');
+    if (stored && stored !== 'demo_key' && stored.length >= 32) return;
+    try {
+      const res = await fetch('/api/v1/bootstrap-key');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.key) { localStorage.setItem('reconx_api_key', data.key); }
+      }
+    } catch { /* ignore */ }
+  }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await ensureApiKey();
     initSidebar();
 
     // Load saved settings
-    el('apiKeyInput').value = localStorage.getItem('reconx_api_key') || 'demo_key';
+    el('apiKeyInput').value = localStorage.getItem('reconx_api_key') || '';
     el('refreshInterval').value = localStorage.getItem('reconx_refresh') || '30';
     el('defaultPhases').value = localStorage.getItem('reconx_phases') || '1,2,3,4';
     el('defaultTestMode').checked = localStorage.getItem('reconx_test_mode') === 'true';
 
-    // Save settings
     el('saveSettings')?.addEventListener('click', () => {
       localStorage.setItem('reconx_api_key', el('apiKeyInput').value);
       localStorage.setItem('reconx_refresh', el('refreshInterval').value);
@@ -134,13 +201,161 @@
       toast('Settings saved successfully', 'success');
     });
 
-    // Check API status
     fetch('/api/health').then(r => r.json()).then(d => {
       el('apiStatus').innerHTML = '<span style="color:var(--green);">&#9679;</span> Online (v' + d.version + ')';
     }).catch(() => {
       el('apiStatus').innerHTML = '<span style="color:var(--red);">&#9679;</span> Offline';
     });
+
+    // Webhook events
+    el('addWebhookBtn')?.addEventListener('click', () => {
+      editingWebhookId = null;
+      el('webhookUrl').value = '';
+      el('webhookEvents').value = '';
+      el('webhookForm').style.display = 'block';
+    });
+    el('cancelWebhookBtn')?.addEventListener('click', () => { el('webhookForm').style.display = 'none'; });
+    el('saveWebhookBtn')?.addEventListener('click', saveWebhook);
+
+    // Metrics
+    el('refreshMetrics')?.addEventListener('click', loadMetrics);
+
+    loadWebhooks();
+    loadWebhookEvents();
+    loadMetrics();
   });
+
+  // ── Webhooks ────────────────────────────────────────────────────────────────
+  async function loadWebhooks() {
+    const tbody = el('webhooksTable');
+    try {
+      const data = await apiGet('/webhooks/');
+      const items = data?.items || data?.webhooks || [];
+      if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:1.5rem;">No webhooks configured.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = '';
+      items.forEach(wh => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          `<td class="font-mono" style="font-size:.75rem;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(wh.url)}">${esc(wh.url)}</td>` +
+          `<td style="font-size:.75rem;">${esc((wh.events || []).join(', ') || '—')}</td>` +
+          `<td>${wh.active !== false ? '<span class="badge badge-low" style="background:rgba(34,197,94,.15);color:#22c55e;">Active</span>' : '<span class="badge" style="background:rgba(107,114,128,.15);color:#6b7280;">Inactive</span>'}</td>` +
+          `<td class="table-actions">` +
+            `<button class="btn btn-ghost btn-sm" data-wh-test="${esc(wh.id)}">Test</button>` +
+            `<button class="btn btn-ghost btn-sm" data-wh-edit="${esc(wh.id)}" data-wh-url="${esc(wh.url)}" data-wh-events="${esc((wh.events||[]).join(','))}">Edit</button>` +
+            `<button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-wh-del="${esc(wh.id)}">Delete</button>` +
+          `</td>`;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('[data-wh-test]').forEach(btn => btn.addEventListener('click', () => testWebhook(btn.dataset.whTest)));
+      tbody.querySelectorAll('[data-wh-edit]').forEach(btn => btn.addEventListener('click', () => {
+        editingWebhookId = btn.dataset.whEdit;
+        el('webhookUrl').value = btn.dataset.whUrl || '';
+        el('webhookEvents').value = btn.dataset.whEvents || '';
+        el('webhookForm').style.display = 'block';
+      }));
+      tbody.querySelectorAll('[data-wh-del]').forEach(btn => btn.addEventListener('click', () => deleteWebhook(btn.dataset.whDel)));
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Failed to load webhooks</td></tr>';
+    }
+  }
+
+  async function loadWebhookEvents() {
+    try {
+      const data = await apiGet('/webhooks/events');
+      const events = data?.events || data?.event_types || [];
+      const container = el('webhookEventsList');
+      if (container && events.length > 0) {
+        container.innerHTML = 'Available events: ' + events.map(e => `<code style="background:var(--surface-elevated,#1e293b);padding:.1rem .3rem;border-radius:3px;font-size:.7rem;">${esc(e)}</code>`).join(' ');
+      }
+    } catch { /* non-fatal */ }
+  }
+
+  async function saveWebhook() {
+    const url = el('webhookUrl')?.value.trim();
+    const eventsStr = el('webhookEvents')?.value.trim();
+    if (!url) { toast('Webhook URL is required', 'error'); return; }
+    const body = { url, events: eventsStr ? eventsStr.split(',').map(s => s.trim()).filter(Boolean) : [] };
+    const btn = el('saveWebhookBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    try {
+      if (editingWebhookId) {
+        await fetch(`${API}/webhooks/${editingWebhookId}`, {
+          method: 'PUT',
+          headers: { ...hdrs(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        toast('Webhook updated', 'success');
+      } else {
+        await fetch(`${API}/webhooks/`, {
+          method: 'POST',
+          headers: { ...hdrs(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        toast('Webhook created', 'success');
+      }
+      el('webhookForm').style.display = 'none';
+      editingWebhookId = null;
+      await loadWebhooks();
+    } catch (err) {
+      toast('Save failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save';
+    }
+  }
+
+  async function testWebhook(id) {
+    try {
+      const res = await fetch(`${API}/webhooks/${id}/test`, { method: 'POST', headers: hdrs() });
+      if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+      toast('Test webhook sent', 'success');
+    } catch (err) {
+      toast('Test failed: ' + err.message, 'error');
+    }
+  }
+
+  async function deleteWebhook(id) {
+    if (!confirm('Delete this webhook?')) return;
+    try {
+      const res = await fetch(`${API}/webhooks/${id}`, { method: 'DELETE', headers: hdrs() });
+      if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+      toast('Webhook deleted', 'success');
+      await loadWebhooks();
+    } catch (err) {
+      toast('Delete failed: ' + err.message, 'error');
+    }
+  }
+
+  // ── Metrics ─────────────────────────────────────────────────────────────────
+  async function loadMetrics() {
+    const panel = el('metricsPanel');
+    if (!panel) return;
+    panel.innerHTML = '<div class="spinner"></div>';
+    try {
+      const data = await apiGet('/metrics/');
+      const entries = typeof data === 'object' && !Array.isArray(data)
+        ? Object.entries(data)
+        : [];
+      if (entries.length === 0) {
+        panel.innerHTML = '<p class="text-muted" style="font-size:.8125rem;">No metrics available.</p>';
+        return;
+      }
+      panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;">` +
+        entries.map(([k, v]) =>
+          `<div style="background:var(--surface-elevated,#1e293b);border-radius:6px;padding:.75rem;">` +
+          `<div style="font-size:.75rem;color:var(--text-secondary);margin-bottom:.25rem;">${esc(k.replace(/_/g,' ').toUpperCase())}</div>` +
+          `<div style="font-size:1.25rem;font-weight:600;">${esc(String(v))}</div>` +
+          `</div>`
+        ).join('') +
+        `</div>`;
+    } catch (err) {
+      panel.innerHTML = '<p style="color:var(--danger);font-size:.8125rem;">Failed to load metrics: ' + esc(err.message) + '</p>';
+    }
+  }
 
   function initSidebar() {
     const toggle = el('sidebarToggle'), sidebar = el('sidebar'), overlay = el('sidebarOverlay');

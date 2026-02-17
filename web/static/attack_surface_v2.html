@@ -113,26 +113,31 @@
             <div class="stat-change">Across all targets</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">TECHNOLOGIES</div>
-            <div class="stat-value" id="totalTech">0</div>
-            <div class="stat-change">Detected</div>
+            <div class="stat-label">HIGH RISK</div>
+            <div class="stat-value" id="totalHighRisk">0</div>
+            <div class="stat-change">Assets flagged</div>
           </div>
         </div>
 
-        <!-- Target List -->
+        <!-- Search + Tabs -->
         <div class="card">
           <div class="card-header">
             <h2>Discovered Assets</h2>
-            <button class="btn btn-primary btn-sm" id="refreshAssets">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Refresh
-            </button>
+            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="assetSearch" class="form-control" placeholder="Search assets..." style="width:220px;font-size:.8125rem;">
+              <button class="btn btn-ghost btn-sm" id="searchBtn">Search</button>
+              <button class="btn btn-primary btn-sm" id="refreshAssets">Refresh</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:.25rem;padding:.5rem 1rem 0;border-bottom:1px solid var(--border);">
+            <button class="tab active" data-view="all">All Assets</button>
+            <button class="tab" data-view="high-risk">High Risk</button>
           </div>
           <div class="table-wrapper">
             <table>
               <thead>
                 <tr>
-                  <th>Target</th>
+                  <th>Target / Host</th>
                   <th>Subdomains</th>
                   <th>Open Ports</th>
                   <th>Findings</th>
@@ -146,6 +151,20 @@
             </table>
           </div>
         </div>
+
+        <!-- Asset Detail Modal -->
+        <div class="modal" id="assetDetailModal">
+          <div class="modal-backdrop" id="closeAssetModal"></div>
+          <div class="modal-content" style="max-width:680px;max-height:85vh;overflow-y:auto;">
+            <div class="modal-header">
+              <h3 id="assetDetailTitle">Asset Detail</h3>
+              <button class="btn btn-ghost btn-sm" id="closeAssetModalBtn">&times;</button>
+            </div>
+            <div style="padding:1.25rem;" id="assetDetailBody">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -154,10 +173,27 @@
 
   <script>
   const API = '/api/v1';
+  let currentView = 'all';
+
   function el(id) { return document.getElementById(id); }
   function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
-  function hdrs() { return { 'X-API-Key': localStorage.getItem('reconx_api_key') || 'demo_key' }; }
+  function hdrs() {
+    const key = localStorage.getItem('reconx_api_key') || '';
+    if (!key) console.warn('reconx_api_key not set; call ensureApiKey() first');
+    return { 'X-API-Key': key };
+  }
   async function apiGet(p) { const r = await fetch(API + p, { headers: hdrs() }); if (!r.ok) throw new Error('API ' + r.status); return r.json(); }
+  async function ensureApiKey() {
+    const stored = localStorage.getItem('reconx_api_key');
+    if (stored && stored !== 'demo_key' && stored.length >= 32) return;
+    try {
+      const res = await fetch('/api/v1/bootstrap-key');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.key) { localStorage.setItem('reconx_api_key', data.key); console.log('Bootstrap API key auto-configured'); }
+      }
+    } catch { /* ignore */ }
+  }
   function toast(msg, type) {
     const c = el('toastContainer'); if (!c) return;
     const t = document.createElement('div'); t.className = 'toast ' + (type||'info'); t.textContent = msg;
@@ -165,25 +201,46 @@
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
+    await ensureApiKey();
     initSidebar();
-    el('refreshAssets')?.addEventListener('click', loadAssets);
-    loadAssets();
+    el('refreshAssets')?.addEventListener('click', () => loadView(currentView));
+    el('searchBtn')?.addEventListener('click', doSearch);
+    el('assetSearch')?.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+    el('closeAssetModalBtn')?.addEventListener('click', closeDetail);
+    el('closeAssetModal')?.addEventListener('click', closeDetail);
+    document.querySelectorAll('.tab[data-view]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab[data-view]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentView = btn.dataset.view;
+        loadView(currentView);
+      });
+    });
+    loadView('all');
+    loadHighRiskCount();
   });
 
+  async function loadView(view) {
+    if (view === 'high-risk') {
+      loadHighRiskAssets();
+    } else {
+      loadAssets();
+    }
+  }
+
   async function loadAssets() {
+    const tbody = el('assetsTable');
     try {
       const data = await apiGet('/assets/targets');
       const targets = data?.targets || [];
       el('totalAssets').textContent = targets.length;
-
-      let totalSubs = 0, totalPorts = 0, totalFindings = 0;
-      const tbody = el('assetsTable');
 
       if (targets.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:2rem;">No assets discovered yet. Run an assessment from the Dashboard.</td></tr>';
         return;
       }
 
+      let totalSubs = 0, totalPorts = 0;
       const rows = [];
       for (const t of targets) {
         const [subsRes, portsRes, findingsRes] = await Promise.all([
@@ -196,26 +253,138 @@
         const findings = findingsRes?.total || 0;
         totalSubs += subs;
         totalPorts += ports;
-        totalFindings += findings;
-
-        rows.push('<tr>' +
-          '<td><strong>' + esc(t) + '</strong></td>' +
-          '<td>' + subs + '</td>' +
-          '<td>' + ports + '</td>' +
-          '<td>' + findings + '</td>' +
-          '<td class="text-muted">—</td>' +
-          '<td class="table-actions"><a href="/graph" class="btn btn-ghost btn-sm">View Graph</a></td>' +
-        '</tr>');
+        rows.push(buildTargetRow(t, subs, ports, findings));
       }
-
       tbody.innerHTML = rows.join('');
+      attachDetailListeners(tbody);
       el('totalSubdomains').textContent = totalSubs;
       el('totalPorts').textContent = totalPorts;
     } catch (err) {
       console.error('Failed to load assets:', err);
       toast('Failed to load attack surface data', 'error');
-      el('assetsTable').innerHTML = '<tr><td colspan="6" class="text-center text-muted">API offline</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">API offline</td></tr>';
     }
+  }
+
+  async function loadHighRiskAssets() {
+    const tbody = el('assetsTable');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center"><div class="spinner mt-4 mb-4"></div></td></tr>';
+    try {
+      const data = await apiGet('/assets/high-risk');
+      const items = data?.assets || data?.items || [];
+      if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:2rem;">No high-risk assets found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = items.map(a =>
+        buildAssetRow(a)
+      ).join('');
+      attachDetailListeners(tbody);
+    } catch (err) {
+      console.error('High-risk load failed:', err);
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Failed to load high-risk assets</td></tr>';
+    }
+  }
+
+  async function loadHighRiskCount() {
+    try {
+      const data = await apiGet('/assets/high-risk');
+      const items = data?.assets || data?.items || [];
+      el('totalHighRisk').textContent = items.length;
+    } catch { /* non-fatal */ }
+  }
+
+  async function doSearch() {
+    const q = el('assetSearch')?.value.trim();
+    if (!q) { loadView(currentView); return; }
+    const tbody = el('assetsTable');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center"><div class="spinner mt-4 mb-4"></div></td></tr>';
+    try {
+      const data = await apiGet('/assets/search?q=' + encodeURIComponent(q));
+      const items = data?.assets || data?.results || data?.items || [];
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:2rem;">No assets matching "${esc(q)}".</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = items.map(a => buildAssetRow(a)).join('');
+      attachDetailListeners(tbody);
+    } catch (err) {
+      toast('Search failed: ' + err.message, 'error');
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Search failed</td></tr>';
+    }
+  }
+
+  function buildTargetRow(target, subs, ports, findings) {
+    return `<tr>
+      <td><strong>${esc(target)}</strong></td>
+      <td>${subs}</td><td>${ports}</td><td>${findings}</td>
+      <td class="text-muted">—</td>
+      <td class="table-actions">
+        <a href="/graph" class="btn btn-ghost btn-sm">Graph</a>
+      </td>
+    </tr>`;
+  }
+
+  function buildAssetRow(a) {
+    const host = a.domain || a.subdomain || a.host || a.value || '—';
+    const risk = a.risk_score ?? a.score ?? '—';
+    const ports = a.open_ports ?? '—';
+    return `<tr>
+      <td><strong>${esc(host)}</strong></td>
+      <td>${a.subdomains ?? '—'}</td>
+      <td>${ports}</td>
+      <td>${a.finding_count ?? a.findings ?? '—'}</td>
+      <td class="text-muted">${a.risk_score !== undefined ? `<span class="badge badge-${risk >= 70 ? 'high' : risk >= 40 ? 'medium' : 'low'}">${risk}</span>` : '—'}</td>
+      <td class="table-actions">
+        ${a.id ? `<button class="btn btn-ghost btn-sm" data-asset-id="${esc(a.id)}">Detail</button>` : '—'}
+      </td>
+    </tr>`;
+  }
+
+  function attachDetailListeners(tbody) {
+    tbody.querySelectorAll('[data-asset-id]').forEach(btn => {
+      btn.addEventListener('click', function() { openAssetDetail(this.dataset.assetId); });
+    });
+  }
+
+  async function openAssetDetail(assetId) {
+    el('assetDetailTitle').textContent = 'Asset #' + assetId;
+    el('assetDetailBody').innerHTML = '<div class="spinner"></div>';
+    el('assetDetailModal')?.classList.add('open');
+    try {
+      const [detail, timeline] = await Promise.all([
+        apiGet('/assets/' + encodeURIComponent(assetId)),
+        apiGet('/assets/' + encodeURIComponent(assetId) + '/timeline').catch(() => ({ events: [] }))
+      ]);
+      const events = timeline?.events || [];
+      const host = detail.domain || detail.subdomain || detail.host || detail.value || '—';
+      el('assetDetailTitle').textContent = esc(host);
+      el('assetDetailBody').innerHTML = `
+        <div style="display:grid;grid-template-columns:140px 1fr;gap:.5rem .75rem;font-size:.8125rem;margin-bottom:1.25rem;">
+          <span style="color:var(--text-secondary);">Host</span><span class="font-mono">${esc(host)}</span>
+          ${detail.ip ? `<span style="color:var(--text-secondary);">IP</span><span class="font-mono">${esc(detail.ip)}</span>` : ''}
+          ${detail.is_alive !== undefined ? `<span style="color:var(--text-secondary);">Alive</span><span>${detail.is_alive ? '✓ Yes' : '✗ No'}</span>` : ''}
+          ${detail.discovered_method ? `<span style="color:var(--text-secondary);">Method</span><span>${esc(detail.discovered_method)}</span>` : ''}
+          ${detail.first_seen ? `<span style="color:var(--text-secondary);">First Seen</span><span>${new Date(detail.first_seen).toLocaleString()}</span>` : ''}
+          ${detail.last_seen ? `<span style="color:var(--text-secondary);">Last Seen</span><span>${new Date(detail.last_seen).toLocaleString()}</span>` : ''}
+        </div>
+        ${events.length > 0 ? `
+        <div style="font-weight:500;font-size:.8125rem;margin-bottom:.5rem;color:var(--text-secondary);">Timeline</div>
+        <div style="border-left:2px solid var(--border);padding-left:.75rem;">
+          ${events.map(ev => `
+            <div style="margin-bottom:.75rem;font-size:.8125rem;">
+              <div style="color:var(--text-secondary);font-size:.75rem;">${ev.timestamp ? new Date(ev.timestamp).toLocaleString() : '—'}</div>
+              <div>${esc(ev.event || ev.description || ev.type || JSON.stringify(ev))}</div>
+            </div>`).join('')}
+        </div>` : '<p class="text-muted" style="font-size:.8125rem;">No timeline events.</p>'}
+      `;
+    } catch (err) {
+      el('assetDetailBody').innerHTML = '<p style="color:var(--danger);font-size:.8125rem;">Failed to load asset: ' + esc(err.message) + '</p>';
+    }
+  }
+
+  function closeDetail() {
+    el('assetDetailModal')?.classList.remove('open');
   }
 
   function initSidebar() {

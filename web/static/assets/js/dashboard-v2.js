@@ -25,7 +25,8 @@ const state = {
   targets: [],
   scans: [],
   stats: { critical: 0, high: 0, assets: 0, activeScans: 0 },
-  timer: null
+  timer: null,
+  _alertStream: null
 };
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindEvents();
   loadDashboard();
   state.timer = setInterval(() => loadDashboard(true), 30000);
+  connectAlertStream();
 });
 
 function bindEvents() {
@@ -229,7 +231,9 @@ async function startScan() {
 function el(id) { return document.getElementById(id); }
 
 function hdrs() {
-  return { 'X-API-Key': localStorage.getItem('reconx_api_key') || 'demo_key' };
+  const key = localStorage.getItem('reconx_api_key') || '';
+  if (!key) console.warn('reconx_api_key not set; call ensureApiKey() first');
+  return { 'X-API-Key': key };
 }
 
 async function api(path) {
@@ -317,4 +321,45 @@ function initSidebar() {
   }
 }
 
-window.addEventListener('beforeunload', () => { if (state.timer) clearInterval(state.timer); });
+// ─── SSE Alert Stream ─────────────────────────────────────────────────────────
+function connectAlertStream() {
+  if (state._alertStream) {
+    state._alertStream.close();
+    state._alertStream = null;
+  }
+  try {
+    const es = new EventSource(`${API}/stream/alerts`);
+    state._alertStream = es;
+
+    es.onmessage = (e) => {
+      let msg = e.data || '';
+      try {
+        const d = JSON.parse(msg);
+        msg = d.message || d.msg || d.text || JSON.stringify(d);
+        const severity = d.severity || d.level || 'info';
+        toast(msg, severity === 'critical' || severity === 'error' ? 'error' : severity === 'warning' ? 'warning' : 'info');
+        // Refresh dashboard stats on critical alert
+        if (severity === 'critical' || severity === 'high') loadDashboard(true);
+      } catch {
+        // plain text alert
+        if (msg) toast(msg, 'info');
+      }
+    };
+
+    es.onerror = () => {
+      // Connection closed or server unavailable — retry in 30s
+      if (state._alertStream) {
+        state._alertStream.close();
+        state._alertStream = null;
+      }
+      setTimeout(connectAlertStream, 30000);
+    };
+  } catch {
+    // SSE not supported or blocked — silently skip
+  }
+}
+
+window.addEventListener('beforeunload', () => {
+  if (state.timer) clearInterval(state.timer);
+  if (state._alertStream) state._alertStream.close();
+});

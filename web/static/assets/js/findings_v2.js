@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSidebar();
   bindEvents();
   loadTargets();
-  state.timer = setInterval(() => { if (state.selectedTarget) loadFindings(true); }, 30000);
+  state.timer = visibilityPoll(() => { if (state.selectedTarget) loadFindings(true); }, 30000);
 });
 
 function bindEvents() {
@@ -94,6 +94,8 @@ async function loadFindings(silent = false) {
     renderStats();
     updateTabCounts();
     renderFindings();
+    loadSeverityChart();
+    loadTypeChart();
 
   } catch (err) {
     console.error('Findings load failed:', err);
@@ -127,8 +129,24 @@ function renderStats() {
 
 function updateTabCounts() {
   const f = state.findings;
+  const counts = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+  f.forEach(finding => {
+    const s = sev(finding);
+    if (counts[s] !== undefined) counts[s]++;
+  });
   const allEl = el('tabAllCount');
   if (allEl) allEl.textContent = f.length;
+  const idMap = {
+    critical: 'tabCriticalCount',
+    high: 'tabHighCount',
+    medium: 'tabMediumCount',
+    low: 'tabLowCount',
+    info: 'tabInfoCount',
+  };
+  Object.entries(idMap).forEach(([severity, elemId]) => {
+    const badge = el(elemId);
+    if (badge) badge.textContent = counts[severity];
+  });
 }
 
 function renderFindings() {
@@ -213,6 +231,26 @@ function showDetail(idx) {
   el('modalInfo').textContent = f.description || f.details || f.info || 'No description available.';
 
   el('findingModal')?.classList.add('open');
+  // Render action buttons using data attributes to avoid XSS
+  const actionsEl = el('modalActions');
+  if (actionsEl) {
+    const fid = f.id;
+    actionsEl.innerHTML = '';
+    const remBtn = document.createElement('button');
+    remBtn.className = 'btn btn-primary btn-sm';
+    remBtn.textContent = f.status === 'in_remediation' ? 'In Remediation' : 'Mark Remediation';
+    remBtn.disabled = f.status === 'in_remediation';
+    remBtn.dataset.findingId = fid;
+    remBtn.addEventListener('click', () => remediateFinding(fid));
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-ghost btn-sm';
+    delBtn.style.color = 'var(--danger)';
+    delBtn.textContent = 'Delete';
+    delBtn.dataset.findingId = fid;
+    delBtn.addEventListener('click', () => deleteFinding(fid));
+    actionsEl.appendChild(remBtn);
+    actionsEl.appendChild(delBtn);
+  }
 }
 
 function closeDetail() {
@@ -239,7 +277,11 @@ function changePage(delta) {
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
-function hdrs() { return { 'X-API-Key': localStorage.getItem('reconx_api_key') || 'demo_key' }; }
+function hdrs() {
+  const key = localStorage.getItem('reconx_api_key') || '';
+  if (!key) console.warn('reconx_api_key not set; call ensureApiKey() first');
+  return { 'X-API-Key': key };
+}
 
 async function apiGet(path) {
   const res = await fetch(`${API}${path}`, { headers: hdrs() });
@@ -312,19 +354,113 @@ function exportFindings() {
     toast('No findings to export', 'warning');
     return;
   }
-  const headers = ['Severity', 'Name', 'Host', 'Tool', 'CVE', 'Info', 'Discovered'];
+  const headers = ['Severity', 'Name', 'Host', 'Tool', 'CVE', 'Description', 'Discovered'];
   const rows = state.findings.map(f => [
-    sev(f), f.name || '', f.host || '', f.tool || '', f.cve || '', (f.info || '').replace(/"/g, '""'), f.discovered_at || ''
+    sev(f),
+    f.name || f.title || '',
+    f.host || '',
+    f.tool || f.source || '',
+    f.cve || f.cve_id || '',
+    (f.description || f.info || ''),
+    f.discovered_at || ''
   ]);
-  const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `findings_${state.selectedTarget || 'all'}_${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadCsv(
+    `findings_${state.selectedTarget || 'all'}_${new Date().toISOString().slice(0, 10)}.csv`,
+    headers, rows
+  );
   toast(`Exported ${state.findings.length} findings`, 'success');
 }
+
+// ─── Finding Actions ───────────────────────────────────────────────────────────
+async function deleteFinding(findingId) {
+  if (!confirm('Delete this finding? This cannot be undone.')) return;
+  try {
+    const res = await fetch(`${API}/findings/${findingId}`, { method: 'DELETE', headers: hdrs() });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+    toast('Finding deleted', 'success');
+    closeDetail();
+    await loadFindings(true);
+  } catch (err) {
+    toast('Delete failed: ' + err.message, 'error');
+  }
+}
+
+async function remediateFinding(findingId) {
+  try {
+    const res = await fetch(`${API}/findings/${findingId}/remediate`, { method: 'POST', headers: hdrs() });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+    toast('Finding marked as in remediation', 'success');
+    await loadFindings(true);
+  } catch (err) {
+    toast('Failed: ' + err.message, 'error');
+  }
+}
+
+async function editFinding(findingId, field, value) {
+  try {
+    const body = { [field]: value };
+    const res = await fetch(`${API}/findings/${findingId}`, {
+      method: 'PUT',
+      headers: { ...hdrs(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+    toast('Finding updated', 'success');
+    await loadFindings(true);
+  } catch (err) {
+    toast('Update failed: ' + err.message, 'error');
+  }
+}
+
+async function loadSeverityChart() {
+  try {
+    const data = await apiGet('/findings/by-severity');
+    const container = el('severityChart');
+    if (!container) return;
+    const total = Object.values(data).reduce((a, b) => a + b, 0) || 1;
+    const bars = [
+      { label: 'Critical', key: 'critical', color: 'var(--danger,#ef4444)' },
+      { label: 'High',     key: 'high',     color: '#f97316' },
+      { label: 'Medium',   key: 'medium',   color: '#f59e0b' },
+      { label: 'Low',      key: 'low',      color: '#3b82f6' },
+      { label: 'Info',     key: 'info',     color: '#6b7280' },
+    ];
+    container.innerHTML = bars.map(b => {
+      const count = data[b.key] || 0;
+      const pct = Math.round((count / total) * 100);
+      return `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.375rem;font-size:.8125rem;">
+        <span style="width:4.5rem;text-align:right;color:var(--text-secondary);">${b.label}</span>
+        <div style="flex:1;background:var(--surface-elevated,#1e293b);border-radius:3px;height:14px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${b.color};transition:width .4s;"></div>
+        </div>
+        <span style="width:2.5rem;color:var(--text-secondary);">${count}</span>
+      </div>`;
+    }).join('');
+  } catch { /* non-fatal */ }
+}
+
+async function loadTypeChart() {
+  try {
+    const data = await apiGet('/findings/by-type');
+    const container = el('typeChart');
+    if (!container) return;
+    const entries = Object.entries(data).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const max = entries[0]?.[1] || 1;
+    container.innerHTML = entries.map(([type, count]) => {
+      const pct = Math.round((count / max) * 100);
+      return `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.375rem;font-size:.75rem;">
+        <span style="width:7rem;text-align:right;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(type)}">${esc(type)}</span>
+        <div style="flex:1;background:var(--surface-elevated,#1e293b);border-radius:3px;height:12px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:var(--primary,#3b82f6);"></div>
+        </div>
+        <span style="width:2rem;color:var(--text-secondary);">${count}</span>
+      </div>`;
+    }).join('') || '<p class="text-muted" style="font-size:.8125rem;padding:.5rem;">No type data yet.</p>';
+  } catch { /* non-fatal */ }
+}
+
+window.deleteFinding = deleteFinding;
+window.remediateFinding = remediateFinding;
+window.editFinding = editFinding;
 
 window.addEventListener('beforeunload', () => { if (state.timer) clearInterval(state.timer); });

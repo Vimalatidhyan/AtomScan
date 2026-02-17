@@ -8,7 +8,7 @@ from sqlalchemy import func, distinct
 from typing import Optional
 
 from app.db.database import get_db
-from app.db.models import Subdomain, ScanRun, Vulnerability
+from app.db.models import Subdomain, ScanRun, Vulnerability, PortScan
 from app.api.models.asset import AssetListResponse, AssetResponse
 from app.api.models.common import StatusResponse
 
@@ -82,6 +82,65 @@ def assets_by_domain(
     total = q.count()
     items = q.offset((page - 1) * per_page).limit(per_page).all()
     return AssetListResponse(total=total, page=page, per_page=per_page, items=items)
+
+
+@router.get("/subdomains/{target:path}", summary="Subdomains for a target domain")
+def get_subdomains(target: str, db: Session = Depends(get_db)):
+    """Return all subdomains discovered for the given target domain (most recent scan)."""
+    scan = (
+        db.query(ScanRun)
+        .filter(ScanRun.domain == target)
+        .order_by(ScanRun.id.desc())
+        .first()
+    )
+    if not scan:
+        return {"subdomains": [], "total": 0}
+    items = db.query(Subdomain).filter(Subdomain.scan_run_id == scan.id).all()
+    return {
+        "subdomains": [
+            {
+                "subdomain": s.subdomain,
+                "ip": None,
+                "is_alive": s.is_alive,
+                "first_seen": s.first_seen.isoformat() if s.first_seen else None,
+                "last_seen": s.last_seen.isoformat() if s.last_seen else None,
+            }
+            for s in items
+        ],
+        "total": len(items),
+    }
+
+
+@router.get("/ports/{target:path}", summary="Open ports for a target domain")
+def get_ports(target: str, db: Session = Depends(get_db)):
+    """Return all port scan results for the given target domain (most recent scan)."""
+    scan = (
+        db.query(ScanRun)
+        .filter(ScanRun.domain == target)
+        .order_by(ScanRun.id.desc())
+        .first()
+    )
+    if not scan:
+        return {"ports": [], "total": 0}
+    rows = (
+        db.query(PortScan, Subdomain.subdomain)
+        .join(Subdomain, PortScan.subdomain_id == Subdomain.id)
+        .filter(Subdomain.scan_run_id == scan.id)
+        .all()
+    )
+    return {
+        "ports": [
+            {
+                "port": p.port,
+                "protocol": p.protocol,
+                "service": p.service,
+                "subdomain": subdomain,
+                "state": p.state,
+            }
+            for p, subdomain in rows
+        ],
+        "total": len(rows),
+    }
 
 
 @router.get("/high-risk", response_model=AssetListResponse, summary="High-risk assets")

@@ -66,15 +66,52 @@
           <div class="stat-card stat-medium"><div class="stat-label">LAST REPORT</div><div class="stat-value" style="font-size:1rem" id="lastReport">—</div><div class="stat-change">Date</div></div>
         </div>
 
+        <!-- Generate Report Form -->
         <div class="card">
-          <div class="card-header"><h2>Generated Reports</h2></div>
+          <div class="card-header"><h2>Generate Report</h2></div>
+          <div style="padding:1.25rem;display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:1;min-width:160px;">
+              <label style="display:block;font-size:.8125rem;font-weight:500;color:var(--text-secondary);margin-bottom:.375rem;">Scan Run ID</label>
+              <input type="number" id="reportScanId" class="form-control" placeholder="Enter scan ID (optional)" min="1">
+            </div>
+            <div style="flex:1;min-width:160px;">
+              <label style="display:block;font-size:.8125rem;font-weight:500;color:var(--text-secondary);margin-bottom:.375rem;">Report Type</label>
+              <select id="reportType" class="form-control">
+                <option value="technical">Technical</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="generateReport">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Generate
+            </button>
+          </div>
+        </div>
+
+        <!-- Reports List -->
+        <div class="card">
+          <div class="card-header"><h2>Generated Reports</h2>
+            <button class="btn btn-ghost btn-sm" id="refreshReports">Refresh</button>
+          </div>
           <div class="table-wrapper">
             <table>
-              <thead><tr><th>Report</th><th>Target</th><th>Type</th><th>Findings</th><th>Date</th><th>Actions</th></tr></thead>
+              <thead><tr><th>ID</th><th>Type</th><th>Scan ID</th><th>Generated</th><th>Actions</th></tr></thead>
               <tbody id="reportsTable">
-                <tr><td colspan="6" class="text-center text-muted" style="padding:2rem;">No reports generated yet. Click "Generate Report" to create your first report.</td></tr>
+                <tr><td colspan="5" class="text-center text-muted" style="padding:2rem;">Loading...</td></tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Report Detail Modal -->
+        <div class="modal" id="reportModal">
+          <div class="modal-backdrop" id="closeReportModal"></div>
+          <div class="modal-content" style="max-width:720px;max-height:80vh;overflow-y:auto;">
+            <div class="modal-header">
+              <h3 id="reportModalTitle">Report</h3>
+              <button class="btn btn-ghost btn-sm" id="closeReportModalBtn">&times;</button>
+            </div>
+            <div style="padding:1.25rem;font-size:.8125rem;white-space:pre-wrap;font-family:'JetBrains Mono',monospace;color:var(--text-secondary);" id="reportContent">
+            </div>
           </div>
         </div>
       </main>
@@ -83,88 +120,122 @@
 
   <div id="toastContainer" class="toast-container"></div>
 
+  <script src="/assets/js/common.js"></script>
   <script>
-  const API = '/api/v1';
-  function el(id) { return document.getElementById(id); }
-  function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
-  function hdrs() { return { 'X-API-Key': localStorage.getItem('reconx_api_key') || 'demo_key' }; }
-  async function apiGet(p) { const r = await fetch(API + p, { headers: hdrs() }); if (!r.ok) throw new Error('API ' + r.status); return r.json(); }
-  function toast(msg, type) {
-    const c = el('toastContainer'); if (!c) return;
-    const t = document.createElement('div'); t.className = 'toast ' + (type||'info'); t.textContent = msg;
-    c.appendChild(t); setTimeout(() => t.remove(), 4000);
-  }
-
   document.addEventListener('DOMContentLoaded', async () => {
+    await ensureApiKey();
     initSidebar();
     el('generateReport')?.addEventListener('click', generateReport);
-    loadReportData();
+    el('refreshReports')?.addEventListener('click', loadReports);
+    el('closeReportModalBtn')?.addEventListener('click', closeReportModal);
+    el('closeReportModal')?.addEventListener('click', closeReportModal);
+    loadTemplates();
+    loadReports();
+    loadStats();
   });
 
-  async function loadReportData() {
+  async function loadTemplates() {
+    try {
+      const data = await apiGet('/reports/templates');
+      const select = el('reportType');
+      if (!select || !data?.templates?.length) return;
+      select.innerHTML = data.templates
+        .map(t => `<option value="${esc(t)}">${esc(t.charAt(0).toUpperCase() + t.slice(1))}</option>`)
+        .join('');
+    } catch { /* use defaults already in HTML */ }
+  }
+
+  async function loadStats() {
     try {
       const data = await apiGet('/assets/targets');
       const targets = data?.targets || [];
       el('targetsScanned').textContent = targets.length;
-
       let totalCritical = 0;
       for (const t of targets) {
-        const sum = await apiGet('/findings/' + encodeURIComponent(t) + '/summary').catch(() => ({}));
-        totalCritical += sum?.critical || 0;
+        const s = await apiGet('/findings/' + encodeURIComponent(t) + '/summary').catch(() => ({}));
+        totalCritical += s?.critical || 0;
       }
       el('criticalIssues').textContent = totalCritical;
+    } catch (err) { console.error('Stats load failed:', err); }
+  }
+
+  async function loadReports() {
+    const tbody = el('reportsTable');
+    try {
+      const data = await apiGet('/reports/');
+      const items = data?.items || [];
+      el('reportCount').textContent = data?.total ?? items.length;
+      if (items.length > 0) {
+        el('lastReport').textContent = fmtTime(items[0]?.generated_at);
+      }
+      if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:2rem;">No reports generated yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = items.map(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          `<td class="font-mono" style="font-size:.75rem;">#${esc(r.id)}</td>` +
+          `<td>${esc(r.report_type)}</td>` +
+          `<td>${r.scan_run_id ? `<span class="font-mono">${esc(r.scan_run_id)}</span>` : '—'}</td>` +
+          `<td class="text-muted">${fmtTime(r.generated_at)}</td>` +
+          `<td class="table-actions"><button class="btn btn-ghost btn-sm" data-report-id="${esc(r.id)}">View</button></td>`;
+        tr.querySelector('[data-report-id]')?.addEventListener('click', function() {
+          viewReport(this.dataset.reportId);
+        });
+        return tr.outerHTML;
+      }).join('');
+      // Re-attach after innerHTML — use event delegation instead
+      tbody.querySelectorAll('[data-report-id]').forEach(btn => {
+        btn.addEventListener('click', function() { viewReport(this.dataset.reportId); });
+      });
     } catch (err) {
-      console.error('Reports data load failed:', err);
+      console.error('Reports load failed:', err);
+      showErrorState('reportsTable', 'Failed to load reports', loadReports);
     }
   }
 
   async function generateReport() {
     const btn = el('generateReport');
+    const scanId = el('reportScanId')?.value.trim();
+    const reportType = el('reportType')?.value || 'technical';
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;"></span> Generating...';
+    btn.textContent = 'Generating...';
     try {
-      const data = await apiGet('/assets/targets');
-      const targets = data?.targets || [];
-      if (targets.length === 0) { toast('No targets to report on', 'warning'); return; }
-
-      // Build report data
-      const rows = [];
-      for (const t of targets) {
-        const [findingsRes, summaryRes] = await Promise.all([
-          apiGet('/findings/' + encodeURIComponent(t)).catch(() => ({ findings: [] })),
-          apiGet('/findings/' + encodeURIComponent(t) + '/summary').catch(() => ({}))
-        ]);
-        rows.push({ target: t, findings: findingsRes?.findings?.length || 0, critical: summaryRes?.critical || 0, high: summaryRes?.high || 0 });
-      }
-
-      // Generate CSV download
-      const csv = 'Target,Findings,Critical,High\n' + rows.map(r => [r.target, r.findings, r.critical, r.high].join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'reconx_report_' + new Date().toISOString().slice(0,10) + '.csv';
-      a.click(); URL.revokeObjectURL(url);
-
-      // Update table
-      const tbody = el('reportsTable');
-      tbody.innerHTML = '<tr><td>Security Report</td><td>' + targets.join(', ') + '</td><td>Full Scan</td><td>' +
-        rows.reduce((a,r) => a + r.findings, 0) + '</td><td>' + new Date().toLocaleDateString() + '</td>' +
-        '<td class="table-actions"><span class="status status-completed">Downloaded</span></td></tr>';
-      el('reportCount').textContent = '1';
-      el('lastReport').textContent = 'Today';
-      toast('Report generated and downloaded', 'success');
+      const params = { report_type: reportType };
+      if (scanId) params.scan_run_id = parseInt(scanId, 10);
+      const qs = new URLSearchParams(params).toString();
+      const res = await fetch(`/api/v1/reports/?${qs}`, { method: 'POST', headers: hdrs() });
+      if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+      toast('Report generated', 'success');
+      await loadReports();
     } catch (err) {
-      toast('Failed to generate report: ' + err.message, 'error');
+      toast('Generate failed: ' + err.message, 'error');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Generate Report';
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Generate';
     }
   }
 
-  function initSidebar() {
-    const toggle = el('sidebarToggle'), sidebar = el('sidebar'), overlay = el('sidebarOverlay');
-    if (toggle && sidebar) toggle.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay?.classList.toggle('open'); });
-    if (overlay) overlay.addEventListener('click', () => { sidebar?.classList.remove('open'); overlay.classList.remove('open'); });
+  async function viewReport(reportId) {
+    el('reportContent').textContent = 'Loading...';
+    el('reportModal')?.classList.add('open');
+    try {
+      const data = await apiGet(`/reports/${reportId}`);
+      el('reportModalTitle').textContent = `Report #${reportId} — ${data.report_type || ''}`;
+      const content = data.content;
+      if (typeof content === 'object') {
+        el('reportContent').textContent = JSON.stringify(content, null, 2);
+      } else {
+        el('reportContent').textContent = content || '(empty report)';
+      }
+    } catch (err) {
+      el('reportContent').textContent = 'Failed to load report: ' + err.message;
+    }
+  }
+
+  function closeReportModal() {
+    el('reportModal')?.classList.remove('open');
   }
   </script>
 </body>

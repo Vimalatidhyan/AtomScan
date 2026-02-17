@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 import logging
 import os
 import secrets
+import threading
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,6 +56,13 @@ if not _SECRET_KEY:
     )
 
 
+# When RECONX_WORKER=true (default), the server starts the scan worker as a
+# daemon thread so `uvicorn app.api.server:app` is the only command needed.
+# Set RECONX_WORKER=false when running the worker as a separate process (e.g.
+# via start.sh) to avoid double-claiming jobs.
+_EMBED_WORKER = os.environ.get("RECONX_WORKER", "true").lower() in ("true", "1", "yes")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan — startup and shutdown."""
@@ -70,9 +78,31 @@ async def lifespan(app: FastAPI):
     if bootstrap_key:
         app.state.bootstrap_api_key = bootstrap_key
         logger.info("Bootstrap API key available. Use it in Settings or via X-API-Key header.")
+
+    # Optionally start the scan worker as an embedded background thread.
+    # The thread is daemon=True so it is killed automatically when the server exits.
+    _worker_thread: threading.Thread | None = None
+    if _EMBED_WORKER:
+        try:
+            from app.workers.worker import run_forever as _worker_run_forever
+            _worker_thread = threading.Thread(
+                target=_worker_run_forever,
+                name="reconx-worker",
+                daemon=True,
+            )
+            _worker_thread.start()
+            logger.info("Embedded scan worker started (RECONX_WORKER=true). "
+                        "Set RECONX_WORKER=false to disable.")
+        except Exception as exc:  # pragma: no cover
+            logger.warning("Could not start embedded worker: %s", exc)
+    else:
+        logger.info("Embedded worker disabled (RECONX_WORKER=false).")
+
     yield
+
     logger.info("ReconX Enterprise API shutting down...")
     db.close()
+    # _worker_thread is daemon — OS cleans it up on process exit
 
 
 app = FastAPI(

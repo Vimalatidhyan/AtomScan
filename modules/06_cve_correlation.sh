@@ -105,10 +105,12 @@ for svc in services:
     version = svc.get('version', '')
     if not (cpe or product):
         continue
-    # Try risk_scoring module
+    # Try risk_scoring module (KEVChecker class)
     try:
-        from intelligence.risk_scoring.kev import check_kev_status
-        kev = check_kev_status(cpe) if cpe else {'in_kev': False}
+        from intelligence.risk_scoring.kev import KEVChecker
+        _kev_checker = KEVChecker()
+        kev = _kev_checker.check_cve(cpe) if cpe else None
+        kev = kev or {'in_kev': False}
     except Exception:
         kev = {'in_kev': False}
     results.append({
@@ -161,7 +163,15 @@ try:
     cve_file = '$CVE_RESULTS'
     with open(cve_file) as f:
         cve_data = json.load(f)
-    scores = calculate_risk_scores(cve_data)
+    # calculate_risk_scores expects (findings, assets, asset_metadata, kev_data, epss_data, threat_intel)
+    scores = calculate_risk_scores(
+        findings=cve_data,
+        assets=[],
+        asset_metadata={},
+        kev_data={},
+        epss_data={},
+        threat_intel=[],
+    )
 except Exception as e:
     print(f"Warning: risk_scoring module error: {e}", file=sys.stderr)
     scores = {'error': str(e), 'total_scored': 0}
@@ -183,7 +193,8 @@ import json, sys
 sys.path.insert(0, '$REPO_ROOT')
 
 try:
-    from intelligence.risk_scoring.epss import get_epss_scores
+    from intelligence.risk_scoring.epss import EPSSClient
+    _epss = EPSSClient()
     cve_ids = []
     cve_file = '$CVE_RESULTS'
     with open(cve_file) as f:
@@ -191,7 +202,7 @@ try:
     for item in cve_data:
         for cve in item.get('cves', []):
             cve_ids.append(cve.get('id', ''))
-    epss = get_epss_scores(cve_ids) if cve_ids else {}
+    epss = _epss.lookup_multiple(cve_ids) if cve_ids else {}
 except Exception as e:
     print(f"Warning: EPSS module error: {e}", file=sys.stderr)
     epss = {}

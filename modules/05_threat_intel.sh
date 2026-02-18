@@ -4,6 +4,7 @@
 # Multi-source threat intel aggregation. Does not change phases 1-4.
 ################################################################################
 
+set +e
 set -o pipefail
 
 TARGET="$1"
@@ -104,13 +105,13 @@ BR_DIR="$PHASE_DIR/breach_monitoring"
 run_timeout "$TIMEOUT_HTTP" curl -s "https://psbdmp.ws/api/search/$TARGET" 2>/dev/null > "$BR_DIR/psbdmp.json" || touch "$BR_DIR/psbdmp.json"
 
 log_info "=== Aggregating Phase 5 results ==="
-ROOT="$(cd "$SCRIPT_DIR/../.." 2>/dev/null && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SUMMARY="$PHASE_DIR/phase5_threat_intel_summary.json"
 DB_PATH="${RECONX_DB_PATH:-reconx.db}"
-export PYTHONPATH="${ROOT}:${PYTHONPATH}"
-if python3 -m intelligence.threat_intel.aggregator --target "$TARGET" --phase-dir "$PHASE_DIR" --output "$SUMMARY" --db "$DB_PATH" 2>/dev/null; then
+export PYTHONPATH="${REPO_ROOT}:${PYTHONPATH:-}"
+if PYTHONPATH="${REPO_ROOT}:${PYTHONPATH:-}" python3 -m intelligence.threat_intel.aggregator --target "$TARGET" --phase-dir "$PHASE_DIR" --output "$SUMMARY" --db "$DB_PATH" 2>/dev/null; then
     log_info "Phase 5 summary written to $SUMMARY"
 else
-    python3 -m intelligence.threat_intel.aggregator --target "$TARGET" --phase-dir "$PHASE_DIR" --output "$SUMMARY" 2>/dev/null || true
+    PYTHONPATH="${REPO_ROOT}:${PYTHONPATH:-}" python3 -m intelligence.threat_intel.aggregator --target "$TARGET" --phase-dir "$PHASE_DIR" --output "$SUMMARY" 2>/dev/null || true
 fi
 echo "[+] Phase 5 completed successfully!"

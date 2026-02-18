@@ -103,8 +103,8 @@ ALIVE_HOSTS="$PHASE1_DIR/alive_hosts.txt"
 ALIVE_COUNT=$(wc -l < "$ALIVE_HOSTS" | tr -d ' ')
 log_info "Found $ALIVE_COUNT alive hosts from Phase 1"
 
-# Prepare URLs for scanning
-cat "$ALIVE_HOSTS" | sed 's|^|https://|' | head -n 50 > "$PHASE_DIR/scan_urls.txt"
+# Prepare URLs for scanning (strip existing scheme to avoid double-prefix)
+cat "$ALIVE_HOSTS" | sed 's|^https\?://||' | sed 's|^|https://|' | head -n 50 > "$PHASE_DIR/scan_urls.txt"
 
 # Add discovered URLs from Phase 3 if available
 if [ -f "$PHASE3_DIR/urls/all_urls.txt" ]; then
@@ -501,15 +501,79 @@ echo "  - $CORS_DIR: CORS misconfiguration results"
 echo "  - $MISC_DIR: Additional scanner results"
 echo "  - $SSL_DIR: SSL/TLS security results"
 
-# Count critical findings
+# Count critical findings (nuclei writes NDJSON; use -s to slurp)
 CRITICAL_COUNT=0
 if [ -f "$NUCLEI_DIR/nuclei_all.json" ]; then
-    CRITICAL_COUNT=$(cat "$NUCLEI_DIR/nuclei_all.json" | jq '[.[] | select(.info.severity == "critical")] | length' 2>/dev/null || echo "0")
+    CRITICAL_COUNT=$(jq -s '[.[] | select(.info.severity == "critical")] | length' "$NUCLEI_DIR/nuclei_all.json" 2>/dev/null || echo "0")
 fi
 
 if [ "$CRITICAL_COUNT" -gt 0 ]; then
     log_error "WARNING: Found $CRITICAL_COUNT CRITICAL vulnerabilities!"
 fi
+
+# ── Generate vulnerabilities_summary.json for downstream phases (07, 09) ──
+log_info "Generating vulnerabilities_summary.json..."
+python3 - <<PYEOF 2>/dev/null || true
+import json, os, glob
+
+vulns = []
+
+# Parse Nuclei NDJSON
+nuclei_file = '$NUCLEI_DIR/nuclei_all.json'
+if os.path.exists(nuclei_file):
+    with open(nuclei_file) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+                vulns.append({
+                    'id': obj.get('template-id', obj.get('templateID', '')),
+                    'name': obj.get('info', {}).get('name', ''),
+                    'severity': obj.get('info', {}).get('severity', 'unknown'),
+                    'host': obj.get('host', obj.get('matched-at', '')),
+                    'target': obj.get('matched-at', ''),
+                    'cvss_score': float(obj.get('info', {}).get('classification', {}).get('cvss-score', 0) or 0),
+                    'cve_id': ','.join(obj.get('info', {}).get('classification', {}).get('cve-id', []) or []),
+                    'tool': 'nuclei',
+                    'description': obj.get('info', {}).get('description', ''),
+                })
+            except Exception:
+                pass
+
+# Parse Dalfox results
+dalfox_file = '$XSS_DIR/dalfox_results.txt'
+if os.path.exists(dalfox_file):
+    with open(dalfox_file) as f:
+        for line in f:
+            if 'VULN' in line or 'POC' in line:
+                vulns.append({
+                    'id': 'dalfox-xss',
+                    'name': 'XSS Vulnerability (Dalfox)',
+                    'severity': 'high',
+                    'host': line.strip()[:200],
+                    'tool': 'dalfox',
+                })
+
+# Parse SQLMap results
+sqli_file = '$SQLI_DIR/sqlmap_results.txt'
+if os.path.exists(sqli_file):
+    with open(sqli_file) as f:
+        content = f.read()
+    if 'vulnerable' in content.lower():
+        vulns.append({
+            'id': 'sqlmap-sqli',
+            'name': 'SQL Injection (SQLMap)',
+            'severity': 'critical',
+            'host': '$TARGET',
+            'tool': 'sqlmap',
+        })
+
+with open('$PHASE_DIR/vulnerabilities_summary.json', 'w') as f:
+    json.dump(vulns, f, indent=2)
+print(f"Generated vulnerabilities_summary.json: {len(vulns)} findings")
+PYEOF
 
 # Create phase completion marker
 touch "$PHASE_DIR/.completed"

@@ -4,6 +4,7 @@
 # Compares current scan against baseline, generates delta report & alerts
 ################################################################################
 
+set +e
 set -o pipefail
 
 TARGET="$1"
@@ -180,10 +181,11 @@ import json, sys, os
 sys.path.insert(0, '$REPO_ROOT')
 
 try:
-    from intelligence.change_detection.alert_generator import generate_alerts
+    from intelligence.change_detection.alert_generator import AlertGenerator
     with open('$DELTA_FILE') as f:
         delta = json.load(f)
-    alerts = generate_alerts(delta, target='$TARGET')
+    ag = AlertGenerator(delta=delta, scan_run_id=0)
+    alerts = ag.generate_alerts()
 except Exception as e:
     print(f"Warning: alert_generator error: {e}", file=sys.stderr)
     with open('$DELTA_FILE') as f:

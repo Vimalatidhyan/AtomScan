@@ -4,6 +4,7 @@
 # Builds a relationship graph of assets, vulnerabilities, and attack paths
 ################################################################################
 
+set +e
 set -o pipefail
 
 TARGET="$1"
@@ -145,14 +146,25 @@ with open('$ASSETS_FILE') as f:
 
 try:
     from intelligence.graph.build_relationships import build_relationships
-    relationships = build_relationships(assets)
+    # build_relationships expects scan_data dict with domain/subdomains/ports/vulnerabilities keys
+    scan_data = {
+        'domain': '$TARGET',
+        'subdomains': [n['identifier'] for n in assets.get('nodes', []) if n.get('type') == 'subdomain'],
+        'dns_records': [],
+        'ports': [n for n in assets.get('nodes', []) if n.get('type') == 'port'],
+        'vulnerabilities': [n for n in assets.get('nodes', []) if n.get('type') == 'vulnerability'],
+    }
+    relationships = build_relationships(scan_data)
 except Exception as e:
     print(f"Warning: build_relationships error: {e}", file=sys.stderr)
     relationships = assets.get('relationships', [])
 
 try:
     from intelligence.graph.build_graph import build_graph
-    graph = build_graph(assets['nodes'], relationships)
+    # build_graph expects (relationships, return_format)
+    graph = build_graph(relationships, return_format="dict")
+    if not isinstance(graph, dict):
+        graph = {'nodes': assets['nodes'], 'edges': relationships}
 except Exception as e:
     print(f"Warning: build_graph error: {e}", file=sys.stderr)
     graph = {'nodes': assets['nodes'], 'edges': relationships, 'error': str(e)}
@@ -175,8 +187,13 @@ with open('$GRAPH_FILE') as f:
     graph = json.load(f)
 
 try:
-    from intelligence.graph.analyze_paths import analyze_attack_paths
-    paths = analyze_attack_paths(graph, target='$TARGET')
+    from intelligence.graph.analyze_paths import analyze_critical_paths
+    paths_list = analyze_critical_paths(graph)
+    paths = {
+        'attack_paths': paths_list,
+        'entry_points': [n.get('identifier') for n in graph.get('nodes', []) if n.get('type') == 'port'],
+        'critical_assets': [n.get('identifier') for n in graph.get('nodes', []) if n.get('severity') in ('critical', 'high')],
+    }
 except Exception as e:
     print(f"Warning: analyze_paths error: {e}", file=sys.stderr)
     # Fallback: identify high-severity vulnerability nodes as attack entry points
@@ -215,9 +232,9 @@ os.makedirs('$PHASE_DIR/visualizations', exist_ok=True)
 
 # Try intelligence graph visualize module
 try:
-    from intelligence.graph.visualize import export_graphml, export_d3
-    export_graphml(graph, '$VIZ_FILE')
-    export_d3(graph, '$VIZ_JSON')
+    from intelligence.graph.visualize import visualize_graph
+    visualize_graph(graph, '$VIZ_FILE', fmt='graphml')
+    visualize_graph(graph, '$VIZ_JSON', fmt='json')
 except Exception as e:
     print(f"Warning: visualization module error: {e}", file=sys.stderr)
     # Fallback: D3-compatible JSON

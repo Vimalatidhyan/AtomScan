@@ -60,7 +60,9 @@ _Session = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
 _HARNESS = Path(__file__).resolve().parents[2] / "lib" / "run_scan.sh"
 
 # Output base must match harness: ${RECONX_OUTPUT_DIR:-./output}
-_OUTPUT_BASE = Path(os.environ.get("RECONX_OUTPUT_DIR", "./output"))
+# Resolve relative to repo root (harness parent) so CWD doesn't matter
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_OUTPUT_BASE = Path(os.environ.get("RECONX_OUTPUT_DIR", str(_REPO_ROOT / "output")))
 
 # Nuclei/finding severity string → integer score (matches findings.py convention)
 _SEV_MAP = {"critical": 90, "high": 70, "medium": 40, "low": 10, "info": 1}
@@ -181,10 +183,17 @@ def _finish_job(db: Session, job, success: bool, error: str = "") -> None:
 
 
 def _set_scan_status(db: Session, scan_run_id: int, status: str) -> None:
-    db.execute(
-        text("UPDATE scan_runs SET status=:s WHERE id=:id"),
-        {"s": status, "id": scan_run_id},
-    )
+    if status in ("completed", "failed", "stopped"):
+        db.execute(
+            text("UPDATE scan_runs SET status=:s, completed_at=:t WHERE id=:id"),
+            {"s": status, "id": scan_run_id,
+             "t": datetime.now(timezone.utc).isoformat()},
+        )
+    else:
+        db.execute(
+            text("UPDATE scan_runs SET status=:s WHERE id=:id"),
+            {"s": status, "id": scan_run_id},
+        )
     db.commit()
 
 
@@ -582,6 +591,7 @@ def _run_scan(scan_run_id: int, db: Session) -> tuple[bool, str]:
             stderr=subprocess.STDOUT,  # merge stderr so we capture everything
             text=True,
             bufsize=1,  # line-buffered
+            cwd=str(_REPO_ROOT),  # match harness ./output relative path
         )
 
         for raw_line in proc.stdout:

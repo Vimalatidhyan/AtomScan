@@ -12,15 +12,15 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 log_info() {
-    echo -e "${GREEN}[+]${NC} $1"
+    echo -e "${GREEN}[INFO]${NC} $1"
 }
 
 log_error() {
-    echo -e "${RED}[-]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[!]${NC} $1"
+    echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 # safe_cat <output_file> [input_files...]

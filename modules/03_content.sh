@@ -138,7 +138,7 @@ if command -v spideyx &> /dev/null; then
         fi
 
         SPIDEYX_TARGETS="$URLS_DIR/spideyx_targets.txt"
-        cat "$ALIVE_HOSTS" | sed 's|^|https://|' > "$SPIDEYX_TARGETS"
+        cat "$ALIVE_HOSTS" | sed 's|^https\?://||' | sed 's|^|https://|' > "$SPIDEYX_TARGETS"
 
         if cat "$SPIDEYX_TARGETS" | spideyx "$SPIDEYX_CMD" 2>/dev/null > "$URLS_DIR/spideyx_raw.txt"; then
             safe_grep -oP 'https?://[^\s]+' "$URLS_DIR/spideyx_raw.txt" | sort -u > "$URLS_DIR/spideyx.txt"
@@ -157,6 +157,7 @@ if command -v gospider &> /dev/null; then
     log_info "Launching gospider..."
     (
         while IFS= read -r host; do
+            host=$(echo "$host" | sed 's|^https\?://||')
             url="https://$host"
             gospider -s "$url" -d 3 -c "$GOSPIDER_CONCURRENCY" -t "$GOSPIDER_THREADS" --sitemap --robots \
                 >> "$URLS_DIR/gospider_raw.txt" 2>/dev/null || true
@@ -176,7 +177,7 @@ if command -v hakrawler &> /dev/null; then
     HAKRAWLER_AVAILABLE=1
     log_info "Launching hakrawler..."
     (
-        cat "$ALIVE_HOSTS" | sed 's|^|https://|' | hakrawler -depth 3 -plain \
+        cat "$ALIVE_HOSTS" | sed 's|^https\?://||' | sed 's|^|https://|' | hakrawler -depth 3 -plain \
             > "$URLS_DIR/hakrawler.txt" 2>/dev/null || log_warn "hakrawler failed"
     ) &
     pids+=($!)
@@ -293,8 +294,23 @@ if command -v ffuf &> /dev/null; then
                 log_warn "FFUF failed for $host"
         '
 
-    # Merge FFUF results
-    cat "$BRUTE_DIR"/ffuf_*.json 2>/dev/null > "$BRUTE_DIR/ffuf_all.json" || touch "$BRUTE_DIR/ffuf_all.json"
+    # Merge FFUF results into valid JSON array (individual files are JSON objects)
+    if command -v jq &>/dev/null; then
+        jq -s '.' "$BRUTE_DIR"/ffuf_*.json > "$BRUTE_DIR/ffuf_all.json" 2>/dev/null || touch "$BRUTE_DIR/ffuf_all.json"
+    else
+        python3 -c "
+import json, glob, sys
+results = []
+for f in sorted(glob.glob('$BRUTE_DIR/ffuf_*.json')):
+    try:
+        with open(f) as fh:
+            results.append(json.load(fh))
+    except Exception:
+        pass
+with open('$BRUTE_DIR/ffuf_all.json', 'w') as out:
+    json.dump(results, out)
+" 2>/dev/null || touch "$BRUTE_DIR/ffuf_all.json"
+    fi
 else
     log_warn "FFUF not found"
 fi

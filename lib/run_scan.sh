@@ -209,14 +209,61 @@ collate_phase3
 run_module "04_vuln.sh" 4
 collate_phase4
 
+collate_phase5() {
+    local p5="$OUTPUT_DIR/phase5_threat_intel"
+    [ -f "$p5/phase5_threat_intel_summary.json" ] && cp -f "$p5/phase5_threat_intel_summary.json" "$OUTPUT_DIR/threat_intel_summary.json" && \
+        log_info "[collate] threat_intel_summary.json prepared"
+}
+collate_phase6() {
+    local p6="$OUTPUT_DIR/phase6_cve_correlation"
+    [ -f "$p6/cve_summary.json" ] && cp -f "$p6/cve_summary.json" "$OUTPUT_DIR/cve_summary.json" && \
+        log_info "[collate] cve_summary.json prepared"
+    [ -f "$p6/risk_scores/risk_summary.json" ] && cp -f "$p6/risk_scores/risk_summary.json" "$OUTPUT_DIR/risk_summary.json" && \
+        log_info "[collate] risk_summary.json prepared"
+    [ -f "$p6/cve_data/cve_matches.json" ] && cp -f "$p6/cve_data/cve_matches.json" "$OUTPUT_DIR/cve_matches.json" && \
+        log_info "[collate] cve_matches.json prepared"
+}
+collate_phase7() {
+    local p7="$OUTPUT_DIR/phase7_change_detection"
+    [ -f "$p7/change_detection_summary.json" ] && cp -f "$p7/change_detection_summary.json" "$OUTPUT_DIR/change_detection_summary.json" && \
+        log_info "[collate] change_detection_summary.json prepared"
+    [ -f "$p7/delta/change_delta.json" ] && cp -f "$p7/delta/change_delta.json" "$OUTPUT_DIR/change_delta.json" && \
+        log_info "[collate] change_delta.json prepared"
+    [ -f "$p7/alerts/change_alerts.json" ] && cp -f "$p7/alerts/change_alerts.json" "$OUTPUT_DIR/change_alerts.json" && \
+        log_info "[collate] change_alerts.json prepared"
+}
+collate_phase8() {
+    local p8="$OUTPUT_DIR/phase8_compliance"
+    [ -f "$p8/reports/compliance_summary.json" ] && cp -f "$p8/reports/compliance_summary.json" "$OUTPUT_DIR/compliance_summary.json" && \
+        log_info "[collate] compliance_summary.json prepared"
+}
+collate_phase9() {
+    local p9="$OUTPUT_DIR/phase9_attack_graph"
+    [ -f "$p9/reports/attack_graph_summary.json" ] && cp -f "$p9/reports/attack_graph_summary.json" "$OUTPUT_DIR/attack_graph_summary.json" && \
+        log_info "[collate] attack_graph_summary.json prepared"
+    [ -f "$p9/visualizations/graph_d3.json" ] && cp -f "$p9/visualizations/graph_d3.json" "$OUTPUT_DIR/graph_d3.json" && \
+        log_info "[collate] graph_d3.json prepared"
+    [ -f "$p9/graph/attack_graph.json" ] && cp -f "$p9/graph/attack_graph.json" "$OUTPUT_DIR/attack_graph.json" && \
+        log_info "[collate] attack_graph.json prepared"
+}
+
 #############################################
 # Optional phases 5–9 — run when present
 #############################################
 run_module "05_threat_intel.sh" 5
+collate_phase5
+
 run_module "06_cve_correlation.sh" 6
+collate_phase6
+
 run_module "07_change_detection.sh" 7
+collate_phase7
+
 run_module "08_compliance.sh" 8
+collate_phase8
+
 run_module "09_attack_graph.sh" 9
+collate_phase9
 
 log_info "[scan:complete] scan finished: id=$SCAN_RUN_ID domain=$DOMAIN"
 exit 0

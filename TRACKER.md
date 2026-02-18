@@ -1,9 +1,9 @@
 # ReconX Progress Tracker
 
-## 🎯 Current Status: **BETA - Core Features Ready**
+## 🎯 Current Status: **BETA - Full Pipeline Functional**
 
 ```
-████████████████████████░░   v2.0 - 70% Complete
+██████████████████████████░░ v2.0.2 - 85% Complete
 ```
 
 ---
@@ -54,6 +54,20 @@
 ✅ **Variable Quoting** - Replaced non-idiomatic `[ ! -z "$VAR" ]` with `[ -n "$VAR" ]` across all modules
 ✅ **install_tools.sh** - Fixed duplicate stderr redirect on pip install, added macOS platform detection warning, changed `set -e` to `set +e` so optional tool failures don't abort installer
 ✅ **stream.py** - Added graceful database connection error handling for all SSE endpoints (logs, progress, alerts)
+
+## 🔧 Full Pipeline Execution Fixes (v2.0.2)
+
+✅ **Modules 05/07/08/09** - Added `set +e` to prevent tool failures from aborting phases 5-9
+✅ **Module 06 (CVE)** - Fixed broken imports: `check_kev_status` → `KEVChecker.check_cve()`, `get_epss_scores` → `EPSSClient.lookup_multiple()`, `calculate_risk_scores` now passes correct 6-arg signature
+✅ **Module 07 (Change Detection)** - Fixed broken import: `generate_alerts` → `AlertGenerator(delta, scan_run_id).generate_alerts()`
+✅ **Module 09 (Attack Graph)** - Fixed 4 broken imports: `analyze_attack_paths` → `analyze_critical_paths`, `export_graphml/export_d3` → `visualize_graph(graph, file, fmt)`, `build_graph` now passes correct `(relationships, return_format)` signature, `build_relationships` now passes correct `scan_data` dict structure
+✅ **Module 04 (Vuln)** - Added `vulnerabilities_summary.json` generation at end of phase (consumed by phases 7 and 9); fixed Nuclei critical-count `jq` to use `-s` (slurp) for NDJSON
+✅ **Module 03 (Content)** - Fixed FFUF JSON merge (cat → `jq -s` for valid JSON array); fixed URL double-prefix in SpideyX, gospider, hakrawler (strip existing `https://` before prepend)
+✅ **Module 04 (Vuln)** - Fixed URL double-prefix in scan URL preparation
+✅ **Module 05 (Threat Intel)** - Fixed PYTHONPATH pointing 2 levels up instead of project root
+✅ **run_scan.sh** - Added collate functions for phases 5-9 so worker can ingest all phase results
+✅ **worker.py** - Fixed `_OUTPUT_BASE` to resolve relative to repo root (not CWD); added `cwd=` to Popen so harness runs from correct directory; `completed_at` now set on scan completion/failure/stop
+✅ **common.sh** - Changed log markers from `[+]/[-]/[!]` to `[INFO]/[ERROR]/[WARN]` so worker correctly classifies log levels in scan_events table
 
 ---
 

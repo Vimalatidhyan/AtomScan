@@ -4,6 +4,7 @@
 # Maps discovered findings to PCI-DSS, HIPAA, GDPR, SOC2, NIST CSF controls
 ################################################################################
 
+set +e
 set -o pipefail
 
 TARGET="$1"

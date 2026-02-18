@@ -5,6 +5,7 @@
 ################################################################################
 
 # Do not fail-fast; continue even if some tools error
+set +e
 set -o pipefail
 TARGET="$1"
 OUTPUT_DIR="$2"
@@ -42,7 +43,7 @@ run_tool() {
         ((TOOLS_SKIPPED++)); return 2
     fi
     touch "${output_file}" 2>/dev/null || true
-    if timeout "$timeout_duration" bash -c "$cmd" 2>"${output_file}.err"; then
+    if run_timeout "$timeout_duration" bash -c "$cmd" 2>"${output_file}.err"; then
         log_info "$tool_name completed"
         ((TOOLS_SUCCESS++)); return 0
     else
@@ -279,7 +280,7 @@ OSINT_DIR="$PHASE_DIR/osint"
 mkdir -p "$OSINT_DIR"
 
 # Shodan CLI
-if command -v shodan &> /dev/null && [ ! -z "$SHODAN_API_KEY" ] && [ "$ALIVE_COUNT" -gt 0 ]; then
+if command -v shodan &> /dev/null && [ -n "$SHODAN_API_KEY" ] && [ "$ALIVE_COUNT" -gt 0 ]; then
     log_info "Running Shodan..."
 
     while IFS= read -r host; do
@@ -296,7 +297,7 @@ else
 fi
 
 # ShodanX (Revolt suite)
-if command -v shodanx &> /dev/null && [ ! -z "$SHODAN_API_KEY" ]; then
+if command -v shodanx &> /dev/null && [ -n "$SHODAN_API_KEY" ]; then
     log_info "Running ShodanX..."
 
     if run_shodanx_mode "domain" "$OSINT_DIR/shodanx_domain.txt"; then
@@ -310,7 +311,7 @@ if command -v shodanx &> /dev/null && [ ! -z "$SHODAN_API_KEY" ]; then
     else
         log_warn "ShodanX subdomain lookup failed"
     fi
-elif [ -f "/opt/shodanx/shodanx.py" ] && [ ! -z "$SHODAN_API_KEY" ]; then
+elif [ -f "/opt/shodanx/shodanx.py" ] && [ -n "$SHODAN_API_KEY" ]; then
     log_info "Running ShodanX (Python)..."
     python3 /opt/shodanx/shodanx.py -d "$TARGET" -o "$OSINT_DIR/shodanx.json" 2>/dev/null || log_warn "ShodanX failed"
 else
@@ -357,7 +358,7 @@ else
 fi
 
 # Censys CLI
-if command -v censys &> /dev/null && [ ! -z "$CENSYS_API_ID" ] && [ ! -z "$CENSYS_API_SECRET" ] && [ "$ALIVE_COUNT" -gt 0 ]; then
+if command -v censys &> /dev/null && [ -n "$CENSYS_API_ID" ] && [ -n "$CENSYS_API_SECRET" ] && [ "$ALIVE_COUNT" -gt 0 ]; then
     log_info "Running Censys..."
 
     while IFS= read -r host; do
@@ -466,10 +467,10 @@ else
 fi
 
 # GitHunt - Search GitHub for leaked secrets
-if [ -f "/opt/GitHunt/githunt.py" ] && [ ! -z "$GITHUB_TOKEN" ]; then
+if [ -f "/opt/GitHunt/githunt.py" ] && [ -n "$GITHUB_TOKEN" ]; then
     log_info "Running GitHunt..."
     python3 /opt/GitHunt/githunt.py -t "$TARGET" -o "$LEAKS_DIR/githunt_results.txt" 2>/dev/null || log_warn "GitHunt failed"
-elif command -v githunt &> /dev/null && [ ! -z "$GITHUB_TOKEN" ]; then
+elif command -v githunt &> /dev/null && [ -n "$GITHUB_TOKEN" ]; then
     log_info "Running GitHunt..."
     githunt -t "$TARGET" -o "$LEAKS_DIR/githunt_results.txt" 2>/dev/null || log_warn "GitHunt failed"
 else
@@ -485,7 +486,7 @@ if command -v trufflehog &> /dev/null; then
     fi
 
     # Scan GitHub org
-    if [ ! -z "$GITHUB_TOKEN" ]; then
+    if [ -n "$GITHUB_TOKEN" ]; then
         ORG_NAME=$(echo "$TARGET" | cut -d'.' -f1)
         trufflehog github --org="$ORG_NAME" --json > "$LEAKS_DIR/trufflehog_github.json" 2>/dev/null || log_warn "TruffleHog GitHub scan failed"
     fi

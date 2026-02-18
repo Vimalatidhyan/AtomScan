@@ -5,6 +5,7 @@
 ################################################################################
 
 # Do not fail-fast; continue even if some tools error
+set +e
 set -o pipefail
 TARGET="$1"
 OUTPUT_DIR="$2"
@@ -52,7 +53,7 @@ run_tool() {
         ((TOOLS_SKIPPED++)); return 2
     fi
     touch "${output_file}" 2>/dev/null || true
-    if timeout "$timeout_duration" bash -c "$cmd" 2>"${output_file}.err"; then
+    if run_timeout "$timeout_duration" bash -c "$cmd" 2>"${output_file}.err"; then
         log_info "$tool_name completed"
         ((TOOLS_SUCCESS++)); return 0
     else
@@ -433,7 +434,7 @@ else
 fi
 
 # PasteBin scraper alternative (using API)
-if [ ! -z "$PASTEBIN_API_KEY" ]; then
+if [ -n "$PASTEBIN_API_KEY" ]; then
     log_info "Searching Pastebin via API..."
     curl -s "https://scrape.pastebin.com/api_scraping.php?limit=100" 2>/dev/null | \
         grep -i "$TARGET" > "$PASTE_DIR/pastebin_api_results.txt" || touch "$PASTE_DIR/pastebin_api_results.txt"

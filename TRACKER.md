@@ -3,7 +3,7 @@
 ## 🎯 Current Status: **BETA - Core Features Ready**
 
 ```
-████████████████████████░░   v2.0 - 85% Complete
+████████████████████████░░   v2.0 - 70% Complete
 ```
 
 ---
@@ -38,12 +38,22 @@
 
 ## 🔧 Recent Fixes (v2.0.0)
 
-✅ **Auth Middleware** - Bootstrap key auto-creation + SSE exemption  
-✅ **API Endpoints** - All findings/assets/reports routes working  
-✅ **UI JavaScript** - Auto-fetch API key on page load  
-✅ **Pydantic Models** - All nullable fields fixed  
-✅ **Database** - scan_progress table schema corrected  
-✅ **Requirements** - networkx compatibility for Python 3.13  
+✅ **Auth Middleware** - Bootstrap key auto-creation + SSE exemption
+✅ **API Endpoints** - All findings/assets/reports routes working
+✅ **UI JavaScript** - Auto-fetch API key on page load
+✅ **Pydantic Models** - All nullable fields fixed
+✅ **Database** - scan_progress table schema corrected
+✅ **Requirements** - networkx compatibility for Python 3.13
+
+## 🔧 Prod Hardening Audit Fixes (v2.0.1)
+
+✅ **scan_monitor_v2.js** - Fixed undefined `detailProgressPct` element ref, added missing `visibilityPoll`, fixed progress stream memory leak (close before reconnect)
+✅ **dashboard-v2.js** - Added exponential backoff (5s→120s) to SSE alert stream reconnection, skip heartbeat events in UI
+✅ **findings_v2.js** - Added pagination bounds check (prevent negative page), null-safe DOM access in showDetail modal, added fallback `visibilityPoll` and `downloadCsv` if common.js fails to load
+✅ **Shell Modules** - Added `set +e` to 02_intel.sh, 03_content.sh, 04_vuln.sh, 06_cve_correlation.sh to prevent pipeline failures from aborting entire scan phases
+✅ **Variable Quoting** - Replaced non-idiomatic `[ ! -z "$VAR" ]` with `[ -n "$VAR" ]` across all modules
+✅ **install_tools.sh** - Fixed duplicate stderr redirect on pip install, added macOS platform detection warning, changed `set -e` to `set +e` so optional tool failures don't abort installer
+✅ **stream.py** - Added graceful database connection error handling for all SSE endpoints (logs, progress, alerts)
 
 ---
 
@@ -95,5 +105,5 @@ python -m uvicorn api.server:app --host 0.0.0.0 --port 8000
 
 ---
 
-**Last Updated:** Feb 17, 2026 | **Branch:** `release/prod-hardening`  
+**Last Updated:** Feb 18, 2026 | **Branch:** `release/prod-hardening`
 **Deploy Status:** ✅ Ready for Ubuntu testing

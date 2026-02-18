@@ -308,6 +308,9 @@ function initSidebar() {
 }
 
 // ─── SSE Alert Stream ─────────────────────────────────────────────────────────
+let _alertRetryDelay = 5000;  // start at 5s, back off up to 120s
+const _ALERT_MAX_DELAY = 120000;
+
 function connectAlertStream() {
   if (state._alertStream) {
     state._alertStream.close();
@@ -317,31 +320,32 @@ function connectAlertStream() {
     const es = new EventSource(`${API}/stream/alerts`);
     state._alertStream = es;
 
+    es.onopen = () => { _alertRetryDelay = 5000; };  // reset backoff on success
+
     es.onmessage = (e) => {
       let msg = e.data || '';
       try {
         const d = JSON.parse(msg);
+        if (d.event === 'heartbeat') return;  // skip heartbeat events
         msg = d.message || d.msg || d.text || JSON.stringify(d);
         const severity = d.severity || d.level || 'info';
         toast(msg, severity === 'critical' || severity === 'error' ? 'error' : severity === 'warning' ? 'warning' : 'info');
-        // Refresh dashboard stats on critical alert
         if (severity === 'critical' || severity === 'high') loadDashboard(true);
       } catch {
-        // plain text alert
         if (msg) toast(msg, 'info');
       }
     };
 
     es.onerror = () => {
-      // Connection closed or server unavailable — retry in 30s
       if (state._alertStream) {
         state._alertStream.close();
         state._alertStream = null;
       }
-      setTimeout(connectAlertStream, 30000);
+      setTimeout(connectAlertStream, _alertRetryDelay);
+      _alertRetryDelay = Math.min(_alertRetryDelay * 2, _ALERT_MAX_DELAY);
     };
   } catch {
-    // SSE not supported or blocked — silently skip
+    // SSE not supported or blocked
   }
 }
 

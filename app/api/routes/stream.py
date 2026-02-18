@@ -23,7 +23,11 @@ _MAX_ITERATIONS = 600  # 20 minutes max stream duration (600 * 2s)
 async def _event_stream(scan_id: int, last_event_id: int = 0):
     """Yield SSE lines backed entirely by ScanEvent rows in the database."""
     db_conn = Database()
-    db_conn.connect()
+    try:
+        db_conn.connect()
+    except Exception as exc:
+        yield f"data: {json.dumps({'event': 'error', 'message': f'Database connection failed: {exc}'})}\n\n"
+        return
     idle = 0
     try:
         for _ in range(_MAX_ITERATIONS):
@@ -128,7 +132,11 @@ async def stream_progress(
 
     async def _progress_only(scan_id: int, last_event_id: int):
         db_conn = Database()
-        db_conn.connect()
+        try:
+            db_conn.connect()
+        except Exception as exc:
+            yield f"data: {json.dumps({'event': 'error', 'message': f'Database connection failed: {exc}'})}\n\n"
+            return
         try:
             for _ in range(_MAX_ITERATIONS):
                 db_conn.session.expire_all()
@@ -207,7 +215,11 @@ async def stream_alerts():
 
     async def _alert_gen():
         db_conn = Database()
-        db_conn.connect()
+        try:
+            db_conn.connect()
+        except Exception as exc:
+            yield f"data: {json.dumps({'event': 'error', 'message': f'Database connection failed: {exc}'})}\n\n"
+            return
         last_id = 0
         try:
             for _ in range(300):  # 10 minutes

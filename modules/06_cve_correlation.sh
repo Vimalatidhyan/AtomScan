@@ -4,6 +4,7 @@
 # Correlates discovered services/versions with CVE databases, scores risk
 ################################################################################
 
+set +e
 set -o pipefail
 
 TARGET="$1"
@@ -33,9 +34,18 @@ log_info "=== 6A: Building service/version inventory ==="
 
 SERVICES_FILE="$PHASE_DIR/services_inventory.json"
 
-# Pull from nmap XML output (phase4) if available
-if [ -s "$PHASE4_DIR/nmap_scan.xml" ]; then
-    python3 - <<'EOF' "$PHASE4_DIR/nmap_scan.xml" "$SERVICES_FILE"
+# Pull from nmap XML output (phase2 is where nmap runs)
+NMAP_XML=""
+if [ -s "$PHASE2_DIR/ports/nmap_all.xml" ]; then
+    NMAP_XML="$PHASE2_DIR/ports/nmap_all.xml"
+elif [ -s "$PHASE4_DIR/nmap_scan.xml" ]; then
+    NMAP_XML="$PHASE4_DIR/nmap_scan.xml"
+elif [ -s "$OUTPUT_DIR/nmap.xml" ]; then
+    NMAP_XML="$OUTPUT_DIR/nmap.xml"
+fi
+
+if [ -n "$NMAP_XML" ]; then
+    python3 - <<'EOF' "$NMAP_XML" "$SERVICES_FILE"
 import sys, json, xml.etree.ElementTree as ET
 
 nmap_xml, out_file = sys.argv[1], sys.argv[2]

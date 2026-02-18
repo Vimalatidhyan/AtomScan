@@ -225,14 +225,31 @@ function connectLogStream(scanId) {
     const numericId = parseInt(scanId, 10);
     state.eventSource = new EventSource(`${API}/stream/logs/${numericId}`);
 
+    state.streamEndedNormally = false;
     state.eventSource.onmessage = (e) => {
       const line = document.createElement('div');
       line.className = 'log-line';
       let text = e.data || '';
-      // Backend sends JSON-wrapped lines: {"line":"..."} or {"msg":"..."}
       try {
         const parsed = JSON.parse(text);
-        text = parsed.line || parsed.msg || text;
+        // Backend may send control events: completed, error, heartbeat
+        if (parsed.event === 'completed') {
+          state.streamEndedNormally = true;
+          line.classList.add('success');
+          line.textContent = `— Scan finished (${parsed.status || 'completed'}). —`;
+          container.appendChild(line);
+          container.scrollTop = container.scrollHeight;
+          disconnectLogStream();
+          return;
+        }
+        if (parsed.event === 'error') {
+          line.classList.add('error');
+          text = parsed.message || text;
+        } else if (parsed.event === 'heartbeat') {
+          return; // no UI for heartbeat
+        } else {
+          text = parsed.line || parsed.message || parsed.msg || text;
+        }
       } catch { /* plain text fallback */ }
       if (text.includes('ERROR') || text.includes('CRITICAL')) line.classList.add('error');
       else if (text.includes('WARNING')) line.classList.add('warning');
@@ -243,9 +260,10 @@ function connectLogStream(scanId) {
     };
 
     state.eventSource.onerror = () => {
+      if (state.streamEndedNormally) { disconnectLogStream(); return; }
       const line = document.createElement('div');
       line.className = 'log-line text-muted';
-      line.textContent = '— Stream disconnected —';
+      line.textContent = '— Stream disconnected (connection closed; scan may still be running). —';
       container.appendChild(line);
       disconnectLogStream();
     };
@@ -333,6 +351,18 @@ async function submitNewScan() {
     btn.disabled = false;
     btn.textContent = 'Start Assessment';
   }
+}
+
+// ─── Visibility-aware polling ─────────────────────────────────────────────────
+function visibilityPoll(fn, intervalMs) {
+  let timerId = null;
+  function start() { if (timerId !== null) return; timerId = setInterval(fn, intervalMs); }
+  function stop() { clearInterval(timerId); timerId = null; }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { stop(); } else { fn(); start(); }
+  });
+  if (!document.hidden) start();
+  return stop;
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -476,25 +506,31 @@ async function loadJobStatus(scanId) {
 }
 
 function connectProgressStream(scanId) {
+  // Close any existing progress stream first
+  if (state._progressStream) {
+    state._progressStream.close();
+    state._progressStream = null;
+  }
   const numId = parseInt(scanId, 10);
   const bar = el('detailProgress');
-  const pct = el('detailProgressPct');
   if (!bar) return;
   const es = new EventSource(`${API}/stream/progress/${numId}`);
   es.onmessage = (e) => {
     try {
       const d = JSON.parse(e.data);
       const p = d.percentage ?? d.progress_percentage ?? 0;
-      if (bar) bar.style.width = `${p}%`;
-      if (pct) pct.textContent = `${p}%`;
+      bar.style.width = `${p}%`;
       if (d.status === 'completed' || d.status === 'failed') {
         es.close();
+        state._progressStream = null;
         setTimeout(() => loadScans(true), 800);
       }
     } catch { /* ignore */ }
   };
-  es.onerror = () => es.close();
-  // Store for cleanup
+  es.onerror = () => {
+    es.close();
+    state._progressStream = null;
+  };
   state._progressStream = es;
 }
 

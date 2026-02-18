@@ -1,45 +1,63 @@
 #!/usr/bin/env bash
-# ReconX Scan Harness
-# Called by the Python worker for each scan job.
+# ReconX Scan Harness — UI/API Orchestrator
+#
+# This harness is invoked by the API worker and is responsible for running
+# ALL ReconX phase modules (00–09) so that scans triggered from the UI
+# execute the full pipeline, not just a subset of tools.
+#
+# It preserves the worker protocol:
+#   - Prints structured log lines
+#   - Emits phase markers like [phase:N] (N=0..9)
+#   - Never fail-fast; missing tools/scripts lead to warnings, not aborts
+#   - Collates key outputs into the scan output root so ingestion works
 #
 # Arguments:
 #   $1  scan_run_id   — integer, used for log correlation
 #   $2  domain        — target domain (validated upstream)
 #   $3  scan_type     — full | quick | deep | custom (default: full)
 #
-# Output protocol:
-#   Each stdout line is captured as a ScanEvent by the Python worker.
-#   Phase markers use the format:  [phase:N]  (N=0..4)
-#   The worker parses these to update ScanProgress.current_phase and
-#   progress_percentage in real time.
-#
 # Exit codes:
 #   0  — scan completed successfully
 #   1  — scan failed (see stderr / last log line)
 #   2  — invalid arguments
-#
-# The script runs whatever tools are available.  If no tool is present
-# for a phase it logs a warning and continues — it does NOT silently skip.
-#
-# Resilience: Tool failures never stop the scan. Every phase runs; every
-# available tool in each phase runs. Failed tools only log a warning so we
-# collect all possible results (complete ASM behavior).
 
 set -u
 SCAN_RUN_ID="${1:?Usage: run_scan.sh <scan_run_id> <domain> <scan_type>}"
 DOMAIN="${2:?domain required}"
 SCAN_TYPE="${3:-full}"
 
-TIMEOUT_PHASE="${TIMEOUT_PHASE:-180}"
+TIMEOUT_PHASE="${TIMEOUT_PHASE:-7200}"
 OUTPUT_BASE="${RECONX_OUTPUT_DIR:-./output}"
 OUTPUT_DIR="${OUTPUT_BASE}/${DOMAIN//\./_}_${SCAN_RUN_ID}"
 mkdir -p "$OUTPUT_DIR"
 
+# Resolve important paths
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+MODULES_DIR="$ROOT_DIR/modules"
+
 # Do not exit on command or pipeline failure; run every phase and every tool.
-# Unset vars (set +u) so optional/conditional vars never abort the script.
 set +e
 set +o pipefail
 set +u
+
+# ── Default empty API keys (prevent unset-variable errors) ────────────────
+SECURITYTRAILS_API_KEY="${SECURITYTRAILS_API_KEY:-}"
+SHODAN_API_KEY="${SHODAN_API_KEY:-}"
+CENSYS_API_ID="${CENSYS_API_ID:-}"
+CENSYS_API_SECRET="${CENSYS_API_SECRET:-}"
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
+PASTEBIN_API_KEY="${PASTEBIN_API_KEY:-}"
+EMAILREP_API_KEY="${EMAILREP_API_KEY:-}"
+DEHASHED_EMAIL="${DEHASHED_EMAIL:-}"
+DEHASHED_KEY="${DEHASHED_KEY:-}"
+ABUSEIPDB_API_KEY="${ABUSEIPDB_API_KEY:-}"
+GREYNOISE_API_KEY="${GREYNOISE_API_KEY:-}"
+OTX_API_KEY="${OTX_API_KEY:-}"
+NVD_API_KEY="${NVD_API_KEY:-}"
+export SECURITYTRAILS_API_KEY SHODAN_API_KEY CENSYS_API_ID CENSYS_API_SECRET
+export GITHUB_TOKEN PASTEBIN_API_KEY EMAILREP_API_KEY DEHASHED_EMAIL DEHASHED_KEY
+export ABUSEIPDB_API_KEY GREYNOISE_API_KEY OTX_API_KEY NVD_API_KEY
 
 # ── Logging helpers ───────────────────────────────────────────────────────
 ts()      { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
@@ -73,7 +91,9 @@ run_with_timeout() {
 log_info "scan start: id=$SCAN_RUN_ID domain=$DOMAIN type=$SCAN_TYPE"
 log_info "output dir: $OUTPUT_DIR"
 
-# ── Phase 0: DNS validation ───────────────────────────────────────────────
+#############################################
+# Phase 0 — DNS validation
+#############################################
 log_info "[phase:0] DNS validation"
 RESOLVED=""
 if tool_ok dig; then
@@ -96,123 +116,107 @@ fi
 # Quick scan: DNS only, then exit
 if [ "$SCAN_TYPE" = "quick" ]; then
     log_info "[scan:quick] Quick scan complete"
+    log_info "[scan:complete] scan finished: id=$SCAN_RUN_ID domain=$DOMAIN"
     exit 0
 fi
 
-# ── Phase 1: Subdomain discovery (run all available tools, merge results) ─
-log_info "[phase:1] Subdomain discovery"
-SUBDOMAIN_FILE="$OUTPUT_DIR/subdomains.txt"
-touch "$SUBDOMAIN_FILE"
+#############################################
+# Helpers — module runner + collators
+#############################################
+module_path() {
+    echo "$MODULES_DIR/$1"
+}
 
-if tool_ok subfinder; then
-    log_info "[subfinder] running on $DOMAIN"
-    ( run_with_timeout "$TIMEOUT_PHASE" subfinder -d "$DOMAIN" -silent -o "$SUBDOMAIN_FILE" 2>&1; true ) || log_warn "[subfinder] non-zero exit"
-    COUNT=$(wc -l < "$SUBDOMAIN_FILE" 2>/dev/null || echo 0)
-    log_info "[subfinder] found $COUNT subdomains"
-fi
-if tool_ok amass; then
-    log_info "[amass] running enum on $DOMAIN"
-    _amass_out="$OUTPUT_DIR/amass_subdomains.txt"
-    ( run_with_timeout "$TIMEOUT_PHASE" amass enum -passive -d "$DOMAIN" -o "$_amass_out" 2>&1; true ) || log_warn "[amass] non-zero exit"
-    if [ -s "$_amass_out" ]; then
-        cat "$_amass_out" >> "$SUBDOMAIN_FILE"
-        sort -u "$SUBDOMAIN_FILE" -o "$SUBDOMAIN_FILE"
-        COUNT=$(wc -l < "$SUBDOMAIN_FILE" 2>/dev/null || echo 0)
-        log_info "[amass] merged; total subdomains: $COUNT"
+run_module() {
+    local mod="$1"; shift
+    local phase="$1"; shift
+    local path; path=$(module_path "$mod")
+    if [ ! -f "$path" ]; then
+        log_warn "[$mod] script not found; skipping"
+        return 2
     fi
-fi
-if ! [ -s "$SUBDOMAIN_FILE" ]; then
-    log_info "[phase:1] no subdomains yet; probing common prefixes via DNS"
-    FOUND=0
-    for sub in www mail ftp vpn remote dev api portal admin staging test; do
-        if tool_ok dig; then
-            RES=$(dig +short "${sub}.${DOMAIN}" 2>/dev/null | head -1 || true)
-            if [ -n "$RES" ]; then
-                echo "${sub}.${DOMAIN}" >> "$SUBDOMAIN_FILE"
-                log_info "[dns-brute] ${sub}.${DOMAIN} -> $RES"
-                FOUND=$(( FOUND + 1 ))
-            fi
-        fi
+    if [ ! -x "$path" ]; then chmod +x "$path" 2>/dev/null || true; fi
+    log_info "[phase:${phase}] Running $mod"
+    # Use TIMEOUT_PHASE per phase, modules handle their own subtasks timeouts
+    run_with_timeout "$(( TIMEOUT_PHASE * 2 ))" bash "$path" "$DOMAIN" "$OUTPUT_DIR" || true
+}
+
+# Collate key outputs into root for worker ingestion
+collate_phase1() {
+    local p1="$OUTPUT_DIR/phase1_discovery"
+    [ -f "$p1/all_subdomains.txt" ] && cp -f "$p1/all_subdomains.txt" "$OUTPUT_DIR/subdomains.txt" && \
+        log_info "[collate] subdomains.txt prepared"
+    [ -f "$p1/httpx_alive.json" ] && cp -f "$p1/httpx_alive.json" "$OUTPUT_DIR/httpx_alive.json" && \
+        log_info "[collate] httpx_alive.json prepared"
+}
+collate_phase2() {
+    local p2="$OUTPUT_DIR/phase2_intel"
+    if [ -f "$p2/ports/nmap_all.xml" ]; then
+        cp -f "$p2/ports/nmap_all.xml" "$OUTPUT_DIR/nmap.xml"
+        log_info "[collate] nmap.xml prepared"
+    elif [ -f "$p2/ports/nmap_all.txt" ]; then
+        cp -f "$p2/ports/nmap_all.txt" "$OUTPUT_DIR/nmap.txt"
+        log_info "[collate] nmap.txt prepared"
+    fi
+}
+collate_phase3() {
+    local p3="$OUTPUT_DIR/phase3_content"
+    local brute="$p3/bruteforce"
+    # FFUF JSONs (in bruteforce/ subdirectory)
+    for f in "$brute"/ffuf_*.json "$p3"/ffuf_*.json; do
+        [ -f "$f" ] && cp -f "$f" "$OUTPUT_DIR/" && log_info "[collate] $(basename "$f") prepared"
     done
-    log_info "[dns-brute] found $FOUND common subdomains"
-fi
-COUNT=$(wc -l < "$SUBDOMAIN_FILE" 2>/dev/null || echo 0)
-log_info "[phase:1] total subdomains: $COUNT"
-log_info "[phase:1] complete — continuing to phase 2"
-
-# ── Phase 2: Port scanning (run available scanner; failure does not stop scan) ─
-log_info "[phase:2] Port scanning"
-if tool_ok nmap; then
-    log_info "[nmap] scanning top ports on $DOMAIN"
-    ( run_with_timeout "$TIMEOUT_PHASE" nmap -T4 --open -oN "$OUTPUT_DIR/nmap.txt" "$DOMAIN" 2>&1 | grep -E "(PORT|[0-9]+/)" || true; true )
-    log_info "[nmap] port scan complete"
-fi
-if tool_ok nc && [ ! -s "$OUTPUT_DIR/nmap.txt" ]; then
-    log_info "[nc] probing common ports on $DOMAIN (nmap had no output or was skipped)"
-    for port in 22 25 53 80 443 3000 3306 5432 6379 8080 8443 8888 9200; do
-        if nc -zw2 "$DOMAIN" "$port" 2>/dev/null; then
-            log_info "[port] $DOMAIN:$port OPEN"
-        fi
+    # Feroxbuster / Dirsearch text (in bruteforce/ subdirectory)
+    for f in "$brute"/feroxbuster_*.txt "$brute"/dirsearch_*.txt \
+             "$p3"/feroxbuster_*.txt "$p3"/dirsearch_*.txt; do
+        [ -f "$f" ] && cp -f "$f" "$OUTPUT_DIR/" && log_info "[collate] $(basename "$f") prepared"
     done
-fi
-if ! tool_ok nmap && ! tool_ok nc; then
-    log_warn "[phase:2] no port scanner available (nmap/nc); skipping"
-fi
-log_info "[phase:2] complete — continuing to phase 3"
-
-# ── Phase 3: Web service discovery (run all available tools) ──────────────
-log_info "[phase:3] Web service discovery"
-WEB_FILE="$OUTPUT_DIR/web_services.txt"
-touch "$WEB_FILE"
-if [ -s "$SUBDOMAIN_FILE" ]; then PROBE_INPUT="$SUBDOMAIN_FILE"; else
-    echo "$DOMAIN" > "$OUTPUT_DIR/single_target.txt"
-    PROBE_INPUT="$OUTPUT_DIR/single_target.txt"
-fi
-
-if tool_ok httpx; then
-    log_info "[httpx] probing live web services"
-    ( run_with_timeout "$TIMEOUT_PHASE" httpx -l "$PROBE_INPUT" -silent -status-code -title -o "$WEB_FILE" 2>&1; true ) || log_warn "[httpx] non-zero exit"
-    WEB_COUNT=$(wc -l < "$WEB_FILE" 2>/dev/null || echo 0)
-    log_info "[httpx] found $WEB_COUNT live web services"
-fi
-if tool_ok curl; then
-    log_info "[curl] probing $DOMAIN over http/https"
-    for proto in http https; do
-        CODE=$(curl -sI --max-time 10 -o /dev/null -w "%{http_code}" "${proto}://${DOMAIN}" 2>/dev/null || echo "err")
-        log_info "[curl] ${proto}://${DOMAIN} -> HTTP $CODE"
+}
+collate_phase4() {
+    local p4="$OUTPUT_DIR/phase4_vulnscan"
+    # Nuclei writes to $PHASE_DIR/nuclei/nuclei_all.json
+    if [ -f "$p4/nuclei/nuclei_all.json" ]; then
+        cp -f "$p4/nuclei/nuclei_all.json" "$OUTPUT_DIR/nuclei.json" && log_info "[collate] nuclei.json prepared"
+    elif [ -f "$p4/nuclei.json" ]; then
+        cp -f "$p4/nuclei.json" "$OUTPUT_DIR/nuclei.json" && log_info "[collate] nuclei.json prepared"
+    elif [ -f "$p4/nuclei_results.json" ]; then
+        cp -f "$p4/nuclei_results.json" "$OUTPUT_DIR/nuclei.json" && log_info "[collate] nuclei.json prepared"
+    fi
+    # Also collate SubProber results from phase2 if available
+    local p2="$OUTPUT_DIR/phase2_intel"
+    for f in "$p2"/subprober_*.json; do
+        [ -f "$f" ] && cp -f "$f" "$OUTPUT_DIR/" && log_info "[collate] $(basename "$f") prepared"
     done
-fi
-if ! tool_ok httpx && ! tool_ok curl; then
-    log_warn "[phase:3] no web probe tool available (httpx/curl); skipping"
-fi
-log_info "[phase:3] complete — continuing to phase 4"
+}
 
-# Only skip vulnerability phase for explicit "quick" scans
-if [ "$SCAN_TYPE" = "quick" ]; then
-    log_info "[scan:quick] skipping vulnerability phase; done"
-    exit 0
-fi
-log_info "[scan:$SCAN_TYPE] including vulnerability phase (phase 4)"
+#############################################
+# Phase 0 — Pre-scan module (if present)
+#############################################
+run_module "00_prescan.sh" 0
 
-# ── Phase 4: Vulnerability scanning (run all available tools) ──────────────
-log_info "[phase:4] Vulnerability scanning"
-NUCLEI_OUT="$OUTPUT_DIR/nuclei.json"
-NIKTO_OUT="$OUTPUT_DIR/nikto.txt"
-if tool_ok nuclei; then
-    log_info "[nuclei] running vulnerability templates on $DOMAIN"
-    ( run_with_timeout "$(( TIMEOUT_PHASE * 2 ))" nuclei -u "https://$DOMAIN" -silent -json -o "$NUCLEI_OUT" 2>&1; true ) || log_warn "[nuclei] non-zero exit (may be no findings)"
-    VULN_COUNT=$(wc -l < "$NUCLEI_OUT" 2>/dev/null || echo 0)
-    log_info "[nuclei] found $VULN_COUNT potential vulnerabilities"
-fi
-if tool_ok nikto; then
-    log_info "[nikto] running web vulnerability scan on $DOMAIN"
-    ( run_with_timeout "$TIMEOUT_PHASE" nikto -h "https://$DOMAIN" -nointeractive 2>&1 | tee "$NIKTO_OUT" | grep -E "^[-+]" || true; true )
-    log_info "[nikto] scan complete"
-fi
-if ! tool_ok nuclei && ! tool_ok nikto; then
-    log_warn "[phase:4] no vulnerability scanner available (nuclei/nikto); skipping"
-fi
-log_info "[phase:4] complete — all phases finished"
+#############################################
+# Phases 1–4 — Bash modules
+#############################################
+run_module "01_discovery.sh" 1
+collate_phase1
+
+run_module "02_intel.sh" 2
+collate_phase2
+
+run_module "03_content.sh" 3
+collate_phase3
+
+run_module "04_vuln.sh" 4
+collate_phase4
+
+#############################################
+# Optional phases 5–9 — run when present
+#############################################
+run_module "05_threat_intel.sh" 5
+run_module "06_cve_correlation.sh" 6
+run_module "07_change_detection.sh" 7
+run_module "08_compliance.sh" 8
+run_module "09_attack_graph.sh" 9
 
 log_info "[scan:complete] scan finished: id=$SCAN_RUN_ID domain=$DOMAIN"
 exit 0

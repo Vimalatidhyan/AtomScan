@@ -211,12 +211,18 @@ function showDetail(idx) {
   if (!f) return;
   const severity = sev(f);
 
-  el('modalSeverity').innerHTML = `<span class="badge badge-${severity}" style="font-size:0.9rem;">${severity.toUpperCase()}</span>`;
-  el('modalTitle').textContent = f.name || f.title || 'Finding';
-  el('modalHost').textContent = f.host || f.url || '—';
-  el('modalCVE').textContent = f.cve || f.cve_id || '—';
-  el('modalTool').textContent = f.tool || f.source || '—';
-  el('modalInfo').textContent = f.description || f.details || f.info || 'No description available.';
+  const sevEl = el('modalSeverity');
+  if (sevEl) sevEl.innerHTML = `<span class="badge badge-${severity}" style="font-size:0.9rem;">${severity.toUpperCase()}</span>`;
+  const titleEl = el('modalTitle');
+  if (titleEl) titleEl.textContent = f.name || f.title || 'Finding';
+  const hostEl = el('modalHost');
+  if (hostEl) hostEl.textContent = f.host || f.url || '—';
+  const cveEl = el('modalCVE');
+  if (cveEl) cveEl.textContent = f.cve || f.cve_id || '—';
+  const toolEl = el('modalTool');
+  if (toolEl) toolEl.textContent = f.tool || f.source || '—';
+  const infoEl = el('modalInfo');
+  if (infoEl) infoEl.textContent = f.description || f.details || f.info || 'No description available.';
 
   el('findingModal')?.classList.add('open');
   // Render action buttons using data attributes to avoid XSS
@@ -258,7 +264,9 @@ function setSeverityFilter(severity) {
 }
 
 function changePage(delta) {
-  state.page += delta;
+  const newPage = state.page + delta;
+  if (newPage < 1) return;
+  state.page = newPage;
   renderFindings();
   el('findingsTable')?.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -332,6 +340,36 @@ function initSidebar() {
     sidebar?.classList.remove('open');
     overlay.classList.remove('open');
   });
+}
+
+// ─── Visibility-aware polling (fallback if common.js not loaded) ──────────────
+if (typeof visibilityPoll === 'undefined') {
+  window.visibilityPoll = function(fn, intervalMs) {
+    let timerId = null;
+    function start() { if (timerId !== null) return; timerId = setInterval(fn, intervalMs); }
+    function stop() { clearInterval(timerId); timerId = null; }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { stop(); } else { fn(); start(); }
+    });
+    if (!document.hidden) start();
+    return stop;
+  };
+}
+
+// ─── CSV helpers (fallback if common.js not loaded) ───────────────────────────
+if (typeof downloadCsv === 'undefined') {
+  window.downloadCsv = function(filename, headers, rows) {
+    function escField(val) {
+      const s = String(val ?? '').replace(/\r?\n/g, ' ');
+      return (s.includes(',') || s.includes('"')) ? `"${s.replace(/"/g, '""')}"` : s;
+    }
+    const csv = [headers.map(escField).join(','), ...rows.map(r => r.map(escField).join(','))].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  };
 }
 
 // ─── Export ────────────────────────────────────────────────────────────────────

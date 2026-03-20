@@ -1,0 +1,19 @@
+{
+  "target": "apra.gov.au",
+  "total_threats": 2,
+  "critical": 0,
+  "high": 0,
+  "medium": 2,
+  "low": 0,
+  "by_type": {
+    "malware": 2
+  },
+  "top_threats": [
+    {
+      "error": "Unauthorized"
+    },
+    {
+      "error": "Unauthorized"
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+Organization:   Amazon.com, Inc. (AMAZO-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon.com, Inc. (AMAZO-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon.com, Inc. (AMAZO-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon.com, Inc. (AMAZO-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+origin:         AS17477
+Organization:   Fastly, Inc. (SKYCA-3)
+OrgName:        Fastly, Inc.
+Organization:   Fastly, Inc. (SKYCA-3)
+OrgName:        Fastly, Inc.
+Organization:   Fastly, Inc. (SKYCA-3)
+OrgName:        Fastly, Inc.
+Organization:   Fastly, Inc. (SKYCA-3)
+OrgName:        Fastly, Inc.
+origin:         AS140637
+origin:         AS198949
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+Organization:   Amazon Technologies Inc. (AT-88-Z)
+OrgName:        Amazon Technologies Inc.
+Organization:   Amazon.com, Inc. (AMAZON-4)
+OrgName:        Amazon.com, Inc.
+origin:         AS140637
+origin:         AS140637
+origin:         AS140637
+origin:         AS140637
+origin:         AS140637
+origin:         AS140637

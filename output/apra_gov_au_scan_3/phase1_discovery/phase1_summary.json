@@ -1,0 +1,637 @@
+{
+  "target": "apra.gov.au",
+  "subdomain_count": 98,
+  "alive_count": 33,
+  "subdomains": [
+    "adfs.apra.gov.au",
+    "adfs.dev.apra.gov.au",
+    "adfsdev.apra.gov.au",
+    "adfs.test.apra.gov.au",
+    "api.apra.gov.au",
+    "apiconnectgw-uat.apra.gov.au",
+    "apigw-uat.apra.gov.au",
+    "apimanagement-uat.apra.gov.au",
+    "apiportal-uat.apra.gov.au",
+    "apiuat.apra.gov.au",
+    "appcontroltest.apra.gov.au",
+    "apra-connect-prod-signing.apra.gov.au",
+    "apra.gov.au",
+    "autodiscover.apra.gov.au",
+    "beta.apra.gov.au",
+    "certauth.adfs.apra.gov.au",
+    "certauth.adfs.dev.apra.gov.au",
+    "certauth.adfs.test.apra.gov.au",
+    "certauth.adfs.test.APRA.gov.au",
+    "connectapi.apra.gov.au",
+    "connectapiuat.apra.gov.au",
+    "connect.apra.gov.au",
+    "connect-test.apra.gov.au",
+    "d2axp.apra.gov.au",
+    "d2axu.apra.gov.au",
+    "dc1prdnet100.internal.apra.gov.au",
+    "dc1prdnet101.internal.apra.gov.au",
+    "dc1prdnet10.internal.apra.gov.au",
+    "dc2prdnet100.internal.apra.gov.au",
+    "dialin.apra.gov.au",
+    "eas.apra.gov.au",
+    "emailservice.apra.gov.au",
+    "eumcollector.apra.gov.au",
+    "exchange.apra.gov.au",
+    "Exchange.apra.gov.au",
+    "extauth.apra.gov.au",
+    "externalaccess.apra.gov.au",
+    "extranet.apra.gov.au",
+    "extranet-ext.apra.gov.au",
+    "extranet-int.apra.gov.au",
+    "extranettest.apra.gov.au",
+    "extranettest-ext.apra.gov.au",
+    "fcs.gov.au",
+    "handbook.apra.gov.au",
+    "icpfaguest.apra.gov.au",
+    "ICPFAGuest.apra.gov.au",
+    "lyncdiscover.apra.gov.au",
+    "main-bvxea6i-6l2tvkyjevysg.au-2.platformsh.site",
+    "mam.apra.gov.au",
+    "mdm.apra.gov.au",
+    "meet.apra.gov.au",
+    "melvgw11.apra.gov.au",
+    "mobiletest.apra.gov.au",
+    "mta-sts.apra.gov.au",
+    "ncpd.apra.gov.au",
+    "ncpdonlineshop.ncpd.apra.gov.au",
+    "ns1.apra.gov.au",
+    "ns2.apra.gov.au",
+    "officewebapp01.apra.gov.au",
+    "officewebapp02.apra.gov.au",
+    "pre-prod-qrk7t3i-6l2tvkyjevysg.au-2.platformsh.site",
+    "prod.apra.pnx.skpr.live",
+    "prod.apra.shared.skpr.live",
+    "qa.handbook.apra.gov.au",
+    "remoteaccess.apra.gov.au",
+    "remoteaccess.gtm.apra.gov.au",
+    "remoteaccesstest.apra.gov.au",
+    "samlproxy.apra.gov.au",
+    "samlproxyuat.apra.gov.au",
+    "sbr-pet.apra.gov.au",
+    "sbr-pet-dev.apra.gov.au",
+    "sbr-pet-test.apra.gov.au",
+    "secure1.ncpd.apra.gov.au",
+    "secure2.ncpd.apra.gov.au",
+    "securedoc.apra.gov.au",
+    "securedoccon.apra.gov.au",
+    "securedocstatic.apra.gov.au",
+    "sfbwebext01.apra.gov.au",
+    "sip.apra.gov.au",
+    "smtp.apra.gov.au",
+    "Smtp.apra.gov.au",
+    "sydprdmgw01.apra.gov.au",
+    "sydvgw12.apra.gov.au",
+    "sydvgw13.apra.gov.au",
+    "webconf.apra.gov.au",
+    "www.apra.gov.au",
+    "www.autodiscover.apra.gov.au",
+    "www.beta.apra.gov.au",
+    "www.fcs.gov.au",
+    "www.handbook.apra.gov.au",
+    "www.mam.apra.gov.au",
+    "www.mdm.apra.gov.au",
+    "www.ncpd.apra.gov.au",
+    "www.qa.handbook.apra.gov.au",
+    "www.remoteaccess.apra.gov.au",
+    "www.secure1.ncpd.apra.gov.au",
+    "www.secure2.ncpd.apra.gov.au",
+    "www.securedoc.apra.gov.au"
+  ],
+  "alive_hosts": [
+    "adfs.apra.gov.au",
+    "adfs.dev.apra.gov.au",
+    "apra.gov.au",
+    "beta.apra.gov.au",
+    "connect.apra.gov.au",
+    "connect-test.apra.gov.au",
+    "d2axp.apra.gov.au",
+    "d2axu.apra.gov.au",
+    "externalaccess.apra.gov.au",
+    "extranet.apra.gov.au",
+    "fcs.gov.au",
+    "handbook.apra.gov.au",
+    "main-bvxea6i-6l2tvkyjevysg.au-2.platformsh.site",
+    "mdm.apra.gov.au",
+    "mta-sts.apra.gov.au",
+    "pre-prod-qrk7t3i-6l2tvkyjevysg.au-2.platformsh.site",
+    "prod.apra.shared.skpr.live",
+    "qa.handbook.apra.gov.au",
+    "remoteaccess.apra.gov.au",
+    "remoteaccess.gtm.apra.gov.au",
+    "remoteaccesstest.apra.gov.au",
+    "samlproxy.apra.gov.au",
+    "sbr-pet.apra.gov.au",
+    "sbr-pet-dev.apra.gov.au",
+    "sbr-pet-test.apra.gov.au",
+    "secure1.ncpd.apra.gov.au",
+    "secure2.ncpd.apra.gov.au",
+    "securedoc.apra.gov.au",
+    "www.apra.gov.au",
+    "www.fcs.gov.au",
+    "www.handbook.apra.gov.au",
+    "www.ncpd.apra.gov.au",
+    "www.qa.handbook.apra.gov.au"
+  ],
+  "alive_urls": [
+    "https://adfs.apra.gov.au",
+    "https://adfs.dev.apra.gov.au",
+    "https://apra.gov.au",
+    "https://beta.apra.gov.au",
+    "https://connect.apra.gov.au",
+    "https://connect-test.apra.gov.au",
+    "https://d2axp.apra.gov.au",
+    "https://d2axu.apra.gov.au",
+    "https://externalaccess.apra.gov.au",
+    "https://extranet.apra.gov.au",
+    "https://fcs.gov.au",
+    "https://handbook.apra.gov.au",
+    "https://main-bvxea6i-6l2tvkyjevysg.au-2.platformsh.site",
+    "https://mdm.apra.gov.au",
+    "https://mta-sts.apra.gov.au",
+    "https://pre-prod-qrk7t3i-6l2tvkyjevysg.au-2.platformsh.site",
+    "https://prod.apra.shared.skpr.live",
+    "https://qa.handbook.apra.gov.au",
+    "https://remoteaccess.apra.gov.au",
+    "https://remoteaccess.gtm.apra.gov.au",
+    "https://remoteaccesstest.apra.gov.au",
+    "https://samlproxy.apra.gov.au",
+    "https://sbr-pet.apra.gov.au",
+    "https://sbr-pet-dev.apra.gov.au",
+    "https://sbr-pet-test.apra.gov.au",
+    "https://secure1.ncpd.apra.gov.au",
+    "https://secure2.ncpd.apra.gov.au",
+    "https://securedoc.apra.gov.au",
+    "https://www.apra.gov.au",
+    "https://www.fcs.gov.au",
+    "https://www.handbook.apra.gov.au",
+    "https://www.ncpd.apra.gov.au",
+    "https://www.qa.handbook.apra.gov.au"
+  ],
+  "httpx_details": [
+    {
+      "url": "https://connect-test.apra.gov.au",
+      "status_code": 200,
+      "title": "Request Rejected",
+      "webserver": null,
+      "tech": [
+        "HSTS"
+      ],
+      "content_length": 243
+    },
+    {
+      "url": "https://d2axu.apra.gov.au",
+      "status_code": 404,
+      "title": "HTTP Status 404 \u2013 Not Found",
+      "webserver": null,
+      "tech": null,
+      "content_length": 431
+    },
+    {
+      "url": "https://d2axp.apra.gov.au",
+      "status_code": 404,
+      "title": "HTTP Status 404 \u2013 Not Found",
+      "webserver": null,
+      "tech": null,
+      "content_length": 431
+    },
+    {
+      "url": "https://connect.apra.gov.au",
+      "status_code": 200,
+      "title": "Request Rejected",
+      "webserver": null,
+      "tech": [
+        "HSTS"
+      ],
+      "content_length": 243
+    },
+    {
+      "url": "https://main-bvxea6i-6l2tvkyjevysg.au-2.platformsh.site",
+      "status_code": 502,
+      "title": null,
+      "webserver": null,
+      "tech": [
+        "HSTS",
+        "Varnish"
+      ],
+      "content_length": 94
+    },
+    {
+      "url": "https://handbook.apra.gov.au",
+      "status_code": 200,
+      "title": "APRA Prudential Handbook | Prudential Handbook",
+      "webserver": null,
+      "tech": [
+        "Drupal:10",
+        "HSTS",
+        "PHP",
+        "Platform.sh",
+        "Varnish"
+      ],
+      "content_length": 54532
+    },
+    {
+      "url": "https://beta.apra.gov.au",
+      "status_code": 200,
+      "title": "Welcome to APRA | APRA",
+      "webserver": null,
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon Web Services",
+        "Drupal:10",
+        "Google Tag Manager",
+        "HSTS",
+        "PHP",
+        "reCAPTCHA"
+      ],
+      "content_length": 103079
+    },
+    {
+      "url": "https://apra.gov.au",
+      "status_code": 200,
+      "title": "Welcome to APRA | APRA",
+      "webserver": null,
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon Web Services",
+        "Drupal:10",
+        "Google Tag Manager",
+        "HSTS",
+        "PHP",
+        "reCAPTCHA"
+      ],
+      "content_length": 103079
+    },
+    {
+      "url": "https://adfs.apra.gov.au",
+      "status_code": 200,
+      "title": "BIG-IP logout page",
+      "webserver": "BigIP",
+      "tech": [
+        "F5 BigIP",
+        "HSTS"
+      ],
+      "content_length": 5680
+    },
+    {
+      "url": "https://adfs.dev.apra.gov.au",
+      "status_code": 200,
+      "title": "BIG-IP logout page",
+      "webserver": "BigIP",
+      "tech": [
+        "F5 BigIP",
+        "HSTS"
+      ],
+      "content_length": 5680
+    },
+    {
+      "url": "https://externalaccess.apra.gov.au",
+      "status_code": 200,
+      "title": "NetScaler AAA",
+      "webserver": "Apache",
+      "tech": [
+        "Apache HTTP Server",
+        "Citrix",
+        "Elliptic",
+        "HSTS",
+        "Hammer.js",
+        "Slick",
+        "jQuery",
+        "jQuery Migrate",
+        "jQuery UI"
+      ],
+      "content_length": 42874
+    },
+    {
+      "url": "https://mta-sts.apra.gov.au",
+      "status_code": 200,
+      "title": "Your Azure Function App is up and running.",
+      "webserver": null,
+      "tech": [
+        "Microsoft Ajax Content Delivery Network",
+        "jQuery UI:1.13.2",
+        "jQuery:3.6.0"
+      ],
+      "content_length": 150093
+    },
+    {
+      "url": "https://pre-prod-qrk7t3i-6l2tvkyjevysg.au-2.platformsh.site",
+      "status_code": 502,
+      "title": null,
+      "webserver": null,
+      "tech": [
+        "HSTS",
+        "Varnish"
+      ],
+      "content_length": 98
+    },
+    {
+      "url": "https://qa.handbook.apra.gov.au",
+      "status_code": 401,
+      "title": null,
+      "webserver": null,
+      "tech": [
+        "Basic",
+        "HSTS",
+        "Platform.sh",
+        "Varnish"
+      ],
+      "content_length": null
+    },
+    {
+      "url": "https://mdm.apra.gov.au",
+      "status_code": 404,
+      "title": "HTTP Status 404 \u2013 Not Found",
+      "webserver": null,
+      "tech": [
+        "HSTS",
+        "Java"
+      ],
+      "content_length": 802
+    },
+    {
+      "url": "https://sbr-pet.apra.gov.au",
+      "status_code": 200,
+      "title": "PET - Plain English Taxonomy",
+      "webserver": "AmazonS3",
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon S3",
+        "Amazon Web Services",
+        "HSTS"
+      ],
+      "content_length": 4279
+    },
+    {
+      "url": "https://sbr-pet-test.apra.gov.au",
+      "status_code": 200,
+      "title": "PET - Plain English Taxonomy",
+      "webserver": "AmazonS3",
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon S3",
+        "Amazon Web Services",
+        "HSTS"
+      ],
+      "content_length": 4279
+    },
+    {
+      "url": "https://fcs.gov.au",
+      "status_code": 200,
+      "title": "Financial Claims Scheme | APRA",
+      "webserver": null,
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon Web Services",
+        "Drupal:10",
+        "Google Tag Manager",
+        "HSTS",
+        "PHP"
+      ],
+      "content_length": 88231
+    },
+    {
+      "url": "https://www.apra.gov.au",
+      "status_code": 200,
+      "title": "Welcome to APRA | APRA",
+      "webserver": null,
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon Web Services",
+        "Drupal:10",
+        "Google Tag Manager",
+        "HSTS",
+        "PHP",
+        "reCAPTCHA"
+      ],
+      "content_length": 103079
+    },
+    {
+      "url": "https://prod.apra.shared.skpr.live",
+      "status_code": 200,
+      "title": "Welcome to APRA | APRA",
+      "webserver": null,
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon Web Services",
+        "Drupal:10",
+        "Google Tag Manager",
+        "HSTS",
+        "PHP",
+        "reCAPTCHA"
+      ],
+      "content_length": 103079
+    },
+    {
+      "url": "https://sbr-pet-dev.apra.gov.au",
+      "status_code": 200,
+      "title": "PET - Plain English Taxonomy",
+      "webserver": "AmazonS3",
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon S3",
+        "Amazon Web Services",
+        "HSTS"
+      ],
+      "content_length": 4279
+    },
+    {
+      "url": "https://www.fcs.gov.au",
+      "status_code": 200,
+      "title": "Financial Claims Scheme | APRA",
+      "webserver": null,
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon Web Services",
+        "Drupal:10",
+        "Google Tag Manager",
+        "HSTS",
+        "PHP"
+      ],
+      "content_length": 88231
+    },
+    {
+      "url": "https://extranet.apra.gov.au",
+      "status_code": 200,
+      "title": null,
+      "webserver": null,
+      "tech": [
+        "HSTS"
+      ],
+      "content_length": 5687
+    },
+    {
+      "url": "https://samlproxy.apra.gov.au",
+      "status_code": 200,
+      "title": "APRA Extranet Login",
+      "webserver": null,
+      "tech": [
+        "HSTS",
+        "jQuery"
+      ],
+      "content_length": 2204
+    },
+    {
+      "url": "https://www.handbook.apra.gov.au",
+      "status_code": 200,
+      "title": "APRA Prudential Handbook | Prudential Handbook",
+      "webserver": null,
+      "tech": [
+        "Drupal:10",
+        "HSTS",
+        "PHP",
+        "Platform.sh",
+        "Varnish"
+      ],
+      "content_length": 54532
+    },
+    {
+      "url": "https://remoteaccess.gtm.apra.gov.au",
+      "status_code": 200,
+      "title": "NetScaler AAA",
+      "webserver": "Apache",
+      "tech": [
+        "Apache HTTP Server",
+        "Citrix",
+        "Elliptic",
+        "HSTS",
+        "Hammer.js",
+        "Slick",
+        "jQuery",
+        "jQuery Migrate",
+        "jQuery UI"
+      ],
+      "content_length": 42874
+    },
+    {
+      "url": "https://remoteaccesstest.apra.gov.au",
+      "status_code": 200,
+      "title": "NetScaler AAA",
+      "webserver": "Apache",
+      "tech": [
+        "Apache HTTP Server",
+        "Citrix",
+        "Elliptic",
+        "HSTS",
+        "Hammer.js",
+        "Slick",
+        "jQuery",
+        "jQuery Migrate",
+        "jQuery UI"
+      ],
+      "content_length": 42874
+    },
+    {
+      "url": "https://www.qa.handbook.apra.gov.au",
+      "status_code": 401,
+      "title": null,
+      "webserver": null,
+      "tech": [
+        "Basic",
+        "HSTS",
+        "Platform.sh",
+        "Varnish"
+      ],
+      "content_length": null
+    },
+    {
+      "url": "https://securedoc.apra.gov.au",
+      "status_code": 200,
+      "title": "Login \u2013 APRA SecureDoc",
+      "webserver": "Apache",
+      "tech": [
+        "Apache HTTP Server",
+        "Nextcloud",
+        "PHP"
+      ],
+      "content_length": 18003
+    },
+    {
+      "url": "https://secure1.ncpd.apra.gov.au",
+      "status_code": 200,
+      "title": "National Claims & Policy Database | APRA",
+      "webserver": null,
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon Web Services",
+        "Drupal:10",
+        "Google Tag Manager",
+        "HSTS",
+        "PHP"
+      ],
+      "content_length": 87797
+    },
+    {
+      "url": "https://secure2.ncpd.apra.gov.au",
+      "status_code": 200,
+      "title": "National Claims & Policy Database | APRA",
+      "webserver": null,
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon Web Services",
+        "Drupal:10",
+        "Google Tag Manager",
+        "HSTS",
+        "PHP"
+      ],
+      "content_length": 87797
+    },
+    {
+      "url": "https://www.ncpd.apra.gov.au",
+      "status_code": 200,
+      "title": "National Claims & Policy Database | APRA",
+      "webserver": null,
+      "tech": [
+        "Amazon CloudFront",
+        "Amazon Web Services",
+        "Drupal:10",
+        "Google Tag Manager",
+        "HSTS",
+        "PHP"
+      ],
+      "content_length": 87797
+    },
+    {
+      "url": "https://remoteaccess.apra.gov.au",
+      "status_code": 200,
+      "title": "NetScaler AAA",
+      "webserver": "Apache",
+      "tech": [
+        "Apache HTTP Server",
+        "Citrix",
+        "Elliptic",
+        "HSTS",
+        "Hammer.js",
+        "Slick",
+        "jQuery",
+        "jQuery Migrate",
+        "jQuery UI"
+      ],
+      "content_length": 42874
+    }
+  ],
+  "ct_sources": {
+    "certspotter": 56,
+    "crtsh": 86
+  },
+  "asn": {
+    "cidrs": [],
+    "ip_count": 0,
+    "ips_sample": []
+  },
+  "cloud": {
+    "total": 1,
+    "assets": [
+      "\u001b[32m[+][C=200] https://exchange.blob.core.windows.net/pub?restype=container\u001b[0m"
+    ],
+    "aws": [],
+    "azure": [
+      "\u001b[32m[+][C=200] https://exchange.blob.core.windows.net/pub?restype=container\u001b[0m"
+    ],
+    "gcp": []
+  }
+}

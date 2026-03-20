@@ -1,0 +1,354 @@
+Configuration {
+    kind: "configuration",
+    wordlist: "/usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt",
+    config: "/etc/feroxbuster/ferox-config.toml",
+    proxy: "",
+    replay_proxy: "",
+    server_certs: [],
+    client_cert: "",
+    client_key: "",
+    target_url: "https://mdm.apra.gov.au/",
+    status_codes: [
+        100,
+        101,
+        102,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        226,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        307,
+        308,
+        400,
+        401,
+        402,
+        403,
+        404,
+        405,
+        406,
+        407,
+        408,
+        409,
+        410,
+        411,
+        412,
+        413,
+        414,
+        415,
+        416,
+        417,
+        418,
+        421,
+        422,
+        423,
+        424,
+        426,
+        428,
+        429,
+        431,
+        451,
+        500,
+        501,
+        502,
+        503,
+        504,
+        505,
+        506,
+        507,
+        508,
+        510,
+        511,
+        103,
+        425,
+    ],
+    replay_codes: [
+        100,
+        101,
+        102,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        226,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        307,
+        308,
+        400,
+        401,
+        402,
+        403,
+        404,
+        405,
+        406,
+        407,
+        408,
+        409,
+        410,
+        411,
+        412,
+        413,
+        414,
+        415,
+        416,
+        417,
+        418,
+        421,
+        422,
+        423,
+        424,
+        426,
+        428,
+        429,
+        431,
+        451,
+        500,
+        501,
+        502,
+        503,
+        504,
+        505,
+        506,
+        507,
+        508,
+        510,
+        511,
+        103,
+        425,
+    ],
+    filter_status: [],
+    client: Client {
+        accepts: Accepts,
+        proxies: [
+            Matcher,
+        ],
+        redirect_policy: "Policy(None)",
+        referer: true,
+        default_headers: {
+            "accept": "*/*",
+            "user-agent": "feroxbuster/2.13.0",
+        },
+        reqwest::config::RequestTimeout: 7s,
+    },
+    replay_client: None,
+    threads: 80,
+    timeout: 7,
+    verbosity: 0,
+    silent: false,
+    quiet: false,
+    output_level: Default,
+    auto_bail: true,
+    auto_tune: false,
+    requester_policy: AutoBail,
+    json: false,
+    output: "/mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase3_content/bruteforce/feroxbuster_mdm_apra_gov_au.txt",
+    debug_log: "",
+    user_agent: "feroxbuster/2.13.0",
+    random_agent: true,
+    redirects: false,
+    insecure: false,
+    extensions: [],
+    methods: [
+        "GET",
+    ],
+    data: [],
+    headers: {},
+    queries: [],
+    no_recursion: false,
+    extract_links: true,
+    add_slash: false,
+    stdin: false,
+    cached_stdin: [],
+    depth: 2,
+    scan_limit: 0,
+    parallel: 0,
+    rate_limit: 0,
+    filter_size: [],
+    filter_line_count: [],
+    filter_word_count: [],
+    filter_regex: [],
+    dont_filter: false,
+    resumed: false,
+    resume_from: "",
+    save_state: true,
+    time_limit: "",
+    filter_similar: [],
+    url_denylist: [],
+    regex_denylist: [],
+    scope: [
+        Url {
+            scheme: "https",
+            cannot_be_a_base: false,
+            username: "",
+            password: None,
+            host: Some(
+                Domain(
+                    "mdm.apra.gov.au",
+                ),
+            ),
+            port: None,
+            path: "/",
+            query: None,
+            fragment: None,
+        },
+    ],
+    collect_extensions: false,
+    dont_collect: [
+        "tif",
+        "tiff",
+        "ico",
+        "cur",
+        "bmp",
+        "webp",
+        "svg",
+        "png",
+        "jpg",
+        "jpeg",
+        "jfif",
+        "gif",
+        "avif",
+        "apng",
+        "pjpeg",
+        "pjp",
+        "mov",
+        "wav",
+        "mpg",
+        "mpeg",
+        "mp3",
+        "mp4",
+        "m4a",
+        "m4p",
+        "m4v",
+        "ogg",
+        "webm",
+        "ogv",
+        "oga",
+        "flac",
+        "aac",
+        "3gp",
+        "css",
+        "zip",
+        "xls",
+        "xml",
+        "gz",
+        "tgz",
+    ],
+    collect_backups: false,
+    backup_extensions: [
+        "~",
+        ".bak",
+        ".bak2",
+        ".old",
+        ".1",
+    ],
+    collect_words: false,
+    force_recursion: false,
+    update_app: false,
+    scan_dir_listings: false,
+    request_file: "",
+    protocol: "https",
+    limit_bars: 0,
+    unique: false,
+    response_size_limit: 4194304,
+}
+302      GET        0l        0w        0c https://mdm.apra.gov.au/js => https://mdm.apra.gov.au/js/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/ => https://mdm.apra.gov.au/zdm/login_xdm_uc.jsp
+302      GET        0l        0w        0c https://mdm.apra.gov.au/css => https://mdm.apra.gov.au/css/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/img => https://mdm.apra.gov.au/img/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/static => https://mdm.apra.gov.au/static/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/fonts => https://mdm.apra.gov.au/fonts/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/js/app => https://mdm.apra.gov.au/js/app/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/js/libs => https://mdm.apra.gov.au/js/libs/
+403      GET        1l       35w      802c https://mdm.apra.gov.au/css/WEB-INF
+302      GET        0l        0w        0c https://mdm.apra.gov.au/text => https://mdm.apra.gov.au/text/
+403      GET        1l       35w      802c https://mdm.apra.gov.au/js/WEB-INF
+302      GET        0l        0w        0c https://mdm.apra.gov.au/jsp => https://mdm.apra.gov.au/jsp/
+403      GET        1l       35w      802c https://mdm.apra.gov.au/img/WEB-INF
+403      GET        1l       35w      802c https://mdm.apra.gov.au/static/WEB-INF
+403      GET        1l       35w      802c https://mdm.apra.gov.au/fonts/WEB-INF
+302      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/images => https://mdm.apra.gov.au/jsp/images/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/img => https://mdm.apra.gov.au/jsp/img/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/scripts => https://mdm.apra.gov.au/jsp/scripts/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/style => https://mdm.apra.gov.au/jsp/style/
+302      GET        0l        0w        0c https://mdm.apra.gov.au/css/sources => https://mdm.apra.gov.au/css/sources/
+403      GET        1l       35w      802c https://mdm.apra.gov.au/text/WEB-INF
+302      GET        0l        0w        0c https://mdm.apra.gov.au/js/framework => https://mdm.apra.gov.au/js/framework/
+403      GET        1l       35w      802c https://mdm.apra.gov.au/jsp/WEB-INF
+200      GET        0l        0w        0c https://mdm.apra.gov.au/pb
+302      GET        0l        0w        0c https://mdm.apra.gov.au/windows => https://mdm.apra.gov.au/windows/
+403      GET        1l       35w      802c https://mdm.apra.gov.au/windows/WEB-INF
+400      GET        0l        0w        0c https://mdm.apra.gov.au/[
+400      GET        0l        0w        0c https://mdm.apra.gov.au/plain]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/js/[
+400      GET        0l        0w        0c https://mdm.apra.gov.au/css/plain]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/css/[
+400      GET        0l        0w        0c https://mdm.apra.gov.au/js/plain]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/img/plain]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/img/[
+400      GET        0l        0w        0c https://mdm.apra.gov.au/static/plain]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/static/[
+400      GET        0l        0w        0c https://mdm.apra.gov.au/fonts/[
+400      GET        0l        0w        0c https://mdm.apra.gov.au/fonts/plain]
+302      GET        0l        0w        0c https://mdm.apra.gov.au/js/mocks => https://mdm.apra.gov.au/js/mocks/
+400      GET        0l        0w        0c https://mdm.apra.gov.au/text/plain]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/text/[
+400      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/[
+400      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/plain]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/css/]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/js/]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/img/]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/static/]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/fonts/]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/text/]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/windows/[
+400      GET        0l        0w        0c https://mdm.apra.gov.au/windows/plain]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/windows/]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/quote]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/css/quote]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/js/quote]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/img/quote]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/static/quote]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/fonts/quote]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/text/quote]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/quote]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/windows/quote]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/extension]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/js/extension]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/css/extension]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/img/extension]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/static/extension]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/fonts/extension]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/text/extension]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/extension]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/windows/extension]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/[0-9]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/js/[0-9]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/css/[0-9]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/img/[0-9]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/static/[0-9]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/fonts/[0-9]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/text/[0-9]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/jsp/[0-9]
+400      GET        0l        0w        0c https://mdm.apra.gov.au/windows/[0-9]

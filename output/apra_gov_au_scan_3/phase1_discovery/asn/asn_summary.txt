@@ -1,0 +1,6 @@
+target=apra.gov.au
+cidr_count=0
+filtered_cidr_count=0
+ip_count=0
+
+sample_cidrs:

@@ -1,0 +1,35 @@
+{
+  "target": "apra.gov.au",
+  "phase": "compliance_mapping",
+  "timestamp": "2026-02-27T12:06:05.469939Z",
+  "frameworks": {
+    "pci_dss": {
+      "compliance_percentage": 0,
+      "controls_failed": 0,
+      "status": "mapped"
+    },
+    "hipaa": {
+      "compliance_percentage": 0,
+      "controls_failed": 0,
+      "status": "mapped"
+    },
+    "gdpr": {
+      "compliance_percentage": 0,
+      "controls_failed": 0,
+      "status": "mapped"
+    },
+    "soc2": {
+      "compliance_percentage": 0,
+      "controls_failed": 0,
+      "status": "mapped"
+    },
+    "nist_csf": {
+      "compliance_percentage": 0,
+      "controls_failed": 0,
+      "status": "mapped"
+    }
+  },
+  "overall_risk": "critical",
+  "tls_issues": 1,
+  "average_compliance": 0.0
+}

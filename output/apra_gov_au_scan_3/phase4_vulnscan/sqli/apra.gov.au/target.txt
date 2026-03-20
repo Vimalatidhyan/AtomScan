@@ -1,0 +1,1 @@
+http://apra.gov.au/article-categories/media-releases?page=21 (GET)  # /usr/bin/sqlmap -u http://apra.gov.au/article-categories/media-releases?page=21 --batch --random-agent --level=1 --risk=1 --output-dir=/mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase4_vulnscan/sqli --flush-session --threads=5

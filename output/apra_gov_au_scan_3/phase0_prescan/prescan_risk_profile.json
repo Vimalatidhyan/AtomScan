@@ -1,0 +1,12 @@
+{
+  "company": "Unknown",
+  "target": "apra.gov.au",
+  "industry": "Unknown",
+  "naics_code": "",
+  "size": "",
+  "inherent_risk": 45,
+  "previous_scans": 0,
+  "last_scan_date": "",
+  "known_breaches": [],
+  "scan_intensity": "light"
+}

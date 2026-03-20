@@ -1,0 +1,38 @@
+[robots] - https://securedoc.apra.gov.au/
+[url] - [code-200] - https://securedoc.apra.gov.au/index.php/login
+[subdomains] - https://www.apra.gov.au
+[subdomains] - https://securedoc.apra.gov.au
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/favicon?v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/icon?v=1402bfba
+[href] - https://securedoc.apra.gov.au/core/img/favicon-mask.svg
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/manifest?v=1402bfba
+[href] - https://securedoc.apra.gov.au/core/css/server.css?v=a481e36d-24
+[href] - https://securedoc.apra.gov.au/apps/theming/css/default.css?v=5c832af5-24
+[href] - https://securedoc.apra.gov.au/core/css/guest.css?v=a481e36d-24
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/default.css?plain=1&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/light.css?plain=1&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/dark.css?plain=1&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/light-highcontrast.css?plain=1&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/dark-highcontrast.css?plain=1&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/light.css?plain=0&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/dark.css?plain=0&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/light-highcontrast.css?plain=0&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/dark-highcontrast.css?plain=0&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming/theme/opendyslexic.css?plain=0&v=1402bfba
+[href] - https://securedoc.apra.gov.au/index.php/apps/theming_customcss/styles?v=1759531041571
+[href] - https://www.apra.gov.au/
+[href] - https://www.apra.gov.au/disclaimer
+[href] - https://www.apra.gov.au/privacy
+[javascript] - https://securedoc.apra.gov.au/dist/core-common.js?v=a481e36d-24
+[javascript] - https://securedoc.apra.gov.au/dist/core-main.js?v=a481e36d-24
+[javascript] - https://securedoc.apra.gov.au/dist/core-login.js?v=a481e36d-24
+[javascript] - https://securedoc.apra.gov.au/apps/encryption/js/encryption.js?v=a481e36d-24
+[javascript] - https://securedoc.apra.gov.au/apps/theming/js/theming.js?v=a481e36d-24
+[url] - [code-200] - https://securedoc.apra.gov.au/index.php/login
+[url] - [code-200] - https://securedoc.apra.gov.au/index.php/apps/theming/manifest?v=1402bfba
+[url] - [code-200] - https://securedoc.apra.gov.au/index.php/apps/theming_customcss/styles?v=1759531041571
+[url] - [code-200] - https://securedoc.apra.gov.au/apps/theming/js/theming.js?v=a481e36d-24
+[url] - [code-200] - https://securedoc.apra.gov.au/apps/encryption/js/encryption.js?v=a481e36d-24
+[linkfinder] - [from: https://securedoc.apra.gov.au/apps/encryption/js/encryption.js?v=a481e36d-24] - /apps/encryption/ajax/getStatus
+[linkfinder] - https://securedoc.apra.gov.au/apps/encryption/ajax/getStatus
+[linkfinder] - https://securedoc.apra.gov.au/apps/encryption/ajax/getStatus

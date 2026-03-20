@@ -1,0 +1,984 @@
+{
+  "target": "apra.gov.au",
+  "timestamp": "2026-02-27T12:06:05.673950Z",
+  "nodes": [
+    {
+      "id": 0,
+      "type": "domain",
+      "identifier": "apra.gov.au",
+      "is_root": true
+    },
+    {
+      "id": 1,
+      "type": "subdomain",
+      "identifier": "adfs.apra.gov.au"
+    },
+    {
+      "id": 2,
+      "type": "subdomain",
+      "identifier": "adfs.dev.apra.gov.au"
+    },
+    {
+      "id": 3,
+      "type": "subdomain",
+      "identifier": "adfsdev.apra.gov.au"
+    },
+    {
+      "id": 4,
+      "type": "subdomain",
+      "identifier": "adfs.test.apra.gov.au"
+    },
+    {
+      "id": 5,
+      "type": "subdomain",
+      "identifier": "api.apra.gov.au"
+    },
+    {
+      "id": 6,
+      "type": "subdomain",
+      "identifier": "apiconnectgw-uat.apra.gov.au"
+    },
+    {
+      "id": 7,
+      "type": "subdomain",
+      "identifier": "apigw-uat.apra.gov.au"
+    },
+    {
+      "id": 8,
+      "type": "subdomain",
+      "identifier": "apimanagement-uat.apra.gov.au"
+    },
+    {
+      "id": 9,
+      "type": "subdomain",
+      "identifier": "apiportal-uat.apra.gov.au"
+    },
+    {
+      "id": 10,
+      "type": "subdomain",
+      "identifier": "apiuat.apra.gov.au"
+    },
+    {
+      "id": 11,
+      "type": "subdomain",
+      "identifier": "appcontroltest.apra.gov.au"
+    },
+    {
+      "id": 12,
+      "type": "subdomain",
+      "identifier": "apra-connect-prod-signing.apra.gov.au"
+    },
+    {
+      "id": 13,
+      "type": "subdomain",
+      "identifier": "autodiscover.apra.gov.au"
+    },
+    {
+      "id": 14,
+      "type": "subdomain",
+      "identifier": "beta.apra.gov.au"
+    },
+    {
+      "id": 15,
+      "type": "subdomain",
+      "identifier": "certauth.adfs.apra.gov.au"
+    },
+    {
+      "id": 16,
+      "type": "subdomain",
+      "identifier": "certauth.adfs.dev.apra.gov.au"
+    },
+    {
+      "id": 17,
+      "type": "subdomain",
+      "identifier": "certauth.adfs.test.apra.gov.au"
+    },
+    {
+      "id": 18,
+      "type": "subdomain",
+      "identifier": "certauth.adfs.test.APRA.gov.au"
+    },
+    {
+      "id": 19,
+      "type": "subdomain",
+      "identifier": "connectapi.apra.gov.au"
+    },
+    {
+      "id": 20,
+      "type": "subdomain",
+      "identifier": "connectapiuat.apra.gov.au"
+    },
+    {
+      "id": 21,
+      "type": "subdomain",
+      "identifier": "connect.apra.gov.au"
+    },
+    {
+      "id": 22,
+      "type": "subdomain",
+      "identifier": "connect-test.apra.gov.au"
+    },
+    {
+      "id": 23,
+      "type": "subdomain",
+      "identifier": "d2axp.apra.gov.au"
+    },
+    {
+      "id": 24,
+      "type": "subdomain",
+      "identifier": "d2axu.apra.gov.au"
+    },
+    {
+      "id": 25,
+      "type": "subdomain",
+      "identifier": "dc1prdnet100.internal.apra.gov.au"
+    },
+    {
+      "id": 26,
+      "type": "subdomain",
+      "identifier": "dc1prdnet101.internal.apra.gov.au"
+    },
+    {
+      "id": 27,
+      "type": "subdomain",
+      "identifier": "dc1prdnet10.internal.apra.gov.au"
+    },
+    {
+      "id": 28,
+      "type": "subdomain",
+      "identifier": "dc2prdnet100.internal.apra.gov.au"
+    },
+    {
+      "id": 29,
+      "type": "subdomain",
+      "identifier": "dialin.apra.gov.au"
+    },
+    {
+      "id": 30,
+      "type": "subdomain",
+      "identifier": "eas.apra.gov.au"
+    },
+    {
+      "id": 31,
+      "type": "subdomain",
+      "identifier": "emailservice.apra.gov.au"
+    },
+    {
+      "id": 32,
+      "type": "subdomain",
+      "identifier": "eumcollector.apra.gov.au"
+    },
+    {
+      "id": 33,
+      "type": "subdomain",
+      "identifier": "exchange.apra.gov.au"
+    },
+    {
+      "id": 34,
+      "type": "subdomain",
+      "identifier": "Exchange.apra.gov.au"
+    },
+    {
+      "id": 35,
+      "type": "subdomain",
+      "identifier": "extauth.apra.gov.au"
+    },
+    {
+      "id": 36,
+      "type": "subdomain",
+      "identifier": "externalaccess.apra.gov.au"
+    },
+    {
+      "id": 37,
+      "type": "subdomain",
+      "identifier": "extranet.apra.gov.au"
+    },
+    {
+      "id": 38,
+      "type": "subdomain",
+      "identifier": "extranet-ext.apra.gov.au"
+    },
+    {
+      "id": 39,
+      "type": "subdomain",
+      "identifier": "extranet-int.apra.gov.au"
+    },
+    {
+      "id": 40,
+      "type": "subdomain",
+      "identifier": "extranettest.apra.gov.au"
+    },
+    {
+      "id": 41,
+      "type": "subdomain",
+      "identifier": "extranettest-ext.apra.gov.au"
+    },
+    {
+      "id": 42,
+      "type": "subdomain",
+      "identifier": "fcs.gov.au"
+    },
+    {
+      "id": 43,
+      "type": "subdomain",
+      "identifier": "handbook.apra.gov.au"
+    },
+    {
+      "id": 44,
+      "type": "subdomain",
+      "identifier": "icpfaguest.apra.gov.au"
+    },
+    {
+      "id": 45,
+      "type": "subdomain",
+      "identifier": "ICPFAGuest.apra.gov.au"
+    },
+    {
+      "id": 46,
+      "type": "subdomain",
+      "identifier": "lyncdiscover.apra.gov.au"
+    },
+    {
+      "id": 47,
+      "type": "subdomain",
+      "identifier": "main-bvxea6i-6l2tvkyjevysg.au-2.platformsh.site"
+    },
+    {
+      "id": 48,
+      "type": "subdomain",
+      "identifier": "mam.apra.gov.au"
+    },
+    {
+      "id": 49,
+      "type": "subdomain",
+      "identifier": "mdm.apra.gov.au"
+    },
+    {
+      "id": 50,
+      "type": "subdomain",
+      "identifier": "meet.apra.gov.au"
+    },
+    {
+      "id": 51,
+      "type": "subdomain",
+      "identifier": "melvgw11.apra.gov.au"
+    },
+    {
+      "id": 52,
+      "type": "subdomain",
+      "identifier": "mobiletest.apra.gov.au"
+    },
+    {
+      "id": 53,
+      "type": "subdomain",
+      "identifier": "mta-sts.apra.gov.au"
+    },
+    {
+      "id": 54,
+      "type": "subdomain",
+      "identifier": "ncpd.apra.gov.au"
+    },
+    {
+      "id": 55,
+      "type": "subdomain",
+      "identifier": "ncpdonlineshop.ncpd.apra.gov.au"
+    },
+    {
+      "id": 56,
+      "type": "subdomain",
+      "identifier": "ns1.apra.gov.au"
+    },
+    {
+      "id": 57,
+      "type": "subdomain",
+      "identifier": "ns2.apra.gov.au"
+    },
+    {
+      "id": 58,
+      "type": "subdomain",
+      "identifier": "officewebapp01.apra.gov.au"
+    },
+    {
+      "id": 59,
+      "type": "subdomain",
+      "identifier": "officewebapp02.apra.gov.au"
+    },
+    {
+      "id": 60,
+      "type": "subdomain",
+      "identifier": "pre-prod-qrk7t3i-6l2tvkyjevysg.au-2.platformsh.site"
+    },
+    {
+      "id": 61,
+      "type": "subdomain",
+      "identifier": "prod.apra.pnx.skpr.live"
+    },
+    {
+      "id": 62,
+      "type": "subdomain",
+      "identifier": "prod.apra.shared.skpr.live"
+    },
+    {
+      "id": 63,
+      "type": "subdomain",
+      "identifier": "qa.handbook.apra.gov.au"
+    },
+    {
+      "id": 64,
+      "type": "subdomain",
+      "identifier": "remoteaccess.apra.gov.au"
+    },
+    {
+      "id": 65,
+      "type": "subdomain",
+      "identifier": "remoteaccess.gtm.apra.gov.au"
+    },
+    {
+      "id": 66,
+      "type": "subdomain",
+      "identifier": "remoteaccesstest.apra.gov.au"
+    },
+    {
+      "id": 67,
+      "type": "subdomain",
+      "identifier": "samlproxy.apra.gov.au"
+    },
+    {
+      "id": 68,
+      "type": "subdomain",
+      "identifier": "samlproxyuat.apra.gov.au"
+    },
+    {
+      "id": 69,
+      "type": "subdomain",
+      "identifier": "sbr-pet.apra.gov.au"
+    },
+    {
+      "id": 70,
+      "type": "subdomain",
+      "identifier": "sbr-pet-dev.apra.gov.au"
+    },
+    {
+      "id": 71,
+      "type": "subdomain",
+      "identifier": "sbr-pet-test.apra.gov.au"
+    },
+    {
+      "id": 72,
+      "type": "subdomain",
+      "identifier": "secure1.ncpd.apra.gov.au"
+    },
+    {
+      "id": 73,
+      "type": "subdomain",
+      "identifier": "secure2.ncpd.apra.gov.au"
+    },
+    {
+      "id": 74,
+      "type": "subdomain",
+      "identifier": "securedoc.apra.gov.au"
+    },
+    {
+      "id": 75,
+      "type": "subdomain",
+      "identifier": "securedoccon.apra.gov.au"
+    },
+    {
+      "id": 76,
+      "type": "subdomain",
+      "identifier": "securedocstatic.apra.gov.au"
+    },
+    {
+      "id": 77,
+      "type": "subdomain",
+      "identifier": "sfbwebext01.apra.gov.au"
+    },
+    {
+      "id": 78,
+      "type": "subdomain",
+      "identifier": "sip.apra.gov.au"
+    },
+    {
+      "id": 79,
+      "type": "subdomain",
+      "identifier": "smtp.apra.gov.au"
+    },
+    {
+      "id": 80,
+      "type": "subdomain",
+      "identifier": "Smtp.apra.gov.au"
+    },
+    {
+      "id": 81,
+      "type": "subdomain",
+      "identifier": "sydprdmgw01.apra.gov.au"
+    },
+    {
+      "id": 82,
+      "type": "subdomain",
+      "identifier": "sydvgw12.apra.gov.au"
+    },
+    {
+      "id": 83,
+      "type": "subdomain",
+      "identifier": "sydvgw13.apra.gov.au"
+    },
+    {
+      "id": 84,
+      "type": "subdomain",
+      "identifier": "webconf.apra.gov.au"
+    },
+    {
+      "id": 85,
+      "type": "subdomain",
+      "identifier": "www.apra.gov.au"
+    },
+    {
+      "id": 86,
+      "type": "subdomain",
+      "identifier": "www.autodiscover.apra.gov.au"
+    },
+    {
+      "id": 87,
+      "type": "subdomain",
+      "identifier": "www.beta.apra.gov.au"
+    },
+    {
+      "id": 88,
+      "type": "subdomain",
+      "identifier": "www.fcs.gov.au"
+    },
+    {
+      "id": 89,
+      "type": "subdomain",
+      "identifier": "www.handbook.apra.gov.au"
+    },
+    {
+      "id": 90,
+      "type": "subdomain",
+      "identifier": "www.mam.apra.gov.au"
+    },
+    {
+      "id": 91,
+      "type": "subdomain",
+      "identifier": "www.mdm.apra.gov.au"
+    },
+    {
+      "id": 92,
+      "type": "subdomain",
+      "identifier": "www.ncpd.apra.gov.au"
+    },
+    {
+      "id": 93,
+      "type": "subdomain",
+      "identifier": "www.qa.handbook.apra.gov.au"
+    },
+    {
+      "id": 94,
+      "type": "subdomain",
+      "identifier": "www.remoteaccess.apra.gov.au"
+    },
+    {
+      "id": 95,
+      "type": "subdomain",
+      "identifier": "www.secure1.ncpd.apra.gov.au"
+    },
+    {
+      "id": 96,
+      "type": "subdomain",
+      "identifier": "www.secure2.ncpd.apra.gov.au"
+    },
+    {
+      "id": 97,
+      "type": "subdomain",
+      "identifier": "www.securedoc.apra.gov.au"
+    }
+  ],
+  "relationships": [
+    {
+      "source": 0,
+      "target": 1,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 2,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 3,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 4,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 5,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 6,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 7,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 8,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 9,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 10,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 11,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 12,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 13,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 14,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 15,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 16,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 17,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 18,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 19,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 20,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 21,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 22,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 23,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 24,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 25,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 26,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 27,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 28,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 29,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 30,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 31,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 32,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 33,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 34,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 35,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 36,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 37,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 38,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 39,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 40,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 41,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 42,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 43,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 44,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 45,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 46,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 47,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 48,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 49,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 50,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 51,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 52,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 53,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 54,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 55,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 56,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 57,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 58,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 59,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 60,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 61,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 62,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 63,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 64,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 65,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 66,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 67,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 68,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 69,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 70,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 71,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 72,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 73,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 74,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 75,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 76,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 77,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 78,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 79,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 80,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 81,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 82,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 83,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 84,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 85,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 86,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 87,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 88,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 89,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 90,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 91,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 92,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 93,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 94,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 95,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 96,
+      "type": "HAS_SUBDOMAIN"
+    },
+    {
+      "source": 0,
+      "target": 97,
+      "type": "HAS_SUBDOMAIN"
+    }
+  ]
+}

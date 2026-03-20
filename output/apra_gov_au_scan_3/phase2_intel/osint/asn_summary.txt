@@ -1,0 +1,7 @@
+target=apra.gov.au
+ip_count=53
+asn_records=50
+
+top_asn:
+     19 AS17477
+      7 AS140637

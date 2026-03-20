@@ -1,0 +1,11 @@
+{
+  "target": "apra.gov.au",
+  "phase": "attack_graph",
+  "timestamp": "2026-02-27T12:06:06.148500Z",
+  "graph_nodes": 98,
+  "graph_edges": 97,
+  "entry_points": 0,
+  "critical_assets": 0,
+  "attack_paths": 0,
+  "visualization_ready": false
+}

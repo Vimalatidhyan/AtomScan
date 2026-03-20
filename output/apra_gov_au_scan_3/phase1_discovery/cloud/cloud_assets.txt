@@ -1,0 +1,1 @@
+[32m[+][C=200] https://exchange.blob.core.windows.net/pub?restype=container[0m

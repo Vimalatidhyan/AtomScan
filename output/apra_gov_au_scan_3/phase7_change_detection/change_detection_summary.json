@@ -1,0 +1,11 @@
+{
+  "target": "apra.gov.au",
+  "phase": "change_detection",
+  "timestamp": "2026-02-27T12:00:12.292525Z",
+  "delta_computed": true,
+  "alerts_generated": 0,
+  "first_scan": true,
+  "new_subdomains": 0,
+  "new_ports": 0,
+  "new_vulnerabilities": 0
+}

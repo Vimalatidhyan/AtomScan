@@ -1,0 +1,20 @@
+HTTP/1.1 200 OK
+Date: Fri, 27 Feb 2026 11:54:38 GMT
+Server: BigIP
+Cache-Control: no-cache, no-store
+Content-Length: 86
+Connection: close
+Content-Type: text/html; charset=ISO-8859-1
+X-Frame-Options: SAMEORIGIN
+X-XSS-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+Content-Security-Policy: object-src *;script-src * 'unsafe-inline' 'unsafe-eval' data:
+Referrer-Policy: same-origin
+Permissions-Policy: geolocation=(self https://example.com), microphone=()
+Strict-Transport-Security: max-age=16070400; includeSubDomains
+X-Frame-Options: DENY
+Pragma: no-cache
+Cache-Control: no-cache, must-revalidate
+
+
+The requested file was not found on the server. Please contact system administrator!

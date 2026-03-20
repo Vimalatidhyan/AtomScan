@@ -1,0 +1,1274 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "type": "domain",
+      "identifier": "apra.gov.au",
+      "is_root": true
+    },
+    {
+      "id": 1,
+      "type": "subdomain",
+      "identifier": "adfs.apra.gov.au"
+    },
+    {
+      "id": 2,
+      "type": "subdomain",
+      "identifier": "adfs.dev.apra.gov.au"
+    },
+    {
+      "id": 3,
+      "type": "subdomain",
+      "identifier": "adfsdev.apra.gov.au"
+    },
+    {
+      "id": 4,
+      "type": "subdomain",
+      "identifier": "adfs.test.apra.gov.au"
+    },
+    {
+      "id": 5,
+      "type": "subdomain",
+      "identifier": "api.apra.gov.au"
+    },
+    {
+      "id": 6,
+      "type": "subdomain",
+      "identifier": "apiconnectgw-uat.apra.gov.au"
+    },
+    {
+      "id": 7,
+      "type": "subdomain",
+      "identifier": "apigw-uat.apra.gov.au"
+    },
+    {
+      "id": 8,
+      "type": "subdomain",
+      "identifier": "apimanagement-uat.apra.gov.au"
+    },
+    {
+      "id": 9,
+      "type": "subdomain",
+      "identifier": "apiportal-uat.apra.gov.au"
+    },
+    {
+      "id": 10,
+      "type": "subdomain",
+      "identifier": "apiuat.apra.gov.au"
+    },
+    {
+      "id": 11,
+      "type": "subdomain",
+      "identifier": "appcontroltest.apra.gov.au"
+    },
+    {
+      "id": 12,
+      "type": "subdomain",
+      "identifier": "apra-connect-prod-signing.apra.gov.au"
+    },
+    {
+      "id": 13,
+      "type": "subdomain",
+      "identifier": "autodiscover.apra.gov.au"
+    },
+    {
+      "id": 14,
+      "type": "subdomain",
+      "identifier": "beta.apra.gov.au"
+    },
+    {
+      "id": 15,
+      "type": "subdomain",
+      "identifier": "certauth.adfs.apra.gov.au"
+    },
+    {
+      "id": 16,
+      "type": "subdomain",
+      "identifier": "certauth.adfs.dev.apra.gov.au"
+    },
+    {
+      "id": 17,
+      "type": "subdomain",
+      "identifier": "certauth.adfs.test.apra.gov.au"
+    },
+    {
+      "id": 18,
+      "type": "subdomain",
+      "identifier": "certauth.adfs.test.APRA.gov.au"
+    },
+    {
+      "id": 19,
+      "type": "subdomain",
+      "identifier": "connectapi.apra.gov.au"
+    },
+    {
+      "id": 20,
+      "type": "subdomain",
+      "identifier": "connectapiuat.apra.gov.au"
+    },
+    {
+      "id": 21,
+      "type": "subdomain",
+      "identifier": "connect.apra.gov.au"
+    },
+    {
+      "id": 22,
+      "type": "subdomain",
+      "identifier": "connect-test.apra.gov.au"
+    },
+    {
+      "id": 23,
+      "type": "subdomain",
+      "identifier": "d2axp.apra.gov.au"
+    },
+    {
+      "id": 24,
+      "type": "subdomain",
+      "identifier": "d2axu.apra.gov.au"
+    },
+    {
+      "id": 25,
+      "type": "subdomain",
+      "identifier": "dc1prdnet100.internal.apra.gov.au"
+    },
+    {
+      "id": 26,
+      "type": "subdomain",
+      "identifier": "dc1prdnet101.internal.apra.gov.au"
+    },
+    {
+      "id": 27,
+      "type": "subdomain",
+      "identifier": "dc1prdnet10.internal.apra.gov.au"
+    },
+    {
+      "id": 28,
+      "type": "subdomain",
+      "identifier": "dc2prdnet100.internal.apra.gov.au"
+    },
+    {
+      "id": 29,
+      "type": "subdomain",
+      "identifier": "dialin.apra.gov.au"
+    },
+    {
+      "id": 30,
+      "type": "subdomain",
+      "identifier": "eas.apra.gov.au"
+    },
+    {
+      "id": 31,
+      "type": "subdomain",
+      "identifier": "emailservice.apra.gov.au"
+    },
+    {
+      "id": 32,
+      "type": "subdomain",
+      "identifier": "eumcollector.apra.gov.au"
+    },
+    {
+      "id": 33,
+      "type": "subdomain",
+      "identifier": "exchange.apra.gov.au"
+    },
+    {
+      "id": 34,
+      "type": "subdomain",
+      "identifier": "Exchange.apra.gov.au"
+    },
+    {
+      "id": 35,
+      "type": "subdomain",
+      "identifier": "extauth.apra.gov.au"
+    },
+    {
+      "id": 36,
+      "type": "subdomain",
+      "identifier": "externalaccess.apra.gov.au"
+    },
+    {
+      "id": 37,
+      "type": "subdomain",
+      "identifier": "extranet.apra.gov.au"
+    },
+    {
+      "id": 38,
+      "type": "subdomain",
+      "identifier": "extranet-ext.apra.gov.au"
+    },
+    {
+      "id": 39,
+      "type": "subdomain",
+      "identifier": "extranet-int.apra.gov.au"
+    },
+    {
+      "id": 40,
+      "type": "subdomain",
+      "identifier": "extranettest.apra.gov.au"
+    },
+    {
+      "id": 41,
+      "type": "subdomain",
+      "identifier": "extranettest-ext.apra.gov.au"
+    },
+    {
+      "id": 42,
+      "type": "subdomain",
+      "identifier": "fcs.gov.au"
+    },
+    {
+      "id": 43,
+      "type": "subdomain",
+      "identifier": "handbook.apra.gov.au"
+    },
+    {
+      "id": 44,
+      "type": "subdomain",
+      "identifier": "icpfaguest.apra.gov.au"
+    },
+    {
+      "id": 45,
+      "type": "subdomain",
+      "identifier": "ICPFAGuest.apra.gov.au"
+    },
+    {
+      "id": 46,
+      "type": "subdomain",
+      "identifier": "lyncdiscover.apra.gov.au"
+    },
+    {
+      "id": 47,
+      "type": "subdomain",
+      "identifier": "main-bvxea6i-6l2tvkyjevysg.au-2.platformsh.site"
+    },
+    {
+      "id": 48,
+      "type": "subdomain",
+      "identifier": "mam.apra.gov.au"
+    },
+    {
+      "id": 49,
+      "type": "subdomain",
+      "identifier": "mdm.apra.gov.au"
+    },
+    {
+      "id": 50,
+      "type": "subdomain",
+      "identifier": "meet.apra.gov.au"
+    },
+    {
+      "id": 51,
+      "type": "subdomain",
+      "identifier": "melvgw11.apra.gov.au"
+    },
+    {
+      "id": 52,
+      "type": "subdomain",
+      "identifier": "mobiletest.apra.gov.au"
+    },
+    {
+      "id": 53,
+      "type": "subdomain",
+      "identifier": "mta-sts.apra.gov.au"
+    },
+    {
+      "id": 54,
+      "type": "subdomain",
+      "identifier": "ncpd.apra.gov.au"
+    },
+    {
+      "id": 55,
+      "type": "subdomain",
+      "identifier": "ncpdonlineshop.ncpd.apra.gov.au"
+    },
+    {
+      "id": 56,
+      "type": "subdomain",
+      "identifier": "ns1.apra.gov.au"
+    },
+    {
+      "id": 57,
+      "type": "subdomain",
+      "identifier": "ns2.apra.gov.au"
+    },
+    {
+      "id": 58,
+      "type": "subdomain",
+      "identifier": "officewebapp01.apra.gov.au"
+    },
+    {
+      "id": 59,
+      "type": "subdomain",
+      "identifier": "officewebapp02.apra.gov.au"
+    },
+    {
+      "id": 60,
+      "type": "subdomain",
+      "identifier": "pre-prod-qrk7t3i-6l2tvkyjevysg.au-2.platformsh.site"
+    },
+    {
+      "id": 61,
+      "type": "subdomain",
+      "identifier": "prod.apra.pnx.skpr.live"
+    },
+    {
+      "id": 62,
+      "type": "subdomain",
+      "identifier": "prod.apra.shared.skpr.live"
+    },
+    {
+      "id": 63,
+      "type": "subdomain",
+      "identifier": "qa.handbook.apra.gov.au"
+    },
+    {
+      "id": 64,
+      "type": "subdomain",
+      "identifier": "remoteaccess.apra.gov.au"
+    },
+    {
+      "id": 65,
+      "type": "subdomain",
+      "identifier": "remoteaccess.gtm.apra.gov.au"
+    },
+    {
+      "id": 66,
+      "type": "subdomain",
+      "identifier": "remoteaccesstest.apra.gov.au"
+    },
+    {
+      "id": 67,
+      "type": "subdomain",
+      "identifier": "samlproxy.apra.gov.au"
+    },
+    {
+      "id": 68,
+      "type": "subdomain",
+      "identifier": "samlproxyuat.apra.gov.au"
+    },
+    {
+      "id": 69,
+      "type": "subdomain",
+      "identifier": "sbr-pet.apra.gov.au"
+    },
+    {
+      "id": 70,
+      "type": "subdomain",
+      "identifier": "sbr-pet-dev.apra.gov.au"
+    },
+    {
+      "id": 71,
+      "type": "subdomain",
+      "identifier": "sbr-pet-test.apra.gov.au"
+    },
+    {
+      "id": 72,
+      "type": "subdomain",
+      "identifier": "secure1.ncpd.apra.gov.au"
+    },
+    {
+      "id": 73,
+      "type": "subdomain",
+      "identifier": "secure2.ncpd.apra.gov.au"
+    },
+    {
+      "id": 74,
+      "type": "subdomain",
+      "identifier": "securedoc.apra.gov.au"
+    },
+    {
+      "id": 75,
+      "type": "subdomain",
+      "identifier": "securedoccon.apra.gov.au"
+    },
+    {
+      "id": 76,
+      "type": "subdomain",
+      "identifier": "securedocstatic.apra.gov.au"
+    },
+    {
+      "id": 77,
+      "type": "subdomain",
+      "identifier": "sfbwebext01.apra.gov.au"
+    },
+    {
+      "id": 78,
+      "type": "subdomain",
+      "identifier": "sip.apra.gov.au"
+    },
+    {
+      "id": 79,
+      "type": "subdomain",
+      "identifier": "smtp.apra.gov.au"
+    },
+    {
+      "id": 80,
+      "type": "subdomain",
+      "identifier": "Smtp.apra.gov.au"
+    },
+    {
+      "id": 81,
+      "type": "subdomain",
+      "identifier": "sydprdmgw01.apra.gov.au"
+    },
+    {
+      "id": 82,
+      "type": "subdomain",
+      "identifier": "sydvgw12.apra.gov.au"
+    },
+    {
+      "id": 83,
+      "type": "subdomain",
+      "identifier": "sydvgw13.apra.gov.au"
+    },
+    {
+      "id": 84,
+      "type": "subdomain",
+      "identifier": "webconf.apra.gov.au"
+    },
+    {
+      "id": 85,
+      "type": "subdomain",
+      "identifier": "www.apra.gov.au"
+    },
+    {
+      "id": 86,
+      "type": "subdomain",
+      "identifier": "www.autodiscover.apra.gov.au"
+    },
+    {
+      "id": 87,
+      "type": "subdomain",
+      "identifier": "www.beta.apra.gov.au"
+    },
+    {
+      "id": 88,
+      "type": "subdomain",
+      "identifier": "www.fcs.gov.au"
+    },
+    {
+      "id": 89,
+      "type": "subdomain",
+      "identifier": "www.handbook.apra.gov.au"
+    },
+    {
+      "id": 90,
+      "type": "subdomain",
+      "identifier": "www.mam.apra.gov.au"
+    },
+    {
+      "id": 91,
+      "type": "subdomain",
+      "identifier": "www.mdm.apra.gov.au"
+    },
+    {
+      "id": 92,
+      "type": "subdomain",
+      "identifier": "www.ncpd.apra.gov.au"
+    },
+    {
+      "id": 93,
+      "type": "subdomain",
+      "identifier": "www.qa.handbook.apra.gov.au"
+    },
+    {
+      "id": 94,
+      "type": "subdomain",
+      "identifier": "www.remoteaccess.apra.gov.au"
+    },
+    {
+      "id": 95,
+      "type": "subdomain",
+      "identifier": "www.secure1.ncpd.apra.gov.au"
+    },
+    {
+      "id": 96,
+      "type": "subdomain",
+      "identifier": "www.secure2.ncpd.apra.gov.au"
+    },
+    {
+      "id": 97,
+      "type": "subdomain",
+      "identifier": "www.securedoc.apra.gov.au"
+    }
+  ],
+  "edges": [
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "adfs.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "adfs.dev.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "adfsdev.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "adfs.test.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "api.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "apiconnectgw-uat.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "apigw-uat.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "apimanagement-uat.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "apiportal-uat.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "apiuat.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "appcontroltest.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "apra-connect-prod-signing.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "autodiscover.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "beta.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "certauth.adfs.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "certauth.adfs.dev.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "certauth.adfs.test.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "certauth.adfs.test.APRA.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "connectapi.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "connectapiuat.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "connect.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "connect-test.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "d2axp.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "d2axu.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "dc1prdnet100.internal.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "dc1prdnet101.internal.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "dc1prdnet10.internal.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "dc2prdnet100.internal.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "dialin.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "eas.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "emailservice.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "eumcollector.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "exchange.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "Exchange.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "extauth.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "externalaccess.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "extranet.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "extranet-ext.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "extranet-int.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "extranettest.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "extranettest-ext.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "fcs.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "handbook.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "icpfaguest.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "ICPFAGuest.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "lyncdiscover.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "main-bvxea6i-6l2tvkyjevysg.au-2.platformsh.site",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "mam.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "mdm.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "meet.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "melvgw11.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "mobiletest.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "mta-sts.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "ncpd.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "ncpdonlineshop.ncpd.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "ns1.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "ns2.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "officewebapp01.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "officewebapp02.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "pre-prod-qrk7t3i-6l2tvkyjevysg.au-2.platformsh.site",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "prod.apra.pnx.skpr.live",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "prod.apra.shared.skpr.live",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "qa.handbook.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "remoteaccess.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "remoteaccess.gtm.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "remoteaccesstest.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "samlproxy.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "samlproxyuat.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "sbr-pet.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "sbr-pet-dev.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "sbr-pet-test.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "secure1.ncpd.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "secure2.ncpd.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "securedoc.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "securedoccon.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "securedocstatic.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "sfbwebext01.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "sip.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "smtp.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "Smtp.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "sydprdmgw01.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "sydvgw12.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "sydvgw13.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "webconf.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.autodiscover.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.beta.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.fcs.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.handbook.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.mam.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.mdm.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.ncpd.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.qa.handbook.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.remoteaccess.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.secure1.ncpd.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.secure2.ncpd.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    },
+    {
+      "source": "apra.gov.au",
+      "source_type": "domain",
+      "target": "www.securedoc.apra.gov.au",
+      "target_type": "subdomain",
+      "relationship": "parent_domain",
+      "weight": 1.0
+    }
+  ],
+  "error": "networkx is required: pip install networkx"
+}

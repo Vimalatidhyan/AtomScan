@@ -1,0 +1,1 @@
+var req = {'data':'GET /vdesk/weekly.app HTTP/1.1\x0d\x0aHost: adfs.apra.gov.au\x0d\x0aAccept-Encoding: gzip\x0d\x0aConnection: keep-alive\x0d\x0aUser-Agent: Mozilla/5.0 SF/2.10b\x0d\x0aRange: bytes=0-262143\x0d\x0aReferer: https://adfs.apra.gov.au/\x0d\x0aCookie: LastMRH_Session=1aefd3d4; MRHSession=f90f44e7412f93fc1eb705001aefd3d4; MRHSHint=deleted\x0d\x0a\x0d\x0a'}

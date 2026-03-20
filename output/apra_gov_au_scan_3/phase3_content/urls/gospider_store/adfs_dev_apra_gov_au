@@ -1,0 +1,21 @@
+[url] - [code-200] - https://adfs.dev.apra.gov.au/my.logout.php3?errorcode=19
+[href] - https://adfs.dev.apra.gov.au/public/include/css/apm.css
+[href] - https://adfs.dev.apra.gov.au/
+[javascript] - https://adfs.dev.apra.gov.au/public/include/js/common.js
+[javascript] - https://adfs.dev.apra.gov.au/public/include/js/u_plugin.js
+[url] - [code-200] - https://adfs.dev.apra.gov.au/public/include/js/common.js
+[url] - [code-200] - https://adfs.dev.apra.gov.au/public/include/js/u_plugin.js
+[linkfinder] - [from: https://adfs.dev.apra.gov.au/public/include/js/u_plugin.js] - application/x-f5-host-plugin
+[linkfinder] - https://adfs.dev.apra.gov.au/public/include/js/application/x-f5-host-plugin
+[linkfinder] - https://adfs.dev.apra.gov.au/application/x-f5-host-plugin
+[linkfinder] - [from: https://adfs.dev.apra.gov.au/public/include/js/u_plugin.js] - https://your.server/public/download/urhostplg.xpi
+[linkfinder] - https://your.server/public/download/urhostplg.xpi
+[linkfinder] - [from: https://adfs.dev.apra.gov.au/public/include/js/u_plugin.js] - /public/download/urhostplg.crx
+[linkfinder] - https://adfs.dev.apra.gov.au/public/download/urhostplg.crx
+[linkfinder] - [from: https://adfs.dev.apra.gov.au/public/include/js/u_plugin.js] - /public/download/urhostplg.xpi
+[linkfinder] - https://adfs.dev.apra.gov.au/public/download/urhostplg.xpi
+[linkfinder] - [from: https://adfs.dev.apra.gov.au/public/include/js/u_plugin.js] - /public/download/urhostplg.zip
+[linkfinder] - https://adfs.dev.apra.gov.au/public/download/urhostplg.zip
+[url] - [code-200] - https://adfs.dev.apra.gov.au/my.logout.php3?errorcode=19
+[url] - [code-200] - https://adfs.dev.apra.gov.au/my.logout.php3?errorcode=19
+[url] - [code-200] - https://adfs.dev.apra.gov.au/my.logout.php3?errorcode=19

@@ -1,0 +1,4 @@
+{
+  "framework": "nist_csf",
+  "error": "map_findings_to_compliance() got an unexpected keyword argument 'framework'. Did you mean 'frameworks'?"
+}

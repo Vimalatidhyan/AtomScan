@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.95 scan initiated Fri Feb 27 11:35:13 2026 as: /usr/lib/nmap/nmap -&#45;privileged -sV -sC -T4 -Pn -p 21,22,23,25,53,80,110,135,143,443,445,587,993,995,1433,1521,3306,3389,5432,5900,6379,8080,8443,8000,8008,8888,9200,27017 -&#45;host-timeout 120s -&#45;min-parallelism 10 -iL /mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase2_intel/ports/nmap_targets.txt -oX /mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase2_intel/ports/nmap_all.xml -oN /mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase2_intel/ports/nmap_all.txt -->
+<nmaprun scanner="nmap" args="/usr/lib/nmap/nmap -&#45;privileged -sV -sC -T4 -Pn -p 21,22,23,25,53,80,110,135,143,443,445,587,993,995,1433,1521,3306,3389,5432,5900,6379,8080,8443,8000,8008,8888,9200,27017 -&#45;host-timeout 120s -&#45;min-parallelism 10 -iL /mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase2_intel/ports/nmap_targets.txt -oX /mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase2_intel/ports/nmap_all.xml -oN /mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase2_intel/ports/nmap_all.txt" start="1772172313" startstr="Fri Feb 27 11:35:13 2026" version="7.95" xmloutputversion="1.05">
+<scaninfo type="syn" protocol="tcp" numservices="28" services="21-23,25,53,80,110,135,143,443,445,587,993,995,1433,1521,3306,3389,5432,5900,6379,8000,8008,8080,8443,8888,9200,27017"/>
+<verbose level="0"/>
+<debugging level="0"/>
+<host starttime="1772172328" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="108.159.15.124" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-108-159-15-124.maa51.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="55359" rttvar="26530" to="161479"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="108.159.15.43" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-108-159-15-43.maa51.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="30970" rttvar="21326" to="116274"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="108.159.15.71" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-108-159-15-71.maa51.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="37235" rttvar="23032" to="129363"/>
+</host>
+<host starttime="1772172328" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="108.159.15.84" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-108-159-15-84.maa51.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="52260" rttvar="32017" to="180328"/>
+</host>
+<host starttime="1772172327" endtime="1772172450" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.18" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="161028" rttvar="72211" to="449872"/>
+</host>
+<host starttime="1772172327" endtime="1772172450" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.19" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="166617" rttvar="125543" to="668789"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.21" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="150267" rttvar="112795" to="601447"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.23" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="152131" rttvar="114104" to="608547"/>
+</host>
+<host starttime="1772172329" endtime="1772172456" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.29" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="155364" rttvar="118588" to="629716"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.31" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="154383" rttvar="88071" to="506667"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.38" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="151936" rttvar="88384" to="505472"/>
+</host>
+<host starttime="1772172327" endtime="1772172450" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.40" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="154063" rttvar="87649" to="504659"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.41" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="159996" rttvar="94694" to="538772"/>
+</host>
+<host starttime="1772172327" endtime="1772172456" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.61" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="160651" rttvar="121688" to="647403"/>
+</host>
+<host starttime="1772172327" endtime="1772172456" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="124.47.155.62" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="149127" rttvar="87315" to="498387"/>
+</host>
+<host starttime="1772172328" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="151.101.130.216" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="29928" rttvar="21417" to="115596"/>
+</host>
+<host starttime="1772172331" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="151.101.194.216" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="27045" rttvar="17284" to="100000"/>
+</host>
+<host starttime="1772172328" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="151.101.2.216" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="28730" rttvar="19504" to="106746"/>
+</host>
+<host starttime="1772172328" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="151.101.66.216" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="30263" rttvar="20684" to="112999"/>
+</host>
+<host starttime="1772172328" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="163.47.92.162" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="321058" rttvar="148723" to="915950"/>
+</host>
+<host starttime="1772172334" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.161.229.10" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-161-229-10.maa50.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="26569" rttvar="16379" to="100000"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.161.229.16" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-161-229-16.maa50.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="55210" rttvar="27875" to="166710"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.161.229.23" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-161-229-23.maa50.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="61124" rttvar="38292" to="214292"/>
+</host>
+<host starttime="1772172331" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.161.229.73" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-161-229-73.maa50.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="32352" rttvar="26207" to="137180"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.172.78.12" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-172-78-12.bom78.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="54441" rttvar="26647" to="161029"/>
+</host>
+<host starttime="1772172328" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.172.78.128" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-172-78-128.bom78.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="52380" rttvar="22802" to="143588"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.172.78.66" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-172-78-66.bom78.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="50967" rttvar="31119" to="175443"/>
+</host>
+<host starttime="1772172331" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.172.78.76" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-172-78-76.bom78.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="49137" rttvar="29500" to="167137"/>
+</host>
+<host starttime="1772172328" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.67.161.103" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-67-161-103.maa51.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="24742" rttvar="15668" to="100000"/>
+</host>
+<host starttime="1772172328" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.67.161.111" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-67-161-111.maa51.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="25437" rttvar="16059" to="100000"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.67.161.17" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-67-161-17.maa51.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="22487" rttvar="14197" to="100000"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="18.67.161.23" addrtype="ipv4"/>
+<hostnames>
+<hostname name="server-18-67-161-23.maa51.r.cloudfront.net" type="PTR"/>
+</hostnames>
+<times srtt="65439" rttvar="40288" to="226591"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="203.31.52.25" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="156569" rttvar="69738" to="435521"/>
+</host>
+<host starttime="1772172329" endtime="1772172464" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="203.31.52.26" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="161392" rttvar="71981" to="449316"/>
+</host>
+<host starttime="1772172328" endtime="1772172468" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="20.37.196.203" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<times srtt="149720" rttvar="51335" to="355060"/>
+</host>
+<host starttime="1772172327" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="75.2.88.62" addrtype="ipv4"/>
+<hostnames>
+<hostname name="a15d594a7354391bd.awsglobalaccelerator.com" type="PTR"/>
+</hostnames>
+<times srtt="21308" rttvar="13575" to="100000"/>
+</host>
+<host starttime="1772172334" endtime="1772172542" timedout="true"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="99.83.220.245" addrtype="ipv4"/>
+<hostnames>
+<hostname name="a15d594a7354391bd.awsglobalaccelerator.com" type="PTR"/>
+</hostnames>
+<times srtt="27730" rttvar="18306" to="100954"/>
+</host>
+<runstats><finished time="1772172542" timestr="Fri Feb 27 11:39:02 2026" summary="Nmap done at Fri Feb 27 11:39:02 2026; 37 IP addresses (37 hosts up) scanned in 228.98 seconds" elapsed="228.98" exit="success"/><hosts up="37" down="0" total="37"/>
+</runstats>
+</nmaprun>

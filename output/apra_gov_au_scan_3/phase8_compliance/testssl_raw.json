@@ -1,0 +1,113 @@
+[
+         {
+              "id"           : "engine_problem",
+              "ip"           : "/",
+              "port"         : "443",
+              "severity"     : "WARN",
+              "finding"      : "No engine or GOST support via engine with your /usr/bin/openssl"
+          }
+,         {
+              "id"           : "cipherlist_NULL",
+              "ip"           : "apra.gov.au/99.83.220.245",
+              "port"         : "443",
+              "severity"     : "CRITICAL",
+              "cwe"          : "CWE-327",
+              "finding"      : "offered"
+          }
+,         {
+              "id"           : "cipherlist_aNULL",
+              "ip"           : "apra.gov.au/99.83.220.245",
+              "port"         : "443",
+              "severity"     : "CRITICAL",
+              "cwe"          : "CWE-327",
+              "finding"      : "offered"
+          }
+,         {
+              "id"           : "cipherlist_OBSOLETED",
+              "ip"           : "apra.gov.au/99.83.220.245",
+              "port"         : "443",
+              "severity"     : "LOW",
+              "cwe"          : "CWE-310",
+              "finding"      : "offered"
+          }
+,         {
+              "id"           : "OCSP_stapling",
+              "ip"           : "apra.gov.au/99.83.220.245",
+              "port"         : "443",
+              "severity"     : "LOW",
+              "finding"      : "not offered"
+          }
+,         {
+              "id"           : "DNS_CAArecord",
+              "ip"           : "apra.gov.au/99.83.220.245",
+              "port"         : "443",
+              "severity"     : "LOW",
+              "finding"      : "--"
+          }
+,         {
+              "id"           : "security_headers",
+              "ip"           : "apra.gov.au/99.83.220.245",
+              "port"         : "443",
+              "severity"     : "MEDIUM",
+              "finding"      : "--"
+          }
+,         {
+              "id"           : "RC4",
+              "ip"           : "apra.gov.au/99.83.220.245",
+              "port"         : "443",
+              "severity"     : "WARN",
+              "finding"      : "RC4 ciphers not supported by local OpenSSL (/usr/bin/openssl)"
+          }
+,         {
+              "id"           : "cipherlist_NULL",
+              "ip"           : "apra.gov.au/75.2.88.62",
+              "port"         : "443",
+              "severity"     : "CRITICAL",
+              "cwe"          : "CWE-327",
+              "finding"      : "offered"
+          }
+,         {
+              "id"           : "cipherlist_aNULL",
+              "ip"           : "apra.gov.au/75.2.88.62",
+              "port"         : "443",
+              "severity"     : "CRITICAL",
+              "cwe"          : "CWE-327",
+              "finding"      : "offered"
+          }
+,         {
+              "id"           : "cipherlist_OBSOLETED",
+              "ip"           : "apra.gov.au/75.2.88.62",
+              "port"         : "443",
+              "severity"     : "LOW",
+              "cwe"          : "CWE-310",
+              "finding"      : "offered"
+          }
+,         {
+              "id"           : "OCSP_stapling",
+              "ip"           : "apra.gov.au/75.2.88.62",
+              "port"         : "443",
+              "severity"     : "LOW",
+              "finding"      : "not offered"
+          }
+,         {
+              "id"           : "DNS_CAArecord",
+              "ip"           : "apra.gov.au/75.2.88.62",
+              "port"         : "443",
+              "severity"     : "LOW",
+              "finding"      : "--"
+          }
+,         {
+              "id"           : "security_headers",
+              "ip"           : "apra.gov.au/75.2.88.62",
+              "port"         : "443",
+              "severity"     : "MEDIUM",
+              "finding"      : "--"
+          }
+,         {
+              "id"           : "RC4",
+              "ip"           : "apra.gov.au/75.2.88.62",
+              "port"         : "443",
+              "severity"     : "WARN",
+              "finding"      : "RC4 ciphers not supported by local OpenSSL (/usr/bin/openssl)"
+          }
+]

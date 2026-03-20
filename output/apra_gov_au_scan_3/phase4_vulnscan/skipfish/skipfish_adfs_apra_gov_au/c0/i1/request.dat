@@ -1,0 +1,9 @@
+GET /sfi9876 HTTP/1.1
+Host: adfs.apra.gov.au
+Accept-Encoding: gzip
+Connection: keep-alive
+User-Agent: Mozilla/5.0 SF/2.10b
+Range: bytes=0-262143
+Referer: https://adfs.apra.gov.au/
+Cookie: LastMRH_Session=1aefd3d4; MRHSession=f90f44e7412f93fc1eb705001aefd3d4; MRHSHint=deleted
+

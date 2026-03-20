@@ -1,0 +1,393 @@
+Configuration {
+    kind: "configuration",
+    wordlist: "/usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt",
+    config: "/etc/feroxbuster/ferox-config.toml",
+    proxy: "",
+    replay_proxy: "",
+    server_certs: [],
+    client_cert: "",
+    client_key: "",
+    target_url: "https://handbook.apra.gov.au/",
+    status_codes: [
+        100,
+        101,
+        102,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        226,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        307,
+        308,
+        400,
+        401,
+        402,
+        403,
+        404,
+        405,
+        406,
+        407,
+        408,
+        409,
+        410,
+        411,
+        412,
+        413,
+        414,
+        415,
+        416,
+        417,
+        418,
+        421,
+        422,
+        423,
+        424,
+        426,
+        428,
+        429,
+        431,
+        451,
+        500,
+        501,
+        502,
+        503,
+        504,
+        505,
+        506,
+        507,
+        508,
+        510,
+        511,
+        103,
+        425,
+    ],
+    replay_codes: [
+        100,
+        101,
+        102,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        226,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        307,
+        308,
+        400,
+        401,
+        402,
+        403,
+        404,
+        405,
+        406,
+        407,
+        408,
+        409,
+        410,
+        411,
+        412,
+        413,
+        414,
+        415,
+        416,
+        417,
+        418,
+        421,
+        422,
+        423,
+        424,
+        426,
+        428,
+        429,
+        431,
+        451,
+        500,
+        501,
+        502,
+        503,
+        504,
+        505,
+        506,
+        507,
+        508,
+        510,
+        511,
+        103,
+        425,
+    ],
+    filter_status: [],
+    client: Client {
+        accepts: Accepts,
+        proxies: [
+            Matcher,
+        ],
+        redirect_policy: "Policy(None)",
+        referer: true,
+        default_headers: {
+            "accept": "*/*",
+            "user-agent": "feroxbuster/2.13.0",
+        },
+        reqwest::config::RequestTimeout: 7s,
+    },
+    replay_client: None,
+    threads: 80,
+    timeout: 7,
+    verbosity: 0,
+    silent: false,
+    quiet: false,
+    output_level: Default,
+    auto_bail: true,
+    auto_tune: false,
+    requester_policy: AutoBail,
+    json: false,
+    output: "/mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase3_content/bruteforce/feroxbuster_handbook_apra_gov_au.txt",
+    debug_log: "",
+    user_agent: "feroxbuster/2.13.0",
+    random_agent: true,
+    redirects: false,
+    insecure: false,
+    extensions: [],
+    methods: [
+        "GET",
+    ],
+    data: [],
+    headers: {},
+    queries: [],
+    no_recursion: false,
+    extract_links: true,
+    add_slash: false,
+    stdin: false,
+    cached_stdin: [],
+    depth: 2,
+    scan_limit: 0,
+    parallel: 0,
+    rate_limit: 0,
+    filter_size: [],
+    filter_line_count: [],
+    filter_word_count: [],
+    filter_regex: [],
+    dont_filter: false,
+    resumed: false,
+    resume_from: "",
+    save_state: true,
+    time_limit: "",
+    filter_similar: [],
+    url_denylist: [],
+    regex_denylist: [],
+    scope: [
+        Url {
+            scheme: "https",
+            cannot_be_a_base: false,
+            username: "",
+            password: None,
+            host: Some(
+                Domain(
+                    "handbook.apra.gov.au",
+                ),
+            ),
+            port: None,
+            path: "/",
+            query: None,
+            fragment: None,
+        },
+    ],
+    collect_extensions: false,
+    dont_collect: [
+        "tif",
+        "tiff",
+        "ico",
+        "cur",
+        "bmp",
+        "webp",
+        "svg",
+        "png",
+        "jpg",
+        "jpeg",
+        "jfif",
+        "gif",
+        "avif",
+        "apng",
+        "pjpeg",
+        "pjp",
+        "mov",
+        "wav",
+        "mpg",
+        "mpeg",
+        "mp3",
+        "mp4",
+        "m4a",
+        "m4p",
+        "m4v",
+        "ogg",
+        "webm",
+        "ogv",
+        "oga",
+        "flac",
+        "aac",
+        "3gp",
+        "css",
+        "zip",
+        "xls",
+        "xml",
+        "gz",
+        "tgz",
+    ],
+    collect_backups: false,
+    backup_extensions: [
+        "~",
+        ".bak",
+        ".bak2",
+        ".old",
+        ".1",
+    ],
+    collect_words: false,
+    force_recursion: false,
+    update_app: false,
+    scan_dir_listings: false,
+    request_file: "",
+    protocol: "https",
+    limit_bars: 0,
+    unique: false,
+    response_size_limit: 4194304,
+}
+404      GET      848l     2587w    43368c https://handbook.apra.gov.au/web.config
+301      GET       12l       22w      406c https://handbook.apra.gov.au/index.php/filter/tips => https://handbook.apra.gov.au/filter/tips
+301      GET       12l       22w      410c https://handbook.apra.gov.au/index.php/media/oembed => https://handbook.apra.gov.au/media/oembed
+301      GET       12l       22w      362c https://handbook.apra.gov.au/index.php/ => https://handbook.apra.gov.au/
+404      GET        1l       14w      228c https://handbook.apra.gov.au/composer/Plugin/VendorHardening/README.txt
+404      GET        1l       14w      203c https://handbook.apra.gov.au/themes/README.txt
+404      GET      848l     2587w    43397c https://handbook.apra.gov.au/composer/Plugin/ProjectMessage/README.md
+404      GET      848l     2587w    43357c https://handbook.apra.gov.au/core
+404      GET        1l       14w      214c https://handbook.apra.gov.au/composer/Template/README.txt
+404      GET      848l     2587w    43365c https://handbook.apra.gov.au/profiles
+200      GET      852l     2493w    42522c https://handbook.apra.gov.au/filter/tips
+404      GET        1l       14w      202c https://handbook.apra.gov.au/sites/README.txt
+404      GET        1l       14w      217c https://handbook.apra.gov.au/composer/Metapackage/README.txt
+404      GET      848l     2587w    43391c https://handbook.apra.gov.au/composer/Plugin/Scaffold/README.md
+404      GET        1l       14w      204c https://handbook.apra.gov.au/modules/README.txt
+404      GET      848l     2587w    43366c https://handbook.apra.gov.au/README.md
+200      GET      980l     3169w    52400c https://handbook.apra.gov.au/search
+404      GET      848l     2587w    43360c https://handbook.apra.gov.au/sites/
+404      GET      848l     2587w    43373c https://handbook.apra.gov.au/composer/Plugin/
+404      GET      848l     2587w    43393c https://handbook.apra.gov.au/index.php/filter/
+404      GET      848l     2587w    43389c https://handbook.apra.gov.au/composer/Plugin/VendorHardening/
+404      GET      848l     2587w    43378c https://handbook.apra.gov.au/composer/Metapackage/
+404      GET      848l     2587w    43364c https://handbook.apra.gov.au/comment/
+403      GET      843l     2498w    42461c https://handbook.apra.gov.au/index.php/node/add
+404      GET      848l     2587w    43382c https://handbook.apra.gov.au/composer/Plugin/Scaffold/
+301      GET       12l       22w      386c https://handbook.apra.gov.au/index.php/search => https://handbook.apra.gov.au/search
+404      GET      848l     2587w    43366c https://handbook.apra.gov.au/composer/
+404      GET      848l     2587w    43369c https://handbook.apra.gov.au/comment/reply
+404      GET      848l     2587w    43375c https://handbook.apra.gov.au/composer/Template/
+404      GET      848l     2587w    43400c https://handbook.apra.gov.au/index.php/comment/reply
+302      GET       12l       22w      422c https://handbook.apra.gov.au/index.php/admin => https://handbook.apra.gov.au/index.php/admin
+404      GET      848l     2587w    43388c https://handbook.apra.gov.au/composer/Plugin/ProjectMessage/
+404      GET      848l     2587w    43395c https://handbook.apra.gov.au/index.php/comment/
+404      GET      848l     2587w    43358c https://handbook.apra.gov.au/node/
+404      GET      848l     2587w    43389c https://handbook.apra.gov.au/index.php/node/
+404      GET      848l     2587w    43360c https://handbook.apra.gov.au/media/
+403      GET      843l     2498w    42440c https://handbook.apra.gov.au/node/add
+400      GET        1l        5w       30c https://handbook.apra.gov.au/media/oembed
+302      GET       12l       22w      382c https://handbook.apra.gov.au/admin => https://handbook.apra.gov.au/admin
+404      GET      848l     2587w    43391c https://handbook.apra.gov.au/index.php/media/
+404      GET      848l     2587w    43362c https://handbook.apra.gov.au/themes/
+404      GET      848l     2587w    43362c https://handbook.apra.gov.au/filter/
+302      GET       12l       22w      414c https://handbook.apra.gov.au/user/register => https://handbook.apra.gov.au/user/register
+302      GET       12l       22w      454c https://handbook.apra.gov.au/index.php/user/password => https://handbook.apra.gov.au/index.php/user/password
+302      GET       12l       22w      250c https://handbook.apra.gov.au/user/login => https://handbook.apra.gov.au/
+302      GET       12l       22w      414c https://handbook.apra.gov.au/user/password => https://handbook.apra.gov.au/user/password
+302      GET       12l       22w      454c https://handbook.apra.gov.au/index.php/user/register => https://handbook.apra.gov.au/index.php/user/register
+302      GET       12l       22w      402c https://handbook.apra.gov.au/index.php/user/logout => https://handbook.apra.gov.au/index.php/
+301      GET       12l       22w      402c https://handbook.apra.gov.au/index.php/user/login => https://handbook.apra.gov.au/user/login
+302      GET       12l       22w      362c https://handbook.apra.gov.au/user/logout => https://handbook.apra.gov.au/
+302      GET       12l       22w      402c https://handbook.apra.gov.au/user/ => https://handbook.apra.gov.au/user/login
+302      GET       12l       22w      442c https://handbook.apra.gov.au/index.php/user/ => https://handbook.apra.gov.au/index.php/user/login
+302      GET       12l       22w      402c https://handbook.apra.gov.au/user => https://handbook.apra.gov.au/user/login
+302      GET       12l       22w      382c https://handbook.apra.gov.au/Admin => https://handbook.apra.gov.au/admin
+200      GET       35l     3306w   123602c https://handbook.apra.gov.au/sites/default/files/css/css_p0yajBEaN3hdrv4VslnZ-33CBMwDJZsm2V6j76w7kA8.css
+200      GET        5l       17w      580c https://handbook.apra.gov.au/themes/apra/images/favicons/favicon-white@16x16.png
+200      GET       14l      146w     1329c https://handbook.apra.gov.au/themes/apra/images/favicons/favicon.svg
+200      GET        2l       12w      418c https://handbook.apra.gov.au/sites/default/files/js/js_QXdmGB_L_rLmXymw9quM9HSbqNvKdb_WgvKoEI1ftFU.js
+200      GET       11l      134w     1538c https://handbook.apra.gov.au/sites/default/files/2024-02/section-header-icon.svg
+200      GET        3l       20w     1084c https://handbook.apra.gov.au/themes/apra/images/favicons/favicon-white@32x32.png
+200      GET       42l      108w     1239c https://handbook.apra.gov.au/modules/contrib/google_tag/js/gtag.js
+200      GET        5l      111w     1705c https://handbook.apra.gov.au/sites/default/files/2024-06/Feature-ADI_0.svg
+200      GET       18l      327w     3958c https://handbook.apra.gov.au/sites/default/files/2024-06/Feature-Super.svg
+301      GET       12l       22w      502c https://handbook.apra.gov.au/industries/private-health-insurance/ => https://handbook.apra.gov.au/industries/private-health-insurance
+200      GET        7l       37w     2465c https://handbook.apra.gov.au/themes/apra/images/favicons/favicon-brand@48x48.png
+200      GET       18l       65w     4475c https://handbook.apra.gov.au/themes/apra/images/favicons/favicon-brand@96x96.png
+301      GET       12l       22w      434c https://handbook.apra.gov.au/industries/banking/ => https://handbook.apra.gov.au/industries/banking
+301      GET       12l       22w      462c https://handbook.apra.gov.au/industries/superannuation/ => https://handbook.apra.gov.au/industries/superannuation
+200      GET        6l       19w      903c https://handbook.apra.gov.au/themes/apra/images/favicons/favicon-brand@16x16.png
+200      GET      960l     2917w    49850c https://handbook.apra.gov.au/industries
+200      GET       10l      279w     3144c https://handbook.apra.gov.au/sites/default/files/2024-06/Feature-LI.svg
+200      GET       23l      385w    14669c https://handbook.apra.gov.au/sites/default/files/css/css_7zskeVL2S3XcGG5QR4KB7sQRFy2JG4H5Uw-9XjaNnS4.css
+200      GET       20l      240w     3012c https://handbook.apra.gov.au/sites/default/files/2024-06/Feature-PHI.svg
+200      GET        4l       20w     1606c https://handbook.apra.gov.au/themes/apra/images/favicons/favicon-white@48x48.png
+200      GET       21l      468w     5345c https://handbook.apra.gov.au/sites/default/files/2024-06/Feature-GI.svg
+301      GET       12l       22w      386c https://handbook.apra.gov.au/Search => https://handbook.apra.gov.au/search
+200      GET     1088l     3852w    59466c https://handbook.apra.gov.au/about
+200      GET     1805l     1819w    60238c https://handbook.apra.gov.au/sitemap.xml
+200      GET        5l       30w     1701c https://handbook.apra.gov.au/themes/apra/images/favicons/favicon-brand@32x32.png
+200      GET       25l      521w    18504c https://handbook.apra.gov.au/sites/default/files/css/css_zb7k3XBWwzwhXyM2Fd4owluNioK_ppz4C-mtk4SjA_E.css
+200      GET        9l       44w     3398c https://handbook.apra.gov.au/themes/apra/images/favicons/favicon-white@96x96.png
+200      GET      204l     9783w    99287c https://handbook.apra.gov.au/themes/apra/logo.svg
+301      GET       12l       22w      474c https://handbook.apra.gov.au/industries/general-insurance/ => https://handbook.apra.gov.au/industries/general-insurance
+301      GET       12l       22w      462c https://handbook.apra.gov.au/industries/life-insurance/ => https://handbook.apra.gov.au/industries/life-insurance
+301      GET       12l       22w      402c https://handbook.apra.gov.au/industries/ => https://handbook.apra.gov.au/industries
+200      GET     4031l    12847w   181824c https://handbook.apra.gov.au/industries/private-health-insurance
+200      GET        3l       75w      613c https://handbook.apra.gov.au/sites/default/files/2024-02/envelope_0.svg
+200      GET      204l     9783w    99287c https://handbook.apra.gov.au/themes/apra/src/images/APRA_Logo_white.svg
+200      GET       52l     2343w   157681c https://handbook.apra.gov.au/sites/default/files/js/js_UX7tYRRCtK0OhnwYuuuOpXr0jDv34Rj0iiLY0R3KHbs.js
+302      GET       12l       22w      470c https://handbook.apra.gov.au/search/documents/export => https://handbook.apra.gov.au/batch?id=27600&op=start
+200      GET     4396l    14162w   198893c https://handbook.apra.gov.au/industries/superannuation
+200      GET     5739l    18234w   255219c https://handbook.apra.gov.au/industries/life-insurance
+301      GET       12l       22w      426c https://handbook.apra.gov.au/search/documents/ => https://handbook.apra.gov.au/search/documents
+302      GET       12l       22w      470c https://handbook.apra.gov.au/search/fragments/export => https://handbook.apra.gov.au/batch?id=27601&op=start
+301      GET       12l       22w      426c https://handbook.apra.gov.au/search/fragments/ => https://handbook.apra.gov.au/search/fragments
+200      GET      296l     1748w   168634c https://handbook.apra.gov.au/sites/default/files/inline-images/infographic.png
+200      GET     6052l    19674w   277368c https://handbook.apra.gov.au/industries/banking
+200      GET      416l     1877w    48045c https://handbook.apra.gov.au/search/documents
+200      GET        0l        0w    48748c https://handbook.apra.gov.au/search/fragments
+200      GET     2393l    18899w   379611c https://handbook.apra.gov.au/industries/life-insurance/guide-for-directors
+200      GET       45l     2798w   262600c https://handbook.apra.gov.au/sites/default/files/js/js_mofL9k58ONRn9hvXjNQm6L3D-F4s-3X2hx-HtelTERg.js
+404      GET      299l     1304w    43361c https://handbook.apra.gov.au/text/csv
+404      GET      221l      982w    43358c https://handbook.apra.gov.au/text/
+200      GET     2394l    17423w   382266c https://handbook.apra.gov.au/industries/superannuation/guide-for-directors
+200      GET     5081l    16551w   249881c https://handbook.apra.gov.au/industries/general-insurance
+200      GET     1928l    16299w   344441c https://handbook.apra.gov.au/industries/private-health-insurance/guide-for-directors
+200      GET     2277l    18207w   464343c https://handbook.apra.gov.au/industries/banking/guide-for-directors
+200      GET     2140l    16930w   384719c https://handbook.apra.gov.au/industries/general-insurance/guide-for-directors
+200      GET     1011l     3246w    54532c https://handbook.apra.gov.au/
+404      GET      430l     1952w    43388c https://handbook.apra.gov.au/sites/default/files/inline-images/
+302      GET       12l       22w      402c https://handbook.apra.gov.au/User => https://handbook.apra.gov.au/user/login
+302      GET       12l       22w      382c https://handbook.apra.gov.au/ADMIN => https://handbook.apra.gov.au/admin
+200      GET        1l        1w       10c https://handbook.apra.gov.au/health
+301      GET       12l       22w      382c https://handbook.apra.gov.au/About => https://handbook.apra.gov.au/about
+200      GET        1l        1w       10c https://handbook.apra.gov.au/Health
+301      GET       12l       22w      402c https://handbook.apra.gov.au/Industries => https://handbook.apra.gov.au/industries
+301      GET       12l       22w      386c https://handbook.apra.gov.au/SEARCH => https://handbook.apra.gov.au/search
+301      GET       12l       22w      382c https://handbook.apra.gov.au/ABOUT => https://handbook.apra.gov.au/about
+302      GET       12l       22w      402c https://handbook.apra.gov.au/USER => https://handbook.apra.gov.au/user/login
+301      GET       12l       22w      382c https://handbook.apra.gov.au/Batch => https://handbook.apra.gov.au/batch

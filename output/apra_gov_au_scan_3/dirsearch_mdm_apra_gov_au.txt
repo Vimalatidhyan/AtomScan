@@ -1,0 +1,11 @@
+# Dirsearch started Fri Feb 27 14:18:04 2026 as: /usr/lib/python3/dist-packages/dirsearch/dirsearch.py -u https://mdm.apra.gov.au -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -t 80 --random-agent --exclude-status 404,400,500,502,503 -o /mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase3_content/bruteforce/dirsearch_mdm_apra_gov_au.txt
+
+302     0B   https://mdm.apra.gov.au/js    -> REDIRECTS TO: /js/
+302     0B   https://mdm.apra.gov.au/css    -> REDIRECTS TO: /css/
+302     0B   https://mdm.apra.gov.au/img    -> REDIRECTS TO: /img/
+302     0B   https://mdm.apra.gov.au/static    -> REDIRECTS TO: /static/
+302     0B   https://mdm.apra.gov.au/fonts    -> REDIRECTS TO: /fonts/
+302     0B   https://mdm.apra.gov.au/text    -> REDIRECTS TO: /text/
+302     0B   https://mdm.apra.gov.au/jsp    -> REDIRECTS TO: /jsp/
+200     0B   https://mdm.apra.gov.au/pb
+302     0B   https://mdm.apra.gov.au/windows    -> REDIRECTS TO: /windows/

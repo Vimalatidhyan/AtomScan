@@ -1,0 +1,9 @@
+HTTP/1.1 302 Found
+Server: BigIP
+Accept-CH: Sec-CH-UA-Platform-Version
+Content-Length: 0
+Location: /my.policy
+Strict-Transport-Security: max-age=16070400; includeSubDomains
+Set-Cookie: LastMRH_Session=033b90af;path=/;secure
+
+[...truncated...]

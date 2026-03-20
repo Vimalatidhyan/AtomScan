@@ -1,0 +1,2 @@
+[url] - [code-200] - https://samlproxy.apra.gov.au/Saml2/WSFedSignIn?wa=wsignin1.0&wtrealm=urn%3asamlproxy%3aidp&wctx=https%3a%2f%2fextranet.apra.gov.au%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3d%252F
+[form] - https://samlproxy.apra.gov.au/Saml2/WSFedSignIn?wa=wsignin1.0&wtrealm=urn%3asamlproxy%3aidp&wctx=https%3a%2f%2fextranet.apra.gov.au%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3d%252F

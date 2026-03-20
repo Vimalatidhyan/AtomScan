@@ -1,0 +1,11 @@
+GET https://adfs.apra.gov.au/ name=https://adfs.apra.gov.au/ type=serv linked=yes browsers=0 browser_used=FAST dup=0 code=302 len=0 notes=8 sig=0x7f67bc96
+GET https://adfs.apra.gov.au/public/ name=public type=dir linked=yes browsers=0 browser_used=FAST dup=0 code=404 len=3480 notes=6 sig=0x44ee4c0
+GET https://adfs.apra.gov.au/public/images/ name=images type=dir linked=yes browsers=0 browser_used=FAST dup=0 code=0 len=0 notes=1 sig=0x62e108b3
+GET https://adfs.apra.gov.au/public/images/customization/ name=customization type=dir linked=yes browsers=0 browser_used=FAST dup=0 code=0 len=0 notes=2 sig=0xb45438d3
+GET https://adfs.apra.gov.au/public/include/ name=include type=dir linked=yes browsers=0 browser_used=FAST dup=0 code=0 len=0 notes=1 sig=0x3832bd14
+GET https://adfs.apra.gov.au/public/include/css/ name=css type=dir linked=yes browsers=0 browser_used=FAST dup=1 code=0 len=0 notes=2 sig=0xb45438d3
+GET https://adfs.apra.gov.au/public/include/js/ name=js type=dir linked=yes browsers=0 browser_used=FAST dup=1 code=0 len=0 notes=2 sig=0xb45438d3
+GET https://adfs.apra.gov.au/vdesk/ name=vdesk type=dir linked=maybe browsers=0 browser_used=FAST dup=0 code=200 len=86 notes=10 sig=0xb32be76d
+GET https://adfs.apra.gov.au/vdesk/c_ses.php3 name=c_ses.php3 type=file linked=maybe browsers=0 browser_used=FAST dup=0 code=0 len=0 notes=2 sig=0xb458f0b6
+GET https://adfs.apra.gov.au/vdesk/c_ses.php3?orig_uri=qE3VU2TxMMpKFCapzKcPrOORZ2HAJNN/rKanbxj0c5IUo0GC name=orig_uri type=param linked=maybe browsers=0 browser_used=FAST dup=0 returns_404 code=302 len=0 notes=1 sig=0xbdae355a
+GET https://adfs.apra.gov.au/my.policy name=my.policy type=unknown linked=yes browsers=0 browser_used=FAST dup=0 code=0 len=0 notes=1 sig=0x6a841831

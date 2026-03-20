@@ -1,0 +1,9 @@
+{
+  "target": "apra.gov.au",
+  "phase": "cve_correlation",
+  "timestamp": "2026-02-27T12:00:11.676911Z",
+  "services_analysed": 0,
+  "cve_files": 1,
+  "risk_scoring_complete": true,
+  "epss_scoring_complete": true
+}

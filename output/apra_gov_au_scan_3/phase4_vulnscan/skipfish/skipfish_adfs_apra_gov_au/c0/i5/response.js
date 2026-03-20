@@ -1,0 +1,1 @@
+var res = {'data':'HTTP/1.1 302 Found\x0aServer: BigIP\x0aAccept-CH: Sec-CH-UA-Platform-Version\x0aContent-Length: 0\x0aLocation: /my.policy\x0aStrict-Transport-Security: max-age=16070400; includeSubDomains\x0aSet-Cookie: LastMRH_Session=033b90af;path=/;secure\x0aSet-Cookie: MRHSession=0e53c66a2cc558e840188775033b90af;path=/;secure\x0a\x0a[...truncated...]\x0a'}

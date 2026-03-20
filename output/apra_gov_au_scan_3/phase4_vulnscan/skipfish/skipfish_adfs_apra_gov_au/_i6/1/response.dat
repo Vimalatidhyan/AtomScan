@@ -1,0 +1,18 @@
+HTTP/1.1 404 Not Found
+Server: BigIP
+Content-Type: text/html; charset=utf-8
+Accept-Ranges: bytes
+Connection: close
+Date: Fri, 27 Feb 2026 11:52:23 GMT
+Age: 2
+Content-Length: 3486
+X-Frame-Options: SAMEORIGIN
+X-XSS-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+Content-Security-Policy: object-src *;script-src * 'unsafe-inline' 'unsafe-eval' data:
+Referrer-Policy: same-origin
+Permissions-Policy: geolocation=(self https://example.com), microphone=()
+Strict-Transport-Security: max-age=16070400; includeSubDomains
+X-Frame-Options: DENY
+Pragma: no-cache
+Cache-Control: no-cache, must-revalidate

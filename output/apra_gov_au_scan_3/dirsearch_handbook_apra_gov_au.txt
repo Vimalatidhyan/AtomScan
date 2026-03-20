@@ -1,0 +1,21 @@
+# Dirsearch started Fri Feb 27 14:16:10 2026 as: /usr/lib/python3/dist-packages/dirsearch/dirsearch.py -u https://handbook.apra.gov.au -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -t 80 --random-agent --exclude-status 404,400,500,502,503 -o /mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase3_content/bruteforce/dirsearch_handbook_apra_gov_au.txt
+
+200    51KB  https://handbook.apra.gov.au/search
+302   402B   https://handbook.apra.gov.au/user    -> REDIRECTS TO: https://handbook.apra.gov.au/user/login
+302   382B   https://handbook.apra.gov.au/admin    -> REDIRECTS TO: https://handbook.apra.gov.au/admin
+302   382B   https://handbook.apra.gov.au/Admin    -> REDIRECTS TO: https://handbook.apra.gov.au/admin
+200    58KB  https://handbook.apra.gov.au/about
+301   386B   https://handbook.apra.gov.au/Search    -> REDIRECTS TO: https://handbook.apra.gov.au/search
+302   402B   https://handbook.apra.gov.au/User    -> REDIRECTS TO: https://handbook.apra.gov.au/user/login
+302   382B   https://handbook.apra.gov.au/ADMIN    -> REDIRECTS TO: https://handbook.apra.gov.au/admin
+200    10B   https://handbook.apra.gov.au/health
+301   382B   https://handbook.apra.gov.au/About    -> REDIRECTS TO: https://handbook.apra.gov.au/about
+403    41KB  https://handbook.apra.gov.au/batch
+200    49KB  https://handbook.apra.gov.au/industries
+200    10B   https://handbook.apra.gov.au/Health
+200    42KB  https://handbook.apra.gov.au/page-not-found
+301   402B   https://handbook.apra.gov.au/Industries    -> REDIRECTS TO: https://handbook.apra.gov.au/industries
+301   386B   https://handbook.apra.gov.au/SEARCH    -> REDIRECTS TO: https://handbook.apra.gov.au/search
+301   382B   https://handbook.apra.gov.au/ABOUT    -> REDIRECTS TO: https://handbook.apra.gov.au/about
+302   402B   https://handbook.apra.gov.au/USER    -> REDIRECTS TO: https://handbook.apra.gov.au/user/login
+301   382B   https://handbook.apra.gov.au/Batch    -> REDIRECTS TO: https://handbook.apra.gov.au/batch

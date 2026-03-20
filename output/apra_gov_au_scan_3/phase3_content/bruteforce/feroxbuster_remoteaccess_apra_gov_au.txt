@@ -1,0 +1,367 @@
+Configuration {
+    kind: "configuration",
+    wordlist: "/usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt",
+    config: "/etc/feroxbuster/ferox-config.toml",
+    proxy: "",
+    replay_proxy: "",
+    server_certs: [],
+    client_cert: "",
+    client_key: "",
+    target_url: "https://remoteaccess.apra.gov.au/",
+    status_codes: [
+        100,
+        101,
+        102,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        226,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        307,
+        308,
+        400,
+        401,
+        402,
+        403,
+        404,
+        405,
+        406,
+        407,
+        408,
+        409,
+        410,
+        411,
+        412,
+        413,
+        414,
+        415,
+        416,
+        417,
+        418,
+        421,
+        422,
+        423,
+        424,
+        426,
+        428,
+        429,
+        431,
+        451,
+        500,
+        501,
+        502,
+        503,
+        504,
+        505,
+        506,
+        507,
+        508,
+        510,
+        511,
+        103,
+        425,
+    ],
+    replay_codes: [
+        100,
+        101,
+        102,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        226,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        307,
+        308,
+        400,
+        401,
+        402,
+        403,
+        404,
+        405,
+        406,
+        407,
+        408,
+        409,
+        410,
+        411,
+        412,
+        413,
+        414,
+        415,
+        416,
+        417,
+        418,
+        421,
+        422,
+        423,
+        424,
+        426,
+        428,
+        429,
+        431,
+        451,
+        500,
+        501,
+        502,
+        503,
+        504,
+        505,
+        506,
+        507,
+        508,
+        510,
+        511,
+        103,
+        425,
+    ],
+    filter_status: [],
+    client: Client {
+        accepts: Accepts,
+        proxies: [
+            Matcher,
+        ],
+        redirect_policy: "Policy(None)",
+        referer: true,
+        default_headers: {
+            "accept": "*/*",
+            "user-agent": "feroxbuster/2.13.0",
+        },
+        reqwest::config::RequestTimeout: 7s,
+    },
+    replay_client: None,
+    threads: 80,
+    timeout: 7,
+    verbosity: 0,
+    silent: false,
+    quiet: false,
+    output_level: Default,
+    auto_bail: true,
+    auto_tune: false,
+    requester_policy: AutoBail,
+    json: false,
+    output: "/mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase3_content/bruteforce/feroxbuster_remoteaccess_apra_gov_au.txt",
+    debug_log: "",
+    user_agent: "feroxbuster/2.13.0",
+    random_agent: true,
+    redirects: false,
+    insecure: false,
+    extensions: [],
+    methods: [
+        "GET",
+    ],
+    data: [],
+    headers: {},
+    queries: [],
+    no_recursion: false,
+    extract_links: true,
+    add_slash: false,
+    stdin: false,
+    cached_stdin: [],
+    depth: 2,
+    scan_limit: 0,
+    parallel: 0,
+    rate_limit: 0,
+    filter_size: [],
+    filter_line_count: [],
+    filter_word_count: [],
+    filter_regex: [],
+    dont_filter: false,
+    resumed: false,
+    resume_from: "",
+    save_state: true,
+    time_limit: "",
+    filter_similar: [],
+    url_denylist: [],
+    regex_denylist: [],
+    scope: [
+        Url {
+            scheme: "https",
+            cannot_be_a_base: false,
+            username: "",
+            password: None,
+            host: Some(
+                Domain(
+                    "remoteaccess.apra.gov.au",
+                ),
+            ),
+            port: None,
+            path: "/",
+            query: None,
+            fragment: None,
+        },
+    ],
+    collect_extensions: false,
+    dont_collect: [
+        "tif",
+        "tiff",
+        "ico",
+        "cur",
+        "bmp",
+        "webp",
+        "svg",
+        "png",
+        "jpg",
+        "jpeg",
+        "jfif",
+        "gif",
+        "avif",
+        "apng",
+        "pjpeg",
+        "pjp",
+        "mov",
+        "wav",
+        "mpg",
+        "mpeg",
+        "mp3",
+        "mp4",
+        "m4a",
+        "m4p",
+        "m4v",
+        "ogg",
+        "webm",
+        "ogv",
+        "oga",
+        "flac",
+        "aac",
+        "3gp",
+        "css",
+        "zip",
+        "xls",
+        "xml",
+        "gz",
+        "tgz",
+    ],
+    collect_backups: false,
+    backup_extensions: [
+        "~",
+        ".bak",
+        ".bak2",
+        ".old",
+        ".1",
+    ],
+    collect_words: false,
+    force_recursion: false,
+    update_app: false,
+    scan_dir_listings: false,
+    request_file: "",
+    protocol: "https",
+    limit_bars: 0,
+    unique: false,
+    response_size_limit: 4194304,
+}
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/internal
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/intern
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/internet
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/META-INF
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interface
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/international
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/meta
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interactive
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/broker
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/brokers
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interviews
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interview
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Internal
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interceptors
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/oauth
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Internet
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/META_INF
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/integration
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Metasearch
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interact
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/metadata
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interne
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interfaces
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interstitial
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/intershoproot
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/internal_data
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/International
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interaktiv
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interests
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interior
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/broken
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/integrate
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interest
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/internacional
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/metal
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/metatraffic2
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Interface
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Intern
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interno
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/metaadmin
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/metatags
+403      GET        1l        5w       29c https://remoteaccess.apra.gov.au/negocios
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Interview
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/broker_access
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/intel
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interactives
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interactivo
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/intercambios
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interim
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/metatraffic
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Meta
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/InternalTools
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/integra
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/inter
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interaction
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interesting
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interspire
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interna
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/internals
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interchange
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/InterestOnlyCalc
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Integration
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/intermediate
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interesnoe
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interpreters
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/internat
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interlink
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/metas
+403      GET        1l        5w       29c https://remoteaccess.apra.gov.au/negocio
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Broker
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Brokers
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/INTERNAL
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Interstate
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Intercom
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Interact
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Integrations
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/Interfaces
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/META
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/MetaSearch
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/broken_link
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/brokenlink
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/intelligence
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/integracion
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interatividade
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interchange-5
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/interns
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/internships
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/internet-rechner
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/internet-lexikon
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/integrations
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/intercambio
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/metar
+403      GET        1l        5w       29c https://remoteaccess.apra.gov.au/negozio
+500      GET        1l        7w       71c https://remoteaccess.apra.gov.au/InterestItemAdd

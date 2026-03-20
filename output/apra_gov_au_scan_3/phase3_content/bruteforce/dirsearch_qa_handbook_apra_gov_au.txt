@@ -1,0 +1,3 @@
+# Dirsearch started Fri Feb 27 14:18:55 2026 as: /usr/lib/python3/dist-packages/dirsearch/dirsearch.py -u https://qa.handbook.apra.gov.au -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -t 80 --random-agent --exclude-status 404,400,500,502,503 -o /mnt/c/Users/Vimalatithyan/OneDrive/Desktop/Technieum-X/output/apra_gov_au_scan_3/phase3_content/bruteforce/dirsearch_qa_handbook_apra_gov_au.txt
+
+302   414B   https://qa.handbook.apra.gov.au/user    -> REDIRECTS TO: https://qa.handbook.apra.gov.au/user/login

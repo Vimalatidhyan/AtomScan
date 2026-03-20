@@ -1,0 +1,8 @@
+site:apra.gov.au
+site:*.apra.gov.au
+site:apra.gov.au inurl:admin
+site:apra.gov.au inurl:login
+site:apra.gov.au ext:sql
+site:apra.gov.au ext:env
+site:apra.gov.au ext:bak
+site:apra.gov.au "index of" "backup"

@@ -1,9 +1,9 @@
-"""FastAPI server for ReconX Enterprise v2.0.
+"""FastAPI server for Technieum Enterprise v2.0.
 
 Environment variables
 ---------------------
-RECONX_ALLOWED_ORIGINS  Comma-separated CORS origins (default: localhost dev origins).
-DATABASE_URL            SQLAlchemy DB URL (default: sqlite:///./reconx.db)
+TECHNIEUM_ALLOWED_ORIGINS  Comma-separated CORS origins (default: localhost dev origins).
+DATABASE_URL            SQLAlchemy DB URL (default: sqlite:///./technieum.db)
 LOG_LEVEL               Logging verbosity (default: INFO)
 """
 from contextlib import asynccontextmanager
@@ -24,7 +24,7 @@ configure_json_logging(level=_LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 # ── CORS origins ─────────────────────────────────────────────────────────────
-# Dev defaults allow localhost. In production, set RECONX_ALLOWED_ORIGINS.
+# Dev defaults allow localhost. In production, set TECHNIEUM_ALLOWED_ORIGINS.
 _DEFAULT_DEV_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:8000",
@@ -33,24 +33,24 @@ _DEFAULT_DEV_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://127.0.0.1:8080",
 ]
-_allowed_origins_env = os.environ.get("RECONX_ALLOWED_ORIGINS", "")
+_allowed_origins_env = os.environ.get("TECHNIEUM_ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = (
     [o.strip() for o in _allowed_origins_env.split(",") if o.strip()]
     if _allowed_origins_env
     else _DEFAULT_DEV_ORIGINS
 )
 
-# When RECONX_WORKER=true (default), the server starts the scan worker as a
+# When TECHNIEUM_WORKER=true (default), the server starts the scan worker as a
 # daemon thread so `uvicorn app.api.server:app` is the only command needed.
-# Set RECONX_WORKER=false when running the worker as a separate process (e.g.
+# Set TECHNIEUM_WORKER=false when running the worker as a separate process (e.g.
 # via start.sh) to avoid double-claiming jobs.
-_EMBED_WORKER = os.environ.get("RECONX_WORKER", "true").lower() in ("true", "1", "yes")
+_EMBED_WORKER = os.environ.get("TECHNIEUM_WORKER", "true").lower() in ("true", "1", "yes")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan — startup and shutdown."""
-    logger.info("ReconX Enterprise API v2.0 starting...", extra={"origins": ALLOWED_ORIGINS})
+    logger.info("Technieum Enterprise API v2.0 starting...", extra={"origins": ALLOWED_ORIGINS})
     apply_migrations()
     db = Database()
     db.connect()
@@ -71,26 +71,26 @@ async def lifespan(app: FastAPI):
             from app.workers.worker import run_forever as _worker_run_forever
             _worker_thread = threading.Thread(
                 target=_worker_run_forever,
-                name="reconx-worker",
+                name="technieum-worker",
                 daemon=True,
             )
             _worker_thread.start()
-            logger.info("Embedded scan worker started (RECONX_WORKER=true). "
-                        "Set RECONX_WORKER=false to disable.")
+            logger.info("Embedded scan worker started (TECHNIEUM_WORKER=true). "
+                        "Set TECHNIEUM_WORKER=false to disable.")
         except Exception as exc:  # pragma: no cover
             logger.warning("Could not start embedded worker: %s", exc)
     else:
-        logger.info("Embedded worker disabled (RECONX_WORKER=false).")
+        logger.info("Embedded worker disabled (TECHNIEUM_WORKER=false).")
 
     yield
 
-    logger.info("ReconX Enterprise API shutting down...")
+    logger.info("Technieum Enterprise API shutting down...")
     db.close()
     # _worker_thread is daemon — OS cleans it up on process exit
 
 
 app = FastAPI(
-    title="ReconX Enterprise API",
+    title="Technieum Enterprise API",
     description="Attack Surface Management Platform v2.0",
     version="2.0.0",
     lifespan=lifespan,
@@ -110,6 +110,8 @@ app.add_middleware(AuthMiddleware)
 # Import and register routers
 from app.api.routes import scans, assets, findings, intel, reports, stream, webhooks
 from app.api.routes import metrics as metrics_router
+from app.api.routes import subdomain_lookup
+from app.api.routes import assessment as assessment_router
 
 app.include_router(scans.router, prefix="/api/v1/scans", tags=["scans"])
 app.include_router(assets.router, prefix="/api/v1/assets", tags=["assets"])
@@ -119,6 +121,8 @@ app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 app.include_router(stream.router, prefix="/api/v1/stream", tags=["streaming"])
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["webhooks"])
 app.include_router(metrics_router.router, prefix="/api/v1/metrics", tags=["observability"])
+app.include_router(subdomain_lookup.router, prefix="/api/v1/subdomains", tags=["subdomain-discovery"])
+app.include_router(assessment_router.router, prefix="/api/assessment", tags=["assessment"])
 
 
 @app.get("/health", tags=["system"])
@@ -140,7 +144,7 @@ async def health_check_compat():
 @app.get("/version", tags=["system"])
 async def version():
     """Version endpoint."""
-    return {"version": "2.0.0", "name": "ReconX Enterprise"}
+    return {"version": "2.0.0", "name": "Technieum Enterprise"}
 
 
 # ── Static web-UI routes ─────────────────────────────────────────────────────
@@ -152,7 +156,8 @@ from fastapi.staticfiles import StaticFiles as _StaticFiles
 from fastapi.responses import FileResponse as _FileResponse
 
 _ROOT = _Path(__file__).resolve().parents[2]
-_STATIC_DIR = _ROOT / "web" / "static"
+# UI files live in scripts/web/static/ (the canonical location in this repo)
+_STATIC_DIR = _ROOT / "scripts" / "web" / "static"
 _ASSETS_DIR = _STATIC_DIR / "assets"
 
 
@@ -161,7 +166,7 @@ def _serve_page(filename: str):
     p = _STATIC_DIR / filename
     if p.exists():
         return _FileResponse(p, media_type="text/html")
-    return {"message": "ReconX API — no UI found", "docs": "/docs"}
+    return {"message": "Technieum API — no UI found", "docs": "/docs"}
 
 
 @app.get("/", include_in_schema=False)
@@ -216,12 +221,17 @@ async def _page_threat_intel():
     return _serve_page("threat_intel_v2.html")
 
 
+@app.get("/subdomain-finder", include_in_schema=False)
+async def _page_subdomain_finder():
+    return _serve_page("subdomain_finder.html")
+
+
 @app.get("/api/v1/bootstrap-key", include_in_schema=False)
 async def get_bootstrap_key(request: Request):
     """Return bootstrap API key for first-time UI setup (dev only)."""
     key = getattr(request.app.state, 'bootstrap_api_key', None)
     if key:
-        return {"key": key, "message": "Save this key in Settings. It won't be shown again after restart if RECONX_API_KEY is set."}
+        return {"key": key, "message": "Save this key in Settings. It won't be shown again after restart if TECHNIEUM_API_KEY is set."}
     return {"key": None, "message": "No bootstrap key. Create one with: python scripts/manage_keys.py create --name ui"}
 
 

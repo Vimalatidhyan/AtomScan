@@ -1,4 +1,4 @@
-# ReconX — Attack Surface Management Framework
+# Technieum — Attack Surface Management Framework
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python 3.11+">
@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/Tools-50%2B-orange.svg" alt="50+ Tools">
 </p>
 
-ReconX is a comprehensive, database-driven Attack Surface Management (ASM) framework. It orchestrates **50+ reconnaissance and vulnerability assessment tools** across 4 phases to give you complete visibility into any target's external attack surface. Results are stored in SQLite, queryable via a REST API, and viewable in a built-in web dashboard.
+Technieum is a comprehensive, database-driven Attack Surface Management (ASM) framework. It orchestrates **50+ reconnaissance and vulnerability assessment tools** across 4 phases to give you complete visibility into any target's external attack surface. Results are stored in SQLite, queryable via a REST API, and viewable in a built-in web dashboard.
 
 ---
 
@@ -48,7 +48,7 @@ ReconX is a comprehensive, database-driven Attack Surface Management (ASM) frame
 
 ```
 kali-linux-asm/
-├── reconx.py                  # Main entry point — orchestrates all phases
+├── technieum.py                  # Main entry point — orchestrates all phases
 ├── config.yaml                # Global settings (targets, threads, timeouts)
 ├── requirements.txt           # Python dependencies
 ├── install.sh                 # Full system installer (Go tools, wordlists, venv)
@@ -199,7 +199,7 @@ nano .env    # Add your API keys
 
 ## API Keys
 
-ReconX integrates with multiple external threat-intelligence APIs. Each key is optional — phases run with reduced coverage if a key is missing. Add keys to `.env` (never commit this file).
+Technieum integrates with multiple external threat-intelligence APIs. Each key is optional — phases run with reduced coverage if a key is missing. Add keys to `.env` (never commit this file).
 
 ### Setup
 
@@ -261,7 +261,7 @@ Main configuration lives in `config.yaml`. Override any setting without editing 
 
 general:
   output_dir: "output"      # Where raw tool output is written
-  database: "reconx.db"     # SQLite database file
+  database: "technieum.db"     # SQLite database file
   threads: 5                # Concurrent scan workers
   timeout: 3600             # Per-phase timeout (seconds)
 
@@ -299,43 +299,43 @@ phase4_vuln:
 source .venv/bin/activate
 
 # Run all 4 phases against a target domain
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 
 # Specify output directory
-python3 reconx.py -t example.com -o /tmp/example-scan
+python3 technieum.py -t example.com -o /tmp/example-scan
 
 # Run with more threads
-python3 reconx.py -t example.com --threads 10
+python3 technieum.py -t example.com --threads 10
 ```
 
 ### Phase selection
 
 ```bash
 # Run only Phase 1 (subdomain discovery)
-python3 reconx.py -t example.com --phase 1
+python3 technieum.py -t example.com --phase 1
 
 # Run only Phase 4 (vulnerability scanning)
-python3 reconx.py -t example.com --phase 4
+python3 technieum.py -t example.com --phase 4
 
 # Run phases 1 and 2 only
-python3 reconx.py -t example.com --phases 1,2
+python3 technieum.py -t example.com --phases 1,2
 ```
 
 ### Resume an interrupted scan
 
 ```bash
 # Resume using the existing database
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 ### Multiple targets
 
 ```bash
 # From a file (one domain per line)
-python3 reconx.py --targets-file targets.txt
+python3 technieum.py --targets-file targets.txt
 
 # Comma-separated inline
-python3 reconx.py -t "example.com,corp.example.com"
+python3 technieum.py -t "example.com,corp.example.com"
 ```
 
 ### Query results
@@ -357,9 +357,9 @@ python3 query.py --target example.com --export json > results.json
 ### Full CLI reference
 
 ```
-python3 reconx.py --help
+python3 technieum.py --help
 
-usage: reconx.py [-h] [-t TARGET] [--targets-file FILE] [-o OUTPUT]
+usage: technieum.py [-h] [-t TARGET] [--targets-file FILE] [-o OUTPUT]
                  [--phase PHASE] [--phases PHASES] [--threads N]
                  [--timeout SEC] [--resume] [--dry-run] [-v]
 
@@ -492,7 +492,7 @@ source .venv/bin/activate
 python3 - <<'EOF'
 import hashlib, os, sys
 sys.path.insert(0, '.')
-os.environ.setdefault("DATABASE_URL", "sqlite:///./reconx.db")
+os.environ.setdefault("DATABASE_URL", "sqlite:///./technieum.db")
 
 from backend.db.database import SessionLocal
 from backend.db.models import APIToken
@@ -581,7 +581,7 @@ output/
         └── summary.json            # Phase summary with risk score
 ```
 
-All findings are also written to `reconx.db` for querying and API access.
+All findings are also written to `technieum.db` for querying and API access.
 
 ---
 
@@ -646,7 +646,7 @@ source ~/.bashrc
 # Recreate the database schema
 source .venv/bin/activate
 python3 -c "
-import os; os.environ['DATABASE_URL'] = 'sqlite:///./reconx.db'
+import os; os.environ['DATABASE_URL'] = 'sqlite:///./technieum.db'
 from backend.db.base import Base
 from backend.db.database import engine
 import backend.db.models   # registers all models
@@ -691,7 +691,7 @@ The tool automatically backs off on HTTP 429 responses. If you hit limits freque
 If you see `database is locked` errors when the API server and scanner run simultaneously, set the WAL journal mode explicitly:
 
 ```bash
-sqlite3 reconx.db "PRAGMA journal_mode=WAL;"
+sqlite3 technieum.db "PRAGMA journal_mode=WAL;"
 ```
 
 ---
@@ -702,11 +702,11 @@ The installer creates a `.env` file with placeholder values. Fill in your actual
 
 ```bash
 # ──────────────────────────────────────────────────────────────────
-# ReconX Environment Configuration
+# Technieum Environment Configuration
 # ──────────────────────────────────────────────────────────────────
 
 # Database (default: SQLite in project root)
-DATABASE_URL=sqlite:///./reconx.db
+DATABASE_URL=sqlite:///./technieum.db
 
 # API server secret (generate with: openssl rand -hex 32)
 SECRET_KEY=change_me_generate_with_openssl_rand_hex_32

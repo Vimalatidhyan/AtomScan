@@ -1,4 +1,4 @@
-"""Event bus for ReconX Enterprise."""
+"""Event bus for Technieum Enterprise."""
 from typing import Callable, Dict, List, Any
 import logging
 

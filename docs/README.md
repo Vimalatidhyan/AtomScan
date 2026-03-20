@@ -1,4 +1,4 @@
-# ReconX: Complete Attack Surface Mapping Tool
+# Technieum: Complete Attack Surface Mapping Tool
 
 **Version:** 1.0  
 **Status:** Production Ready (CLI)  
@@ -6,11 +6,11 @@
 
 ---
 
-## What is ReconX?
+## What is Technieum?
 
-ReconX is an automated attack surface mapping and reconnaissance platform designed for security professionals who need to understand everything about a target organization's digital footprint. Instead of manually running dozens of different security scanning tools and trying to piece together the results, ReconX does all the heavy lifting automatically.
+Technieum is an automated attack surface mapping and reconnaissance platform designed for security professionals who need to understand everything about a target organization's digital footprint. Instead of manually running dozens of different security scanning tools and trying to piece together the results, Technieum does all the heavy lifting automatically.
 
-Think of ReconX as your personal security intelligence agent. You give it a domain name, and it goes to work discovering everything about that target: all the subdomains, which ones are actually live, what services are running, what ports are open, what vulnerabilities exist, and where sensitive data might be exposed.
+Think of Technieum as your personal security intelligence agent. You give it a domain name, and it goes to work discovering everything about that target: all the subdomains, which ones are actually live, what services are running, what ports are open, what vulnerabilities exist, and where sensitive data might be exposed.
 
 It's designed for:
 - **Security Teams** conducting comprehensive assessments
@@ -21,14 +21,14 @@ It's designed for:
 
 ---
 
-## How ReconX Works: The Four-Phase Approach
+## How Technieum Works: The Four-Phase Approach
 
-ReconX breaks down the reconnaissance process into four logical phases, each building on the previous one:
+Technieum breaks down the reconnaissance process into four logical phases, each building on the previous one:
 
 ### Phase 1: Discovery
 **What it does:** Finds all possible subdomains and hostnames belonging to a target.
 
-When you ask ReconX to scan `example.com`, this phase discovers things like:
+When you ask Technieum to scan `example.com`, this phase discovers things like:
 - `api.example.com`
 - `admin.example.com`
 - `staging.example.com`
@@ -89,7 +89,7 @@ With a complete map of what's accessible, this phase looks for actual security p
 ## What's Currently Working (Today)
 
 ### Complete Automation
-You can run ReconX with a single command and it automatically executes all four phases, managing:
+You can run Technieum with a single command and it automatically executes all four phases, managing:
 - Parallel execution of multiple tools to save time
 - Intelligent sequencing of phases (you can't scan for vulnerabilities until you know what exists)
 - Automatic retry and error recovery if a tool fails
@@ -97,7 +97,7 @@ You can run ReconX with a single command and it automatically executes all four 
 - Proper cleanup and result aggregation
 
 ### 50+ Integrated Tools
-ReconX orchestrates over 50 specialized security tools, including:
+Technieum orchestrates over 50 specialized security tools, including:
 
 **Discovery Tools:**
 - Subfinder (fast subdomain enumeration)
@@ -172,7 +172,7 @@ In the next phase of development (estimated 2-3 weeks of dedicated development),
 
 ### REST API
 A modern API will allow:
-- **Programmatic access:** Integrate ReconX with other security tools
+- **Programmatic access:** Integrate Technieum with other security tools
 - **Scan automation:** Create, manage, and retrieve scans via API
 - **Data access:** Query results in JSON format for custom dashboards
 - **Cloud readiness:** Deploy in cloud environments with standard API patterns
@@ -202,7 +202,7 @@ Automated report generation in multiple formats:
 
 ### Docker Containerization
 Easy deployment anywhere:
-- **Container image:** Deploy ReconX as a Docker container
+- **Container image:** Deploy Technieum as a Docker container
 - **Compose setup:** Run with supporting services easily
 - **Cloud deployment:** Ready for Kubernetes, AWS, Azure, GCP
 - **Isolated environment:** No dependencies conflicts with your system
@@ -218,13 +218,13 @@ Continuous monitoring capabilities:
 
 ---
 
-## Why ReconX is Different
+## Why Technieum is Different
 
 ### Comprehensive by Default
-Unlike most tools that focus on one aspect (just subdomain finding, or just port scanning), ReconX handles the entire reconnaissance workflow in one place with proper tool selection for each phase.
+Unlike most tools that focus on one aspect (just subdomain finding, or just port scanning), Technieum handles the entire reconnaissance workflow in one place with proper tool selection for each phase.
 
 ### Tool Redundancy
-For critical tasks, ReconX uses multiple tools:
+For critical tasks, Technieum uses multiple tools:
 - **5 subdomain enumeration tools** ensure nothing is missed
 - **3 port scanning approaches** for thorough validation
 - **4 content discovery methods** to find all endpoints
@@ -245,7 +245,7 @@ Tools are smartly sequenced:
 - Your scan history is preserved permanently
 
 ### Actually Finds Things
-Through bug bounty hunting and real-world testing, ReconX has been proven to:
+Through bug bounty hunting and real-world testing, Technieum has been proven to:
 - Discover hidden subdomains competitors miss
 - Find live hosts with useful vulnerabilities
 - Locate exposed credentials and secrets
@@ -260,12 +260,12 @@ Through bug bounty hunting and real-world testing, ReconX has been proven to:
 1. Install dependencies: bash setup.sh
 2. Install Python packages: pip3 install -r requirements.txt
 3. Set API keys: Edit config.yaml with your tool credentials
-4. Run first scan: python3 reconx.py -t yourtarget.com
+4. Run first scan: python3 technieum.py -t yourtarget.com
 ```
 
 ### Your First Scan
 ```
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 ```
 
 This automatically:
@@ -295,19 +295,19 @@ The tool works out of the box, but you can customize:
 ## Common Use Cases
 
 ### 1. Security Assessment
-A security team wants to assess a company's external security posture before beginning a penetration test. ReconX provides the complete attack surface map without manual reconnaissance.
+A security team wants to assess a company's external security posture before beginning a penetration test. Technieum provides the complete attack surface map without manual reconnaissance.
 
 ### 2. Startup Security Program
-A startup with limited security staff uses ReconX monthly to monitor their growing infrastructure and catch new security issues as they come online.
+A startup with limited security staff uses Technieum monthly to monitor their growing infrastructure and catch new security issues as they come online.
 
 ### 3. Acquisition Due Diligence
-During M&A, security teams need to quickly understand the target company's infrastructure. ReconX provides a complete picture.
+During M&A, security teams need to quickly understand the target company's infrastructure. Technieum provides a complete picture.
 
 ### 4. Bug Bounty Hunting
 A researcher scans targets on bug bounty platforms to find the attack surface others might miss.
 
 ### 5. Red Team Assessment
-Simulating attackers requires understanding the full attack surface. ReconX provides that baseline in hours instead of weeks.
+Simulating attackers requires understanding the full attack surface. Technieum provides that baseline in hours instead of weeks.
 
 ### 6. Compliance Verification
 Organizations verify that their infrastructure changes haven't introduced unexpected exposure.
@@ -351,7 +351,7 @@ It's battle-tested, production-ready, and actively used for real security assess
 
 ## What's Coming Next
 
-The planned Phase A enhancements will transform ReconX from a powerful command-line tool into a complete platform with:
+The planned Phase A enhancements will transform Technieum from a powerful command-line tool into a complete platform with:
 - Web interface for easier use
 - REST API for integration
 - Professional report generation
@@ -381,24 +381,24 @@ This foundation then enables future phases (B, C, D) with:
 - Review the four-phase workflow documentation for details on each step
 
 ### Contributing
-ReconX is designed to be extended:
+Technieum is designed to be extended:
 - Add custom tools to any phase
 - Write custom parsers for tool outputs
 - Build custom queries against the database
 - Create automation workflows
 
 ### License
-ReconX is provided under the MIT License. Use freely in your security work.
+Technieum is provided under the MIT License. Use freely in your security work.
 
 ---
 
 ## The Vision
 
-ReconX exists because security teams spend too much time on manual reconnaissance. By automating this critical-but-repetitive task and providing a unified interface to 50+ tools, more time can be spent on actual analysis and remediation.
+Technieum exists because security teams spend too much time on manual reconnaissance. By automating this critical-but-repetitive task and providing a unified interface to 50+ tools, more time can be spent on actual analysis and remediation.
 
 The planned enhancements (API, Dashboard, Reports, Scheduling) transform it from a personal tool into a team platform, enabling organizations of any size to maintain awareness of their complete attack surface.
 
-Whether you're a lone penetration tester running reconnaissance on a target, a security team assessing multiple applications, or an organization monitoring your own infrastructure, ReconX provides the fastest path from "what do we need to assess?" to "here's what we need to fix."
+Whether you're a lone penetration tester running reconnaissance on a target, a security team assessing multiple applications, or an organization monitoring your own infrastructure, Technieum provides the fastest path from "what do we need to assess?" to "here's what we need to fix."
 
 ---
 
@@ -406,16 +406,16 @@ Whether you're a lone penetration tester running reconnaissance on a target, a s
 
 ```
 # Scan a target
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 
 # Run specific phases only
-python3 reconx.py -t example.com --phases 1,2
+python3 technieum.py -t example.com --phases 1,2
 
 # Scan multiple targets
-python3 reconx.py -t example.com,other.com,third.com
+python3 technieum.py -t example.com,other.com,third.com
 
 # Resume interrupted scan
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 
 # Query: Get summary
 python3 query.py -t example.com --summary
@@ -447,16 +447,16 @@ python3 query.py -t example.com --port 443
 
 ## The Bottom Line
 
-ReconX makes reconnaissance fast, comprehensive, and automated. What used to take weeks of manual work can now be done in hours. The four-phase approach ensures nothing is missed, while the comprehensive tool suite provides coverage across all major reconnaissance techniques.
+Technieum makes reconnaissance fast, comprehensive, and automated. What used to take weeks of manual work can now be done in hours. The four-phase approach ensures nothing is missed, while the comprehensive tool suite provides coverage across all major reconnaissance techniques.
 
 You get all the power of enterprise security tools without the enterprise price tag or complexity. Deploy it locally, run your scans, and own your security assessment process.
 
-Ready to map your attack surface? Start with a single scan and see what ReconX discovers.
+Ready to map your attack surface? Start with a single scan and see what Technieum discovers.
 
 ---
 
 **Questions?** Refer to the expanded documentation in the project for technical details, phase workflows, tool descriptions, and development roadmap.
 
-**Want to contribute?** Check the contributing guide for how to extend ReconX with custom tools and parsers.
+**Want to contribute?** Check the contributing guide for how to extend Technieum with custom tools and parsers.
 
 **Ready to upgrade?** Check Phase A planning documents for REST API, dashboard, and enterprise features coming soon.

@@ -1,0 +1,11 @@
+{
+  "target": "test.example.com",
+  "timestamp": "2026-02-23T16:31:54.185573Z",
+  "subdomains": [
+    "oll.vns.test.example.com",
+    "reverse.test.example.com"
+  ],
+  "open_ports": [],
+  "vulnerabilities": [],
+  "technologies": []
+}

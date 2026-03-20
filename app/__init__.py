@@ -1,1 +1,1 @@
-"""ReconX Enterprise v2.0 backend package."""
+"""Technieum Enterprise v2.0 backend package."""

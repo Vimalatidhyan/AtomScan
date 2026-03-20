@@ -22,7 +22,7 @@ sudo apt-get install python3.11
 brew install python@3.11
 
 # Then use python3.11 specifically:
-python3.11 reconx.py -t example.com
+python3.11 technieum.py -t example.com
 ```
 
 ### Error: "bash setup.sh: permission denied"
@@ -85,13 +85,13 @@ brew install tool-name
 ps aux | grep -E "subfinder|nmap|nuclei"
 
 # 2. Check log file
-tail -f logs/reconx.log
+tail -f logs/technieum.log
 
 # 3. If truly stuck, interrupt gracefully
 Ctrl+C
 
 # 4. Resume where you left off
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 **Why it happens:** Large targets or slow tools can take hours. Check logs.
@@ -118,22 +118,22 @@ ls -la output/example.com/phase1_discovery/
 sqlite3 db/results.db "SELECT * FROM subdomains WHERE target='example.com';"
 
 # 4. Check logs
-tail -100 logs/reconx.log | grep example.com
+tail -100 logs/technieum.log | grep example.com
 ```
 
 **Solutions:**
 ```bash
 # If domain doesn't resolve, check spelling
-python3 reconx.py -t yourdomain.com  # Not example.com
+python3 technieum.py -t yourdomain.com  # Not example.com
 
 # If network issue
 ping google.com
 # Fix network then resume
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 
 # If DNS issue
 # Try with forced nameserver
-python3 reconx.py -t example.com --nameserver 8.8.8.8
+python3 technieum.py -t example.com --nameserver 8.8.8.8
 ```
 
 ### Error: "too many open files"
@@ -163,7 +163,7 @@ killall chrome firefox thunderbird  # Examples
 # Edit config.yaml: timeout: 300 → timeout: 60
 
 # 4. Scan with less aggressive settings
-python3 reconx.py -t example.com --quick
+python3 technieum.py -t example.com --quick
 ```
 
 ### Error: Network/DNS errors during scan
@@ -186,7 +186,7 @@ nslookup 1.1.1.1
 export DNS_RESOLVER=8.8.8.8
 
 # Resume scan
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 ### Error: Specific tool fails repeatedly
@@ -206,7 +206,7 @@ tools:
     - assetfinder
 
 # Retry scan
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 ### Error: API key authentication failures
@@ -231,7 +231,7 @@ curl -s "https://api.shodan.io/shodan/host/8.8.8.8?key=YOUR_KEY" | head
 nano config.yaml  # Edit and save
 
 # 4. Retry
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 ---
@@ -259,7 +259,7 @@ sqlite3 db/results.db "SELECT target, phase, status FROM scan_progress WHERE tar
 ```bash
 # If count is 0, scan didn't complete
 # Resume:
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 
 # Make sure target name matches exactly
 # Case sensitive!
@@ -325,7 +325,7 @@ python3 query.py -t example.com --tool nuclei
 **Solutions:**
 ```bash
 # 1. Wait for scan to complete
-ps aux | grep reconx.py
+ps aux | grep technieum.py
 # If running, wait for it to finish
 
 # 2. Or use --timeout to force unlock
@@ -406,7 +406,7 @@ speedtest  # If available, or speedtest-cli
 
 # 6. Reduce scan scope
 # Run only phases 1&2 first (faster)
-python3 reconx.py -t example.com --phases 1,2
+python3 technieum.py -t example.com --phases 1,2
 ```
 
 ### High CPU Usage
@@ -427,9 +427,9 @@ ps aux | sort -k3 -nr | head
 # Edit config.yaml: timeout: 300 
 
 # 4. Run phases sequentially (one at a time)
-python3 reconx.py -t example.com --phases 1
+python3 technieum.py -t example.com --phases 1
 # Wait for completion
-python3 reconx.py -t example.com --phases 2
+python3 technieum.py -t example.com --phases 2
 # etc.
 ```
 
@@ -451,7 +451,7 @@ df -h
 # Edit config.yaml: verbose: true → verbose: false
 
 # 4. Run scan in background and monitor
-nohup python3 reconx.py -t example.com > scan.log 2>&1 &
+nohup python3 technieum.py -t example.com > scan.log 2>&1 &
 ```
 
 ---
@@ -482,7 +482,7 @@ chmod 755 output/
 **Solution:**
 ```bash
 # Run entire scan with sudo
-sudo python3 reconx.py -t example.com
+sudo python3 technieum.py -t example.com
 
 # Or give current user permissions
 # For Nmap:
@@ -502,19 +502,19 @@ sudo usermod -aG docker $USER
 **Solution:**
 ```bash
 # Main log
-tail -100 logs/reconx.log
+tail -100 logs/technieum.log
 
 # Follow log in real-time while scanning
-tail -f logs/reconx.log
+tail -f logs/technieum.log
 
 # Search log for errors
-grep -i error logs/reconx.log
+grep -i error logs/technieum.log
 
 # Search for specific target
-grep example.com logs/reconx.log
+grep example.com logs/technieum.log
 
 # Full scan history
-cat logs/reconx.log | grep "Scan started"
+cat logs/technieum.log | grep "Scan started"
 ```
 
 ### Enable Debug Mode
@@ -523,13 +523,13 @@ cat logs/reconx.log | grep "Scan started"
 **Solution:**
 ```bash
 # Run with debug flag
-python3 reconx.py -t example.com --debug
+python3 technieum.py -t example.com --debug
 
 # Or verbose
-python3 reconx.py -t example.com --verbose
+python3 technieum.py -t example.com --verbose
 
-# Output goes to logs/reconx.log
-tail -f logs/reconx.log
+# Output goes to logs/technieum.log
+tail -f logs/technieum.log
 ```
 
 ### Get Support
@@ -538,7 +538,7 @@ tail -f logs/reconx.log
 2. Command you ran
 3. Output of: `python3 --version`
 4. Output of: `uname -a`
-5. Relevant log excerpts from `logs/reconx.log`
+5. Relevant log excerpts from `logs/technieum.log`
 
 ---
 

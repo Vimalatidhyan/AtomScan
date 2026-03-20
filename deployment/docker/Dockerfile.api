@@ -1,30 +1,44 @@
-# ReconX API + Web UI
-# Build: docker build -f deployment/docker/Dockerfile.api -t reconx-api .
-# Run:   docker run -p 8000:8000 -v reconx-data:/app/data reconx-api
+# Technieum API + Web UI
+# Base: Kali Linux Rolling — all containers use the official Kali image.
+# Build: docker build -f deployment/docker/Dockerfile.api -t technieum-api .
+# Run:   docker run -p 8000:8000 -v technieum-data:/app/data technieum-api
 
-FROM python:3.11-slim
+FROM kalilinux/kali-rolling
+
+ENV DEBIAN_FRONTEND=noninteractive
+# Allow pip to install into the system Python on Kali (PEP 668)
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 WORKDIR /app
 
-# System deps for curl (healthcheck) and potential scanner tools
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+# Minimal system packages for the API server
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-dev \
+    curl \
+    ca-certificates \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Python dependencies (core + API stack — both files required)
+COPY requirements.txt requirements-api.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt -r requirements-api.txt
 
 # Application source — canonical app/ package
-COPY app/          ./app/
-COPY web/          ./web/
-COPY config.yaml   .
-COPY reconx.py     .
-COPY query.py      .
+COPY app/              ./app/
+COPY scripts/web/      ./scripts/web/
+COPY config.yaml       .
+COPY technieum.py      .
+COPY query.py          .
 
 # Persistent directories (override with bind-mounts or volumes at runtime)
 RUN mkdir -p /app/data /app/output /app/logs
 
 ENV PYTHONUNBUFFERED=1
-ENV DATABASE_URL=sqlite:////app/data/reconx.db
+ENV DATABASE_URL=sqlite:////app/data/technieum.db
 ENV LOG_LEVEL=INFO
 
 EXPOSE 8000

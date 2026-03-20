@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# ReconX Scan Harness — UI/API Orchestrator
+# Technieum Scan Harness — UI/API Orchestrator
 #
 # This harness is invoked by the API worker and is responsible for running
-# ALL ReconX phase modules (00–09) so that scans triggered from the UI
+# ALL Technieum phase modules (00–09) so that scans triggered from the UI
 # execute the full pipeline, not just a subset of tools.
 #
 # It preserves the worker protocol:
@@ -27,14 +27,25 @@ DOMAIN="${2:?domain required}"
 SCAN_TYPE="${3:-full}"
 
 TIMEOUT_PHASE="${TIMEOUT_PHASE:-7200}"
-OUTPUT_BASE="${RECONX_OUTPUT_DIR:-./output}"
-OUTPUT_DIR="${OUTPUT_BASE}/${DOMAIN//\./_}_${SCAN_RUN_ID}"
-mkdir -p "$OUTPUT_DIR"
-
 # Resolve important paths
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 MODULES_DIR="$ROOT_DIR/modules"
+
+OUTPUT_BASE="${TECHNIEUM_OUTPUT_DIR:-$ROOT_DIR/output}"
+OUTPUT_DIR="${OUTPUT_BASE}/${DOMAIN//\./_}_scan_${SCAN_RUN_ID}"
+
+# Ensure output base/run directory is valid and writable even when launched from
+# varied environments (worker, cron, manual shell).
+mkdir -p "$OUTPUT_BASE"
+if [ -e "$OUTPUT_DIR" ] && [ ! -d "$OUTPUT_DIR" ]; then
+    mv -f "$OUTPUT_DIR" "${OUTPUT_DIR}.bak.$(date +%s)" 2>/dev/null || rm -f "$OUTPUT_DIR" 2>/dev/null || true
+fi
+mkdir -p "$OUTPUT_DIR"
+
+# Prepend repo bin/ shims so they override broken system wrappers (e.g. the
+# /usr/bin/amass wrapper that calls sudo libpostal_data without a TTY).
+[ -d "$ROOT_DIR/bin" ] && export PATH="$ROOT_DIR/bin:$PATH"
 
 # Do not exit on command or pipeline failure; run every phase and every tool.
 set +e
@@ -55,9 +66,35 @@ ABUSEIPDB_API_KEY="${ABUSEIPDB_API_KEY:-}"
 GREYNOISE_API_KEY="${GREYNOISE_API_KEY:-}"
 OTX_API_KEY="${OTX_API_KEY:-}"
 NVD_API_KEY="${NVD_API_KEY:-}"
+
+# ProjectDiscovery Cloud Platform key (used by asnmap/subfinder/katana in some builds)
+PDCP_API_KEY="${PDCP_API_KEY:-}"
+PROJECTDISCOVERY_API_KEY="${PROJECTDISCOVERY_API_KEY:-}"
+
+# Fill missing env vars from config/api_keys.yaml (best-effort, non-fatal)
+API_KEYS_FILE="$ROOT_DIR/config/api_keys.yaml"
+if [ -f "$API_KEYS_FILE" ]; then
+    _yaml_pdcp="$(awk -F: '/^[[:space:]]*pdcp_api_key:[[:space:]]*/{sub(/^[^:]*:[[:space:]]*/, ""); gsub(/"/, ""); gsub(/\r/, ""); print; exit}' "$API_KEYS_FILE" 2>/dev/null)"
+    if [ -z "$PDCP_API_KEY" ] && [ -n "$_yaml_pdcp" ]; then
+        PDCP_API_KEY="$_yaml_pdcp"
+    fi
+    if [ -z "$PROJECTDISCOVERY_API_KEY" ] && [ -n "$PDCP_API_KEY" ]; then
+        PROJECTDISCOVERY_API_KEY="$PDCP_API_KEY"
+    fi
+fi
+
+# Cross-populate both names so downstream tools can use either variable.
+if [ -z "$PDCP_API_KEY" ] && [ -n "$PROJECTDISCOVERY_API_KEY" ]; then
+    PDCP_API_KEY="$PROJECTDISCOVERY_API_KEY"
+fi
+if [ -z "$PROJECTDISCOVERY_API_KEY" ] && [ -n "$PDCP_API_KEY" ]; then
+    PROJECTDISCOVERY_API_KEY="$PDCP_API_KEY"
+fi
+
 export SECURITYTRAILS_API_KEY SHODAN_API_KEY CENSYS_API_ID CENSYS_API_SECRET
 export GITHUB_TOKEN PASTEBIN_API_KEY EMAILREP_API_KEY DEHASHED_EMAIL DEHASHED_KEY
 export ABUSEIPDB_API_KEY GREYNOISE_API_KEY OTX_API_KEY NVD_API_KEY
+export PDCP_API_KEY PROJECTDISCOVERY_API_KEY
 
 # ── Logging helpers ───────────────────────────────────────────────────────
 ts()      { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
@@ -148,6 +185,12 @@ collate_phase1() {
         log_info "[collate] subdomains.txt prepared"
     [ -f "$p1/httpx_alive.json" ] && cp -f "$p1/httpx_alive.json" "$OUTPUT_DIR/httpx_alive.json" && \
         log_info "[collate] httpx_alive.json prepared"
+    # Copy alive_urls.txt so phases 2/3 can use full URLs directly
+    [ -f "$p1/alive_urls.txt" ] && cp -f "$p1/alive_urls.txt" "$OUTPUT_DIR/alive_urls.txt" && \
+        log_info "[collate] alive_urls.txt prepared"
+    # Copy structured phase1 summary so worker can ingest ASN + cloud data
+    [ -f "$p1/phase1_summary.json" ] && cp -f "$p1/phase1_summary.json" "$OUTPUT_DIR/phase1_summary.json" && \
+        log_info "[collate] phase1_summary.json prepared"
 }
 collate_phase2() {
     local p2="$OUTPUT_DIR/phase2_intel"
@@ -171,6 +214,23 @@ collate_phase3() {
              "$p3"/feroxbuster_*.txt "$p3"/dirsearch_*.txt; do
         [ -f "$f" ] && cp -f "$f" "$OUTPUT_DIR/" && log_info "[collate] $(basename "$f") prepared"
     done
+    # Cariddi secrets + Mantra secret scan results
+    local cariddi="$p3/urls/cariddi"
+    [ -f "$cariddi/cariddi_secrets.txt" ] && cp -f "$cariddi/cariddi_secrets.txt" "$OUTPUT_DIR/cariddi_secrets.txt" && \
+        log_info "[collate] cariddi_secrets.txt prepared"
+    [ -f "$cariddi/mantra_secrets.txt" ] && cp -f "$cariddi/mantra_secrets.txt" "$OUTPUT_DIR/mantra_secrets.txt" && \
+        log_info "[collate] mantra_secrets.txt prepared"
+    [ -f "$cariddi/cariddi_results.json" ] && cp -f "$cariddi/cariddi_results.json" "$OUTPUT_DIR/cariddi_results.json" && \
+        log_info "[collate] cariddi_results.json prepared"
+    # Gitleaks + TruffleHog web secret scan results (from Phase 3)
+    local secrets="$p3/urls/secrets"
+    [ -f "$secrets/gitleaks_web.json" ] && cp -f "$secrets/gitleaks_web.json" "$OUTPUT_DIR/gitleaks_web.json" && \
+        log_info "[collate] gitleaks_web.json prepared"
+    [ -f "$secrets/trufflehog_web.json" ] && cp -f "$secrets/trufflehog_web.json" "$OUTPUT_DIR/trufflehog_web.json" && \
+        log_info "[collate] trufflehog_web.json prepared"
+    # JavaScript files list
+    [ -f "$p3/urls/javascript_files.txt" ] && cp -f "$p3/urls/javascript_files.txt" "$OUTPUT_DIR/javascript_files.txt" && \
+        log_info "[collate] javascript_files.txt prepared"
 }
 collate_phase4() {
     local p4="$OUTPUT_DIR/phase4_vulnscan"
@@ -182,6 +242,21 @@ collate_phase4() {
     elif [ -f "$p4/nuclei_results.json" ]; then
         cp -f "$p4/nuclei_results.json" "$OUTPUT_DIR/nuclei.json" && log_info "[collate] nuclei.json prepared"
     fi
+    # Secret scan results from Phase 4
+    local secrets="$p4/secrets"
+    [ -f "$secrets/gitleaks_web.json" ] && [ ! -f "$OUTPUT_DIR/gitleaks_web.json" ] && \
+        cp -f "$secrets/gitleaks_web.json" "$OUTPUT_DIR/gitleaks_web.json" && log_info "[collate] gitleaks_web.json prepared (from phase4)"
+    [ -f "$secrets/trufflehog_web.json" ] && [ ! -f "$OUTPUT_DIR/trufflehog_web.json" ] && \
+        cp -f "$secrets/trufflehog_web.json" "$OUTPUT_DIR/trufflehog_web.json" && log_info "[collate] trufflehog_web.json prepared (from phase4)"
+    # Nuclei vulnerability summary
+    [ -f "$p4/vulnerabilities_summary.json" ] && cp -f "$p4/vulnerabilities_summary.json" "$OUTPUT_DIR/vulnerabilities_summary.json" && \
+        log_info "[collate] vulnerabilities_summary.json prepared"
+    # GoWitness screenshot summary + report
+    local gw="$p4/gowitness"
+    [ -f "$gw/gowitness_summary.json" ] && cp -f "$gw/gowitness_summary.json" "$OUTPUT_DIR/gowitness_summary.json" && \
+        log_info "[collate] gowitness_summary.json prepared"
+    [ -f "$gw/gowitness_report.html" ] && cp -f "$gw/gowitness_report.html" "$OUTPUT_DIR/gowitness_report.html" && \
+        log_info "[collate] gowitness_report.html prepared"
     # Also collate SubProber results from phase2 if available
     local p2="$OUTPUT_DIR/phase2_intel"
     for f in "$p2"/subprober_*.json; do

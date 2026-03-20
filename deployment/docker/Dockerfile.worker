@@ -1,34 +1,143 @@
-# ReconX Scan Worker
-# Isolated process that polls the job queue.  Shares the same data volume
-# as the API container but runs in a separate process so runaway scans
-# cannot affect API availability.
+# Technieum Scan Worker
+# Multi-stage build:
+#   Stage 1 (go-builder) — dedicated kali-rolling image compiles all Go tools
+#   Stage 2 (final)      — clean kali-rolling image, copies compiled binaries
 #
-# Build: docker build -f deployment/docker/Dockerfile.worker -t reconx-worker .
+# Build: docker build -f deployment/docker/Dockerfile.worker -t technieum-worker .
 
-FROM python:3.11-slim
+# =============================================================================
+# STAGE 1: Go tool compiler (separate Kali image)
+# =============================================================================
+FROM kalilinux/kali-rolling AS go-builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV GOROOT=/usr/local/go
+ENV GOPATH=/root/go
+ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
+
+# Build dependencies for compiling Go tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget curl git ca-certificates \
+    build-essential gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Go 1.22.4
+RUN ARCH="$(uname -m)"; \
+    case "$ARCH" in \
+        x86_64)  GO_ARCH="amd64" ;; \
+        aarch64) GO_ARCH="arm64" ;; \
+        *)       GO_ARCH="amd64" ;; \
+    esac; \
+    wget -q "https://go.dev/dl/go1.22.4.linux-${GO_ARCH}.tar.gz" -O /tmp/go.tar.gz && \
+    rm -rf /usr/local/go && \
+    tar -C /usr/local -xzf /tmp/go.tar.gz && \
+    rm -f /tmp/go.tar.gz && \
+    go version
+
+# Install Go security tools — sequential, errors fully visible, each non-fatal
+RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest || echo "WARN: subfinder failed"
+RUN go install github.com/owasp-amass/amass/v4/...@master                   || echo "WARN: amass failed"
+RUN go install github.com/tomnomnom/assetfinder@latest                       || echo "WARN: assetfinder failed"
+RUN go install github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest  || echo "WARN: shuffledns failed"
+RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest            || echo "WARN: httpx failed"
+RUN go install github.com/projectdiscovery/katana/cmd/katana@latest          || echo "WARN: katana failed"
+RUN go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest              || echo "WARN: dnsx failed"
+RUN go install github.com/d3mondev/puredns/v2@latest                         || echo "WARN: puredns failed"
+RUN go install github.com/projectdiscovery/naabu/v2/cmd/naabu@latest         || echo "WARN: naabu failed"
+RUN go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest       || echo "WARN: nuclei failed"
+RUN go install github.com/ffuf/ffuf/v2@latest                                || echo "WARN: ffuf failed"
+RUN go install github.com/lc/gau/v2/cmd/gau@latest                          || echo "WARN: gau failed"
+RUN go install github.com/tomnomnom/waybackurls@latest                       || echo "WARN: waybackurls failed"
+RUN go install github.com/hakluke/hakrawler@latest                           || echo "WARN: hakrawler failed"
+RUN go install github.com/haccer/subjack@latest                              || echo "WARN: subjack failed"
+RUN go install github.com/LukaSikic/subzy@latest                             || echo "WARN: subzy failed"
+RUN go install github.com/gitleaks/gitleaks/v8@latest                        || echo "WARN: gitleaks failed"
+RUN go install github.com/tomnomnom/anew@latest                              || echo "WARN: anew failed"
+RUN go install github.com/tomnomnom/qsreplace@latest                         || echo "WARN: qsreplace failed"
+
+# =============================================================================
+# STAGE 2: Final worker image (clean Kali)
+# =============================================================================
+FROM kalilinux/kali-rolling
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+ENV GOROOT=/usr/local/go
+ENV GOPATH=/root/go
+ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
 
 WORKDIR /app
 
-# Scanner tool dependencies (Kali-style tools installed via separate provisioner)
+# ── 1. System packages ────────────────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    bash curl && rm -rf /var/lib/apt/lists/*
+    python3 python3-pip python3-dev \
+    git curl wget jq unzip \
+    build-essential libssl-dev libffi-dev \
+    whois dnsutils \
+    nmap masscan \
+    nikto \
+    sqlmap \
+    ruby ruby-dev \
+    nodejs npm \
+    default-jre \
+    ca-certificates bash \
+    && rm -rf /var/lib/apt/lists/*
 
-# Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# ── 2. RustScan — .deb from GitHub releases (not in kali-rolling apt) ───────────────
+RUN wget -q https://github.com/RustScan/RustScan/releases/download/2.2.3/rustscan_2.2.3_amd64.deb \
+        -O /tmp/rustscan.deb \
+    && dpkg -i /tmp/rustscan.deb \
+    && rm -f /tmp/rustscan.deb \
+    || echo "WARN: RustScan install failed"
 
-# Application source
-COPY app/     ./app/
-COPY lib/     ./lib/
-COPY modules/ ./modules/
+# ── 3. WPScan (Ruby gem) ──────────────────────────────────────────────────
+RUN gem install wpscan || echo "WARN: wpscan gem install failed"
+
+# ── 4. testssl.sh ─────────────────────────────────────────────────────────
+RUN mkdir -p /opt/technieum-tools && \
+    git clone --depth 1 https://github.com/drwetter/testssl.sh.git \
+        /opt/technieum-tools/testssl.sh && \
+    ln -sf /opt/technieum-tools/testssl.sh/testssl.sh /usr/local/bin/testssl.sh
+
+# ── 5. LinkFinder ─────────────────────────────────────────────────────────
+RUN git clone --depth 1 https://github.com/GerbenJavado/LinkFinder.git \
+        /opt/technieum-tools/LinkFinder && \
+    pip3 install --no-cache-dir -r /opt/technieum-tools/LinkFinder/requirements.txt
+
+# ── 6. GCPBucketBrute ─────────────────────────────────────────────────────────
+RUN git clone --depth 1 https://github.com/RhinoSecurityLabs/GCPBucketBrute.git \
+        /opt/technieum-tools/GCPBucketBrute && \
+    pip3 install --no-cache-dir -r /opt/technieum-tools/GCPBucketBrute/requirements.txt && \
+    ln -sf /opt/technieum-tools/GCPBucketBrute/gcpbucketbrute.py /usr/local/bin/gcpbucketbrute && \
+    chmod +x /opt/technieum-tools/GCPBucketBrute/gcpbucketbrute.py
+
+# ── 7. Python security tools ──────────────────────────────────────────────
+RUN pip3 install --no-cache-dir sublist3r truffleHog arjun wafw00f sqlmap
+
+# ── 8. Nuclei templates (pre-warm) ────────────────────────────────────────
+RUN nuclei -update-templates -silent 2>/dev/null || true
+
+# ── 9. Python application requirements ────────────────────────────────────
+COPY requirements.txt requirements-api.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt -r requirements-api.txt
+
+# ── 10. Copy Go binaries LAST — prevents pip httpx from overwriting PD httpx ─────────────
+COPY --from=go-builder /root/go/bin/ /usr/local/bin/
+
+# ── 11. Application source ─────────────────────────────────────────────────
+COPY app/      ./app/
+COPY lib/      ./lib/
+COPY modules/  ./modules/
+COPY parsers/  ./parsers/
 COPY config.yaml .
 
-RUN mkdir -p /app/data /app/output /app/logs
+RUN chmod +x ./lib/*.sh ./modules/*.sh 2>/dev/null || true && \
+    mkdir -p /app/data /app/output /app/logs
 
 ENV PYTHONUNBUFFERED=1
-ENV DATABASE_URL=sqlite:////app/data/reconx.db
+ENV DATABASE_URL=sqlite:////app/data/technieum.db
 ENV LOG_LEVEL=INFO
 ENV WORKER_POLL_SEC=5
 ENV WORKER_MAX_JOBS=2
 
-CMD ["python", "-m", "app.workers.worker"]
+CMD ["python3", "-m", "app.workers.worker"]

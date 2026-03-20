@@ -1,16 +1,16 @@
-# ReconX Configuration File
+# Technieum Configuration File
 # Customize settings for reconnaissance operations
 
 # General Settings
 general:
   output_dir: "output"
-  database: "reconx.db"
+  database: "technieum.db"
   threads: 5
   timeout: 3600  # Timeout per phase in seconds
   user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
 # API Keys - set in .env (copy from .env.example)
-# All keys are read from environment variables when running reconx or modules.
+# All keys are read from environment variables when running technieum or modules.
 # Phase 1: SECURITYTRAILS_API_KEY, VT_API_KEY
 # Phase 2: SHODAN_API_KEY, CENSYS_API_ID, CENSYS_API_SECRET, GITHUB_TOKEN
 # Phase 3/4: PASTEBIN_API_KEY, WPSCAN_API_TOKEN
@@ -68,7 +68,7 @@ phase1_discovery:
   # Active discovery (always runs with bundled wordlist if no crt.sh/API keys)
   active_discovery:
     enabled: true
-    # Priority: RECONX_SUBDOMAIN_WORDLIST env > data/wordlists/subdomains.txt (bundled) > seclists
+    # Priority: TECHNIEUM_SUBDOMAIN_WORDLIST env > data/wordlists/subdomains.txt (bundled) > seclists
     wordlist: "data/wordlists/subdomains.txt"  # bundled; override with /usr/share/seclists/... if installed
 
 # Phase 2: Intelligence Settings
@@ -192,7 +192,7 @@ phase4_vulnscan:
 # Logging Settings
 logging:
   level: "INFO"  # DEBUG, INFO, WARNING, ERROR
-  file: "logs/reconx.log"
+  file: "logs/technieum.log"
   console: true
 
 # Output Settings

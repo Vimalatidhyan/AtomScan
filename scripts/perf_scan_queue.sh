@@ -12,13 +12,13 @@ set -euo pipefail
 
 N="${1:-5}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DB="${RECONX_TEST_DB:-/tmp/reconx_perf_test.db}"
+DB="${TECHNIEUM_TEST_DB:-/tmp/technieum_perf_test.db}"
 export DATABASE_URL="sqlite:///$DB"
 
 cleanup() { rm -f "$DB"; }
 trap cleanup EXIT
 
-echo "=== ReconX scan queue throughput test ==="
+echo "=== Technieum scan queue throughput test ==="
 echo "  jobs=$N  db=$DB"
 echo ""
 

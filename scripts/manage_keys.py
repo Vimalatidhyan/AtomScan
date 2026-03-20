@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""ReconX API key management CLI.
+"""Technieum API key management CLI.
 
 Usage:
     python scripts/manage_keys.py create --name "My Key" [--expires-days 365]
     python scripts/manage_keys.py list
     python scripts/manage_keys.py revoke <key_id>
 
-All operations require DATABASE_URL to be set (or default sqlite:///./reconx.db).
+All operations require DATABASE_URL to be set (or default sqlite:///./technieum.db).
 """
 import argparse
 import hashlib
@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./reconx.db")
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./technieum.db")
 
 
 def _get_session():
@@ -100,7 +100,7 @@ def cmd_revoke(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ReconX API key manager")
+    parser = argparse.ArgumentParser(description="Technieum API key manager")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_create = sub.add_parser("create", help="Create a new API key")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Continuous monitoring CLI for ReconX Enterprise."""
+"""Continuous monitoring CLI for Technieum Enterprise."""
 import argparse, sys, time, logging
 from pathlib import Path
 
@@ -25,7 +25,7 @@ def cmd_status(args):
     print("[+] No active monitoring sessions (stub)")
 
 def main():
-    parser = argparse.ArgumentParser(description="ReconX continuous monitoring")
+    parser = argparse.ArgumentParser(description="Technieum continuous monitoring")
     sub = parser.add_subparsers(dest="command")
 
     start = sub.add_parser("start")

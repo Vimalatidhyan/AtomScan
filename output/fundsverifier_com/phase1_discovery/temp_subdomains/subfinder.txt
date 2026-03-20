@@ -1,5 +1,0 @@
-fv.admin.fundsverifier.com
-test.fundsverifier.com
-api.test.fundsverifier.com
-tist.fundsverifier.com
-tist1.fundsverifier.com

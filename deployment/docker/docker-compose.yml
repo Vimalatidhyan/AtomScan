@@ -1,4 +1,4 @@
-# ReconX Enterprise — Docker Compose
+# Technieum Enterprise — Docker Compose
 #
 # Profiles:
 #   dev   — SQLite, no external services (default for local dev)
@@ -10,20 +10,20 @@
 #   docker compose -f deployment/docker/docker-compose.yml --profile dev up -d
 #
 #   # Production (PostgreSQL + Redis)
-#   RECONX_SECRET_KEY=... POSTGRES_PASSWORD=... \
+#   TECHNIEUM_SECRET_KEY=... POSTGRES_PASSWORD=... \
 #   docker compose -f deployment/docker/docker-compose.yml --profile prod up -d
 
 x-api-common: &api-common
   build:
     context: ../..
     dockerfile: deployment/docker/Dockerfile.api
-  image: reconx-api:latest
+  image: technieum-api:latest
 
 x-worker-common: &worker-common
   build:
     context: ../..
     dockerfile: deployment/docker/Dockerfile.worker
-  image: reconx-worker:latest
+  image: technieum-worker:latest
 
 # ── DEV profile (SQLite, no external deps) ─────────────────────────────────
 
@@ -31,19 +31,19 @@ services:
 
   api-dev:
     <<: *api-common
-    container_name: reconx-api-dev
+    container_name: technieum-api-dev
     profiles: [dev]
     ports:
       - "8000:8000"
     volumes:
       - ../../output:/app/output
       - ../../logs:/app/logs
-      - reconx-dev-data:/app/data
+      - technieum-dev-data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=sqlite:////app/data/reconx.db
+      - DATABASE_URL=sqlite:////app/data/technieum.db
       - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
-      - RECONX_SECRET_KEY=${RECONX_SECRET_KEY:-dev-insecure-key-change-in-prod}
+      - TECHNIEUM_SECRET_KEY=${TECHNIEUM_SECRET_KEY:-dev-insecure-key-change-in-prod}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
@@ -54,19 +54,20 @@ services:
 
   worker-dev:
     <<: *worker-common
-    container_name: reconx-worker-dev
+    container_name: technieum-worker-dev
     profiles: [dev]
+    privileged: true
     volumes:
       - ../../output:/app/output
       - ../../logs:/app/logs
-      - reconx-dev-data:/app/data
+      - technieum-dev-data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=sqlite:////app/data/reconx.db
+      - DATABASE_URL=sqlite:////app/data/technieum.db
       - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
       - WORKER_POLL_SEC=${WORKER_POLL_SEC:-5}
       - WORKER_MAX_JOBS=${WORKER_MAX_JOBS:-1}
-      - RECONX_NUCLEI_UPDATE=${RECONX_NUCLEI_UPDATE:-false}
+      - TECHNIEUM_NUCLEI_UPDATE=${TECHNIEUM_NUCLEI_UPDATE:-false}
     restart: unless-stopped
     depends_on:
       api-dev:
@@ -76,17 +77,17 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: reconx-postgres
+    container_name: technieum-postgres
     profiles: [prod]
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-reconx}
+      - POSTGRES_USER=${POSTGRES_USER:-technieum}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-REQUIRED_IN_PROD}
-      - POSTGRES_DB=${POSTGRES_DB:-reconx}
+      - POSTGRES_DB=${POSTGRES_DB:-technieum}
     volumes:
-      - reconx-pg-data:/var/lib/postgresql/data
+      - technieum-pg-data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-reconx}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-technieum}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -94,11 +95,11 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: reconx-redis
+    container_name: technieum-redis
     profiles: [prod]
     command: redis-server --save 60 1 --loglevel warning
     volumes:
-      - reconx-redis-data:/data
+      - technieum-redis-data:/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -108,7 +109,7 @@ services:
 
   api-prod:
     <<: *api-common
-    container_name: reconx-api-prod
+    container_name: technieum-api-prod
     profiles: [prod]
     ports:
       - "8000:8000"
@@ -117,10 +118,10 @@ services:
       - ../../logs:/app/logs
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-reconx}:${POSTGRES_PASSWORD:-REQUIRED_IN_PROD}@postgres:5432/${POSTGRES_DB:-reconx}
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-technieum}:${POSTGRES_PASSWORD:-REQUIRED_IN_PROD}@postgres:5432/${POSTGRES_DB:-technieum}
       - REDIS_URL=redis://redis:6379/0
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - RECONX_SECRET_KEY=${RECONX_SECRET_KEY:?RECONX_SECRET_KEY must be set}
+      - TECHNIEUM_SECRET_KEY=${TECHNIEUM_SECRET_KEY:-change-me-in-production}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -136,19 +137,20 @@ services:
 
   worker-prod:
     <<: *worker-common
-    container_name: reconx-worker-prod
+    container_name: technieum-worker-prod
     profiles: [prod]
+    privileged: true
     volumes:
       - ../../output:/app/output
       - ../../logs:/app/logs
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-reconx}:${POSTGRES_PASSWORD:-REQUIRED_IN_PROD}@postgres:5432/${POSTGRES_DB:-reconx}
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-technieum}:${POSTGRES_PASSWORD:-REQUIRED_IN_PROD}@postgres:5432/${POSTGRES_DB:-technieum}
       - REDIS_URL=redis://redis:6379/0
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - WORKER_POLL_SEC=${WORKER_POLL_SEC:-5}
       - WORKER_MAX_JOBS=${WORKER_MAX_JOBS:-4}
-      - RECONX_NUCLEI_UPDATE=${RECONX_NUCLEI_UPDATE:-false}
+      - TECHNIEUM_NUCLEI_UPDATE=${TECHNIEUM_NUCLEI_UPDATE:-false}
     restart: unless-stopped
     depends_on:
       api-prod:
@@ -159,21 +161,22 @@ services:
     build:
       context: ../..
       dockerfile: deployment/docker/Dockerfile.scanner
-    image: reconx-scanner:latest
-    container_name: reconx-scanner
+    image: technieum-scanner:latest
+    container_name: technieum-scanner
     profiles: [tools]
+    privileged: true
     volumes:
       - ../../output:/app/output
       - ../../config.yaml:/app/config.yaml
     environment:
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///./reconx.db}
-      - RECONX_NUCLEI_UPDATE=${RECONX_NUCLEI_UPDATE:-false}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./technieum.db}
+      - TECHNIEUM_NUCLEI_UPDATE=${TECHNIEUM_NUCLEI_UPDATE:-false}
     command: ["--help"]
 
 volumes:
-  reconx-dev-data:
+  technieum-dev-data:
     driver: local
-  reconx-pg-data:
+  technieum-pg-data:
     driver: local
-  reconx-redis-data:
+  technieum-redis-data:
     driver: local

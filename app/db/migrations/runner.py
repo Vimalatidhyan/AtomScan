@@ -91,10 +91,14 @@ def run_migrations(engine: Engine) -> None:
                 try:
                     conn.execute(text(stmt))
                 except Exception as exc:
-                    # Tolerate "column already exists" and "table already exists" — idempotent
+                    # Tolerate "column already exists", "table already exists", and "no such column"
                     msg = str(exc).lower()
-                    if "already exists" in msg or "duplicate column" in msg:
-                        logger.debug("Skipping idempotent DDL (%s)", stmt[:60])
+                    if (
+                        "already exists" in msg
+                        or "duplicate column" in msg
+                        or "no such column" in msg
+                    ):
+                        logger.debug("Skipping idempotent or irrelevant DDL (%s)", stmt[:60])
                     else:
                         raise
             conn.execute(

@@ -1,4 +1,4 @@
-"""Comprehensive tests for all 25 ReconX database models.
+"""Comprehensive tests for all 25 Technieum database models.
 
 Tests cover: model creation, default values, repr methods,
 nullable constraints, relationships, composite indexes,
@@ -798,7 +798,7 @@ class TestAuditLog:
 
     def test_creation(self, session: Session) -> None:
         log = AuditLog(
-            user="admin@reconx.io",
+            user="admin@technieum.io",
             action="created_scan",
             entity_type="ScanRun",
             entity_id=1,
@@ -1192,7 +1192,7 @@ class TestSavedReport:
             report_type="executive_summary",
             format="pdf",
             file_path="/reports/exec_summary.pdf",
-            generated_by="admin@reconx.io",
+            generated_by="admin@technieum.io",
         )
         session.add(report)
         session.commit()
@@ -1240,7 +1240,7 @@ class TestScheduledScan:
             domain="example.com",
             scan_type="quick",
             frequency="weekly",
-            created_by="admin@reconx.io",
+            created_by="admin@technieum.io",
         )
         session.add(sched)
         session.commit()

@@ -43,7 +43,7 @@ _LOG_LEVEL = getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper(), loggi
 configure_json_logging(level=_LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./reconx.db")
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./technieum.db")
 WORKER_POLL_SEC = int(os.environ.get("WORKER_POLL_SEC", "5"))
 WORKER_MAX_JOBS = int(os.environ.get("WORKER_MAX_JOBS", "4"))  # max concurrent jobs per worker process
 
@@ -52,17 +52,30 @@ _WORKER_ID = f"{socket.gethostname()}-{os.getpid()}-{uuid.uuid4().hex[:8]}"
 
 _engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
+    connect_args={"check_same_thread": False, "timeout": 30} if "sqlite" in DATABASE_URL else {},
 )
+
+# Enable WAL journal mode for SQLite so the worker's writes don't block
+# API server reads.
+if "sqlite" in DATABASE_URL:
+    from sqlalchemy import event as _sa_event
+
+    @_sa_event.listens_for(_engine, "connect")
+    def _set_sqlite_pragma(dbapi_conn, _conn_record):
+        cursor = dbapi_conn.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.close()
+
 _Session = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
 
 # Resolve harness path relative to this file: app/workers/ → lib/run_scan.sh
 _HARNESS = Path(__file__).resolve().parents[2] / "lib" / "run_scan.sh"
 
-# Output base must match harness: ${RECONX_OUTPUT_DIR:-./output}
+# Output base must match harness: ${TECHNIEUM_OUTPUT_DIR:-./output}
 # Resolve relative to repo root (harness parent) so CWD doesn't matter
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_OUTPUT_BASE = Path(os.environ.get("RECONX_OUTPUT_DIR", str(_REPO_ROOT / "output")))
+_OUTPUT_BASE = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(_REPO_ROOT / "output")))
 
 # Nuclei/finding severity string → integer score (matches findings.py convention)
 _SEV_MAP = {"critical": 90, "high": 70, "medium": 40, "low": 10, "info": 1}
@@ -86,9 +99,11 @@ def _emit_event(
     message: str,
     data: Optional[dict] = None,
     phase: Optional[int] = None,
+    _commit: bool = True,
 ) -> None:
-    """Persist a ScanEvent row.  Each call commits immediately so the SSE
-    stream picks it up without waiting for the scan to finish."""
+    """Persist a ScanEvent row.  Commits immediately by default so the SSE
+    stream picks it up without waiting for the scan to finish.
+    Pass _commit=False when batching events (caller must call db.commit())."""
     from app.db.models import ScanEvent
     ev = ScanEvent(
         scan_run_id=scan_run_id,
@@ -100,7 +115,8 @@ def _emit_event(
         created_at=datetime.now(timezone.utc),
     )
     db.add(ev)
-    db.commit()
+    if _commit:
+        db.commit()
 
 
 def _update_progress(db: Session, scan_run_id: int, **kwargs) -> None:
@@ -336,18 +352,35 @@ def _parse_nuclei(nuclei_file: Path, scan_run_id: int, sub_map: dict,
 
 
 def _parse_ffuf(ffuf_file: Path) -> int:
-    """Parse a single ffuf JSON result file. Returns count of discovered URLs."""
+    """Parse a single ffuf JSON result file. Returns count of discovered URLs.
+
+    ``ffuf_all.json`` is created with ``jq -s '.'`` which produces a JSON *list*
+    of individual ffuf result objects.  Individual per-host files such as
+    ``ffuf_example_com.json`` are single JSON *objects* with a ``results`` key.
+    Handle both formats gracefully.
+    """
     content = ffuf_file.read_text(encoding="utf-8", errors="ignore")
     try:
         data = json.loads(content)
     except json.JSONDecodeError:
         return 0
-    results = data.get("results") or []
-    count = 0
-    for item in results:
-        if item.get("url") or item.get("input", {}).get("FUZZ"):
-            count += 1
-    return count
+
+    def _count_obj(obj: dict) -> int:
+        results = obj.get("results") or [] if isinstance(obj, dict) else []
+        return sum(
+            1 for r in results
+            if isinstance(r, dict) and (
+                r.get("url") or (
+                    isinstance(r.get("input"), dict) and r["input"].get("FUZZ")
+                )
+            )
+        )
+
+    if isinstance(data, list):
+        # ffuf_all.json — jq -s wrapped everything into an array
+        return sum(_count_obj(item) for item in data if isinstance(item, dict))
+    # Single-host ffuf_<host>.json
+    return _count_obj(data)
 
 
 def _parse_httpx_alive(httpx_file: Path, scan_run_id: int, db: Session) -> int:
@@ -394,6 +427,55 @@ def _parse_feroxbuster(ferox_file: Path) -> int:
         if _FEROX_STATUS_RE.search(line) and _FEROX_URL_RE.search(line):
             count += 1
     return count
+
+
+def _parse_nikto(nikto_file: Path, scan_run_id: int, sub_map: dict,
+                 domain: str, db: Session) -> int:
+    """Parse nikto JSON output and insert Vulnerability rows."""
+    from app.db.models import Vulnerability
+    inserted = 0
+    try:
+        data = json.loads(nikto_file.read_text(encoding="utf-8", errors="ignore"))
+    except (json.JSONDecodeError, OSError):
+        return 0
+
+    # Nikto JSON can be a single object or wrapped in an array
+    if isinstance(data, list):
+        records = data
+    elif isinstance(data, dict):
+        records = [data]
+    else:
+        return 0
+
+    # ID ranges: 999100–999199=info/misc, 999200+=medium, others vary
+    _SEVERITY_BY_ID = {
+        "999966": 40,  # BREACH
+        "999103": 10,  # missing header (low)
+        "999992": 10,  # wildcard cert (low)
+    }
+
+    for rec in records:
+        host_raw = rec.get("host") or domain
+        host = re.sub(r"^https?://", "", str(host_raw)).split("/")[0].split(":")[0].lower()
+        sub_id = sub_map.get(host) or sub_map.get(domain)
+        for vuln in rec.get("vulnerabilities") or []:
+            vid = str(vuln.get("id", ""))
+            msg = vuln.get("msg") or vuln.get("description") or ""
+            if not msg:
+                continue
+            severity_score = _SEVERITY_BY_ID.get(vid, 10)
+            db.add(Vulnerability(
+                scan_run_id=scan_run_id,
+                subdomain_id=sub_id,
+                vuln_type=f"nikto-{vid}",
+                severity=severity_score,
+                title=msg[:255],
+                description=msg[:2000],
+                discovered_at=datetime.now(timezone.utc),
+                status="open",
+            ))
+            inserted += 1
+    return inserted
 
 
 def _ingest_results(scan_run_id: int, domain: str, output_dir: Path,
@@ -461,24 +543,125 @@ def _ingest_results(scan_run_id: int, domain: str, output_dir: Path,
         db.commit()
         sub_map[domain] = root.id
 
-    # ── Ports (nmap) ─────────────────────────────────────────────────────────
-    nmap_xml = output_dir / "nmap.xml"
-    nmap_txt = output_dir / "nmap.txt"
-    ports_inserted = 0
-    if nmap_xml.is_file():
+    # ── Phase 1 Structured Summary (ASN + Cloud + HTTPx details) ─────────────
+    p1_summary = next(
+        (p for p in [
+            output_dir / "phase1_summary.json",
+            output_dir / "phase1_discovery" / "phase1_summary.json",
+        ] if p.is_file()),
+        None,
+    )
+    if p1_summary is not None:
         try:
             _emit_event(db, scan_run_id, "log", "info",
-                        f"[ingestion] Parsing nmap XML: {nmap_xml.name}")
+                        f"[ingestion] Parsing phase1 summary: {p1_summary.name}")
+            p1data = json.loads(p1_summary.read_text(encoding="utf-8", errors="ignore"))
+
+            # Emit ASN data as a structured event the UI can render
+            asn = p1data.get("asn") or {}
+            asn_cidrs = asn.get("cidrs") or []
+            asn_ip_count = asn.get("ip_count") or 0
+            _emit_event(db, scan_run_id, "asn_data", "info",
+                        f"[phase1] ASN: {len(asn_cidrs)} CIDRs, ~{asn_ip_count} IPs",
+                        data={
+                            "cidrs": asn_cidrs[:200],
+                            "ip_count": asn_ip_count,
+                            "ips_sample": asn.get("ips_sample") or [],
+                        },
+                        phase=1)
+
+            # Emit cloud exposure as a structured event
+            _ansi_re = re.compile(r'\x1b\[[0-9;]*m')
+            def _strip_ansi_list(items):
+                return [_ansi_re.sub('', s) if isinstance(s, str) else s for s in items]
+            cloud = p1data.get("cloud") or {}
+            cloud_total = cloud.get("total") or 0
+            if cloud_total:
+                _emit_event(db, scan_run_id, "cloud_data", "info",
+                            f"[phase1] Cloud: {cloud_total} assets found "
+                            f"(AWS:{len(cloud.get('aws') or [])}, "
+                            f"Azure:{len(cloud.get('azure') or [])}, "
+                            f"GCP:{len(cloud.get('gcp') or [])})",
+                            data={
+                                "total": cloud_total,
+                                "assets": _strip_ansi_list((cloud.get("assets") or [])[:200]),
+                                "aws":    _strip_ansi_list(cloud.get("aws") or []),
+                                "azure":  _strip_ansi_list(cloud.get("azure") or []),
+                                "gcp":    _strip_ansi_list(cloud.get("gcp") or []),
+                            },
+                            phase=1)
+            else:
+                _emit_event(db, scan_run_id, "cloud_data", "info",
+                            "[phase1] Cloud: no cloud assets detected",
+                            data={"total": 0, "assets": [], "aws": [], "azure": [], "gcp": []},
+                            phase=1)
+
+            # Emit CT (certificate transparency) stats
+            ct = p1data.get("ct_sources") or {}
+            if ct:
+                _emit_event(db, scan_run_id, "ct_data", "info",
+                            f"[phase1] CT logs: certspotter={ct.get('certspotter',0)}, crt.sh={ct.get('crtsh',0)}",
+                            data=ct, phase=1)
+
+            # Emit alive_urls for downstream UI display
+            alive_urls = p1data.get("alive_urls") or []
+            if alive_urls:
+                _emit_event(db, scan_run_id, "alive_hosts", "info",
+                            f"[phase1] Live hosts: {len(alive_urls)} URLs responsive",
+                            data={"urls": alive_urls[:500], "count": len(alive_urls)},
+                            phase=1)
+
+            # Emit HTTPx details as structured event for discovered-assets table
+            httpx_details = p1data.get("httpx_details") or []
+            if httpx_details:
+                _update_progress(db, scan_run_id, subdomains_found=p1data.get("subdomain_count") or 0)
+                _emit_event(db, scan_run_id, "httpx_details", "info",
+                            f"[phase1] HTTPx: {len(httpx_details)} host details",
+                            data={"hosts": httpx_details[:500]},
+                            phase=1)
+
+            _emit_event(db, scan_run_id, "log", "info",
+                        f"[ingestion] Phase1 summary: subs={p1data.get('subdomain_count',0)}, "
+                        f"alive={p1data.get('alive_count',0)}, "
+                        f"cloud={cloud_total}, asn_cidrs={len(asn_cidrs)}")
+        except Exception as exc:
+            db.rollback()
+            _emit_event(db, scan_run_id, "log", "warning",
+                        f"[ingestion] Phase1 summary parse error: {exc}")
+
+    # ── Ports (nmap) ─────────────────────────────────────────────────────────
+    # Check root dir first, then phase2_intel/ports/ subdirectory
+    nmap_xml = next(
+        (p for p in [
+            output_dir / "nmap.xml",
+            output_dir / "phase2_intel" / "ports" / "nmap_all.xml",
+            output_dir / "phase2_intel" / "ports" / "nmap.xml",
+        ] if p.is_file()),
+        None,
+    )
+    nmap_txt = next(
+        (p for p in [
+            output_dir / "nmap.txt",
+            output_dir / "phase2_intel" / "ports" / "nmap_all.txt",
+            output_dir / "phase2_intel" / "ports" / "nmap.txt",
+        ] if p.is_file()),
+        None,
+    )
+    ports_inserted = 0
+    if nmap_xml is not None:
+        try:
+            _emit_event(db, scan_run_id, "log", "info",
+                        f"[ingestion] Parsing nmap XML: {nmap_xml}")
             ports_inserted = _parse_nmap_xml(nmap_xml, scan_run_id, sub_map, domain, db)
             db.commit()
         except Exception as exc:
             db.rollback()
             _emit_event(db, scan_run_id, "log", "warning",
                         f"[ingestion] Nmap XML parse error: {exc}")
-    elif nmap_txt.is_file():
+    elif nmap_txt is not None:
         try:
             _emit_event(db, scan_run_id, "log", "info",
-                        f"[ingestion] Parsing nmap text: {nmap_txt.name}")
+                        f"[ingestion] Parsing nmap text: {nmap_txt}")
             ports_inserted = _parse_nmap_text(nmap_txt, scan_run_id, sub_map, domain, db)
             db.commit()
         except Exception as exc:
@@ -490,13 +673,22 @@ def _ingest_results(scan_run_id: int, domain: str, output_dir: Path,
         _emit_event(db, scan_run_id, "log", "info",
                     f"[ingestion] Ports: {ports_inserted} inserted")
 
-    # ── Vulnerabilities (nuclei) ──────────────────────────────────────────────
-    for nuclei_file in (output_dir / "nuclei.json", output_dir / "nuclei_results.json"):
+    # ── Vulnerabilities (nuclei) ──────────────────────────────────────────────────
+    # Check root dir and phase4 subdirectories
+    _nuclei_dir = output_dir / "phase4_vulnscan" / "nuclei"
+    _extra_nuclei = list(_nuclei_dir.glob("*.json")) if _nuclei_dir.is_dir() else []
+    nuclei_candidates = [
+        output_dir / "nuclei.json",
+        output_dir / "nuclei_results.json",
+        output_dir / "phase4_vulnscan" / "nuclei" / "nuclei_results.json",
+        output_dir / "phase4_vulnscan" / "nuclei" / "nuclei.json",
+    ] + _extra_nuclei
+    for nuclei_file in nuclei_candidates:
         if not nuclei_file.is_file():
             continue
         try:
             _emit_event(db, scan_run_id, "log", "info",
-                        f"[ingestion] Parsing nuclei results: {nuclei_file.name}")
+                        f"[ingestion] Parsing nuclei results: {nuclei_file}")
             vulns_inserted = _parse_nuclei(nuclei_file, scan_run_id, sub_map, domain, db)
             db.commit()
             if vulns_inserted:
@@ -509,8 +701,38 @@ def _ingest_results(scan_run_id: int, domain: str, output_dir: Path,
                         f"[ingestion] Nuclei parse error: {exc}")
         break  # only process first matching file
 
+    # ── Nikto vulnerability findings ─────────────────────────────────────────
+    nikto_dir = output_dir / "phase4_vulnscan" / "misc"
+    if nikto_dir.is_dir():
+        for nikto_file in nikto_dir.glob("nikto_*.json"):
+            try:
+                n_inserted = _parse_nikto(nikto_file, scan_run_id, sub_map, domain, db)
+                if n_inserted:
+                    db.commit()
+                    _emit_event(db, scan_run_id, "log", "info",
+                                f"[ingestion] Nikto: {n_inserted} findings from {nikto_file.name}")
+            except Exception as exc:
+                db.rollback()
+                _emit_event(db, scan_run_id, "log", "warning",
+                            f"[ingestion] Nikto parse error ({nikto_file.name}): {exc}")
+        # Total vuln count update
+        from app.db.models import Vulnerability as _VN
+        total_vulns = db.query(_VN).filter(_VN.scan_run_id == scan_run_id).count()
+        if total_vulns:
+            _update_progress(db, scan_run_id, vulnerabilities_found=total_vulns)
+
     # ── FFUF results (each file individually) ────────────────────────────────
-    for ffuf_file in output_dir.glob("ffuf_*.json"):
+    # FFUF files live in phase3_content/bruteforce/ but ffuf_all.json may also
+    # be copied to the output root by run_scan.sh.  Search both locations and
+    # deduplicate by resolved path so we don't double-count.
+    _ffuf_seen: set = set()
+    _ffuf_files = list(output_dir.glob("ffuf_*.json"))
+    _ffuf_files += list((output_dir / "phase3_content" / "bruteforce").glob("ffuf_*.json"))
+    for ffuf_file in _ffuf_files:
+        _ffuf_key = ffuf_file.resolve()
+        if _ffuf_key in _ffuf_seen:
+            continue
+        _ffuf_seen.add(_ffuf_key)
         try:
             _emit_event(db, scan_run_id, "log", "info",
                         f"[ingestion] Parsing ffuf: {ffuf_file.name}")
@@ -915,13 +1137,24 @@ def _run_scan(scan_run_id: int, db: Session) -> tuple[bool, str]:
             [str(_HARNESS), str(scan_run_id), domain, scan_type or "full"],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,  # merge stderr so we capture everything
+            stdin=subprocess.DEVNULL,  # prevent terminal stdin inheritance (avoids SIGTTIN stopping sub-tools)
             text=True,
             bufsize=1,  # line-buffered
             cwd=str(_REPO_ROOT),  # match harness ./output relative path
+            start_new_session=True,  # detach from controlling terminal (prevents SIGTTOU/SIGTTIN on sub-processes)
         )
 
+        # Batch event writes — commit every _BATCH_SIZE lines or every
+        # _BATCH_SECS seconds to reduce SQLite write-lock contention.
+        # The API server (and SSE stream) can then read between commits.
+        _BATCH_SIZE = 10
+        _BATCH_SECS = 2.0
+        _batch_count = 0
+        _last_commit = time.monotonic()
+        _is_paused = False  # track pause state to avoid repeated SIGSTOP/SIGCONT
+
         for raw_line in proc.stdout:
-            # Check if scan was stopped via API while running
+            # Check if scan was stopped or paused via API while running
             current = db.execute(
                 text("SELECT status FROM scan_runs WHERE id=:id"),
                 {"id": scan_run_id},
@@ -933,10 +1166,70 @@ def _run_scan(scan_run_id: int, db: Session) -> tuple[bool, str]:
                 except subprocess.TimeoutExpired:
                     proc.kill()
                     proc.wait()
+                db.commit()  # flush any pending batch
                 return False, f"scan {current[0]} by request"
+
+            # Handle pause: send SIGSTOP to process group, then poll DB
+            # until status changes back to 'running' (resume) or 'stopped'.
+            if current and current[0] == "paused" and not _is_paused:
+                _is_paused = True
+                try:
+                    import signal
+                    os.killpg(os.getpgid(proc.pid), signal.SIGSTOP)
+                    logger.info("scan paused", extra={"scan_run_id": scan_run_id})
+                except Exception as pause_exc:
+                    logger.warning(f"SIGSTOP failed (non-fatal): {pause_exc}")
+
+                # Flush any pending batch before entering pause loop
+                if _batch_count > 0:
+                    db.commit()
+                    _batch_count = 0
+                    _last_commit = time.monotonic()
+
+                # Poll every 3 seconds until resumed or stopped
+                while True:
+                    time.sleep(3)
+                    poll_status = db.execute(
+                        text("SELECT status FROM scan_runs WHERE id=:id"),
+                        {"id": scan_run_id},
+                    ).fetchone()
+                    if poll_status and poll_status[0] == "running":
+                        # Resumed — send SIGCONT
+                        try:
+                            os.killpg(os.getpgid(proc.pid), signal.SIGCONT)
+                            logger.info("scan resumed", extra={"scan_run_id": scan_run_id})
+                        except Exception as resume_exc:
+                            logger.warning(f"SIGCONT failed (non-fatal): {resume_exc}")
+                        _is_paused = False
+                        break
+                    elif poll_status and poll_status[0] in ("stopped", "failed"):
+                        # Stopped while paused — unfreeze then terminate
+                        try:
+                            os.killpg(os.getpgid(proc.pid), signal.SIGCONT)
+                            time.sleep(0.1)
+                            proc.terminate()
+                            proc.wait(timeout=10)
+                        except Exception:
+                            try:
+                                proc.kill()
+                                proc.wait()
+                            except Exception:
+                                pass
+                        return False, f"scan {poll_status[0]} while paused"
+                    # else: still paused, keep polling
+                continue  # re-read from stdout after resume
 
             line = raw_line.rstrip()
             if not line:
+                continue
+
+            # Skip raw JSON blobs from tools (ffuf, nuclei etc.) — they are
+            # ingested separately from output files; storing them as events
+            # floods scan_events with hundreds of JSON rows and causes
+            # false-positive errors (FUZZ words like "errorpage" trigger
+            # the old fuzzy level detector).
+            stripped = line.lstrip()
+            if stripped.startswith(("{", "[")):
                 continue
 
             # Parse phase hints from harness output e.g. "[phase:2]"
@@ -947,14 +1240,34 @@ def _run_scan(scan_run_id: int, db: Session) -> tuple[bool, str]:
                     pct = min(10 + phase * 20, 90)
                     _update_progress(db, scan_run_id, current_phase=phase,
                                      progress_percentage=pct)
+                    _batch_count += 1
                 except (ValueError, IndexError):
                     pass
 
-            level = "warning" if "[WARN]" in line or "warn" in line.lower() else "info"
-            if "[ERROR]" in line or "error" in line.lower():
+            # Use explicit bracket markers only — avoids false positives from
+            # tool output that contains the words "error"/"warn" naturally
+            # (e.g. amass libpostal messages, FFUF FUZZ wordlist entries).
+            if "[ERROR]" in line or "[CRITICAL]" in line or "[FATAL]" in line:
                 level = "error"
+            elif "[WARN]" in line or "[WARNING]" in line:
+                level = "warning"
+            else:
+                level = "info"
 
-            _emit_event(db, scan_run_id, "log", level, line, phase=phase)
+            _emit_event(db, scan_run_id, "log", level, line, phase=phase,
+                        _commit=False)
+            _batch_count += 1
+
+            # Flush batch to DB on size or time threshold
+            now = time.monotonic()
+            if _batch_count >= _BATCH_SIZE or (now - _last_commit) >= _BATCH_SECS:
+                db.commit()
+                _batch_count = 0
+                _last_commit = now
+
+        # Flush any remaining buffered events
+        if _batch_count > 0:
+            db.commit()
 
         try:
             proc.wait(timeout=3600)
@@ -967,7 +1280,7 @@ def _run_scan(scan_run_id: int, db: Session) -> tuple[bool, str]:
             return False, f"harness exited with code {proc.returncode}"
 
         # Ingest output files — failures are non-fatal so wrap tightly
-        output_dir = _OUTPUT_BASE / f"{domain.replace('.', '_')}_{scan_run_id}"
+        output_dir = _OUTPUT_BASE / f"{domain.replace('.', '_')}_scan_{scan_run_id}"
         try:
             _emit_event(db, scan_run_id, "log", "info",
                         f"[ingestion] Starting result ingestion from {output_dir}")
@@ -1048,15 +1361,71 @@ def run_once(db: Optional[Session] = None) -> int:
 
     finally:
         if own_session:
+            try:
+                db.rollback()  # ensure any pending/broken transaction is cleared
+            except Exception:
+                pass
             db.close()
 
     return processed
+
+
+def _recover_orphaned_jobs() -> int:
+    """Reset scan_jobs stuck in 'running' from a previously crashed worker.
+
+    Any job with status='running' and a worker_id different from this process
+    that started more than 30 minutes ago is considered orphaned (the worker
+    process that claimed it is no longer alive).  Resetting it to 'queued'
+    allows this worker (or any future worker) to pick it up and run it.
+    """
+    from datetime import timedelta
+    db = _Session()
+    try:
+        cutoff = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
+        res = db.execute(
+            text(
+                "UPDATE scan_jobs"
+                " SET status='queued', worker_id=NULL, started_at=NULL"
+                " WHERE status='running'"
+                " AND worker_id IS NOT NULL"
+                " AND worker_id != :wid"
+                " AND (started_at IS NULL OR started_at < :cutoff)"
+            ),
+            {"wid": _WORKER_ID, "cutoff": cutoff},
+        )
+        n = res.rowcount
+        if n > 0:
+            # Also reset the corresponding scan_run rows so the worker can
+            # update their status correctly when re-processing.
+            db.execute(
+                text(
+                    "UPDATE scan_runs SET status='queued', completed_at=NULL"
+                    " WHERE status='running'"
+                    " AND id IN ("
+                    "   SELECT scan_run_id FROM scan_jobs WHERE status='queued' AND worker_id IS NULL"
+                    " )"
+                )
+            )
+            db.commit()
+            logger.info(
+                f"Recovered {n} orphaned job(s) from crashed workers — re-queued for processing"
+            )
+        return n
+    except Exception as exc:
+        logger.warning(f"Orphan recovery failed (non-fatal): {exc}")
+        db.rollback()
+        return 0
+    finally:
+        db.close()
 
 
 def run_forever() -> None:
     """Poll the queue indefinitely; auto-restart on unhandled errors."""
     logger.info("worker started", extra={"worker_id": _WORKER_ID,
                                           "poll_sec": WORKER_POLL_SEC})
+    # Recover any jobs left 'running' by a previous crashed worker process so
+    # they are picked up and completed rather than orphaned forever.
+    _recover_orphaned_jobs()
     while True:
         try:
             n = run_once()
@@ -1068,11 +1437,18 @@ def run_forever() -> None:
         except Exception as exc:
             logger.error("worker error — will retry",
                          extra={"error": str(exc)})
+            # Dispose the connection pool so the next run_once() gets fresh
+            # connections — prevents "Can't reconnect until invalid transaction
+            # is rolled back" (SQLAlchemy error 8s2b) from persisting.
+            try:
+                _engine.dispose()
+            except Exception:
+                pass
             time.sleep(WORKER_POLL_SEC)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="ReconX scan worker")
+    parser = argparse.ArgumentParser(description="Technieum scan worker")
     parser.add_argument(
         "--drain", action="store_true",
         help="Process all queued jobs once then exit"

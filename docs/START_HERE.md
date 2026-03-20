@@ -1,4 +1,4 @@
-# 📚 ReconX Documentation Folder
+# 📚 Technieum Documentation Folder
 
 **Complete documentation organized in one place**
 
@@ -6,14 +6,14 @@
 
 ## 📖 What's in This Folder
 
-All ReconX documentation is now neatly organized here.
+All Technieum documentation is now neatly organized here.
 
 ### Main Documentation (START HERE)
 
 **[README.md](README.md)** - 462 lines, ~19 KB
 - ✅ **The Complete Overview** – This is your main document
 - Non-technical, easy to read
-- Covers what ReconX is and what it does
+- Covers what Technieum is and what it does
 - Explains all 4 phases
 - Lists all 50+ integrated tools
 - Shows what's working today
@@ -21,7 +21,7 @@ All ReconX documentation is now neatly organized here.
 - Includes real-world use cases
 - Quick command reference
 
-**Read this first if you're new to ReconX.**
+**Read this first if you're new to Technieum.**
 
 ---
 
@@ -95,7 +95,7 @@ All ReconX documentation is now neatly organized here.
 
 ## 🎯 How to Use This Documentation
 
-### I'm New to ReconX
+### I'm New to Technieum
 1. Read [README.md](README.md) (15 minutes)
 2. Follow the commands in the "Getting Started" section
 3. Run your first scan
@@ -143,7 +143,7 @@ All ReconX documentation is now neatly organized here.
 🔄 Scheduled Scanning  
 
 ### Documentation Topics
-- What ReconX does
+- What Technieum does
 - How to install it
 - How to run scans
 - How to query results
@@ -163,7 +163,7 @@ All ReconX documentation is now neatly organized here.
 
 1. **Read:** [README.md](README.md) (20 minutes)
 2. **Install:** `bash setup.sh && pip3 install -r requirements.txt`
-3. **Scan:** `python3 reconx.py -t example.com`
+3. **Scan:** `python3 technieum.py -t example.com`
 4. **Query:** `python3 query.py -t example.com --summary`
 5. **Reference:** Use [QUICK_REFERENCE.md](QUICK_REFERENCE.md) as needed
 
@@ -183,7 +183,7 @@ Each phase fully automated and documented.
 ## 🎓 Learning Path
 
 ### 5-Minute Overview
-- What is ReconX? → See README.md introduction
+- What is Technieum? → See README.md introduction
 
 ### 30-Minute Deep Dive
 - Read README.md completely
@@ -199,7 +199,7 @@ Each phase fully automated and documented.
   - INDEX.md (navigation)
 
 ### Hands-On Learning
-- Install ReconX
+- Install Technieum
 - Run your first scan
 - Query the database
 - Export results
@@ -211,7 +211,7 @@ Each phase fully automated and documented.
 
 | Concept | Documented In |
 |---------|---------------|
-| **What is ReconX** | README.md (intro) |
+| **What is Technieum** | README.md (intro) |
 | **The 4 phases** | README.md (phases section) |
 | **All tools** | README.md (tools list) |
 | **How to scan** | README.md (getting started) + QUICK_REFERENCE.md |
@@ -320,6 +320,6 @@ This documentation folder provides:
 
 ---
 
-**All your ReconX documentation in one organized folder. Everything you need is here.** 📦
+**All your Technieum documentation in one organized folder. Everything you need is here.** 📦
 
 Last updated: February 2026

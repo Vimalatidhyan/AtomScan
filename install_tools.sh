@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# ReconX — Install all tools and libraries required to run the full scan pipeline.
+# Technieum — Install all tools and libraries required to run the full scan pipeline.
 # Targets: Kali Linux, Debian, Ubuntu (apt-based).
 # Usage: sudo ./install_tools.sh   (or run as root; apt requires elevated privileges)
 # ==============================================================================
@@ -34,9 +34,9 @@ fi
 # Phase 2:  nmap, rustscan, subjack, gitleaks, trufflehog, git-secrets,
 #           netcat, python3, dnsx
 # Phase 3:  gau, waybackurls, gospider, hakrawler, katana, ffuf, feroxbuster,
-#           dirsearch, arjun, newman, python3
+#           dirsearch, arjun, newman, cariddi, mantra, python3
 # Phase 4:  nuclei, nikto, dalfox, sqlmap, wpscan, wapiti, skipfish, cmsmap,
-#           testssl.sh, sslyze, retire.js, python3, jq
+#           testssl.sh, sslyze, retire.js, gowitness, python3, jq
 # Phase 5:  curl, dig, host, jq, python3
 # Phase 6:  curl, python3, jq
 # Phase 7:  python3
@@ -103,7 +103,7 @@ KALI_OPTIONAL_PACKAGES=(
     cmsmap
 )
 
-echo "[install] ReconX full-pipeline dependency installer"
+echo "[install] Technieum full-pipeline dependency installer"
 echo "[install] Script dir: $SCRIPT_DIR"
 echo ""
 
@@ -160,7 +160,7 @@ if command -v go &>/dev/null; then
     install_go_tool httpx      "github.com/projectdiscovery/httpx/cmd/httpx@latest"
     install_go_tool asnmap     "github.com/projectdiscovery/asnmap/cmd/asnmap@latest"
     install_go_tool mapcidr    "github.com/projectdiscovery/mapcidr/cmd/mapcidr@latest"
-    install_go_tool ct-monitor "github.com/AkashRajvanshi/ct-monitor@latest"
+    # ct-monitor: no stable public Go module — cert transparency handled by subfinder/amass/dnsx
 
     # Phase 2 tools
     install_go_tool nuclei     "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"
@@ -174,29 +174,28 @@ if command -v go &>/dev/null; then
     install_go_tool hakrawler  "github.com/hakluke/hakrawler@latest"
     install_go_tool katana     "github.com/projectdiscovery/katana/cmd/katana@latest"
     install_go_tool ffuf       "github.com/ffuf/ffuf/v2@latest"
+    install_go_tool cariddi    "github.com/edoardottt/cariddi/cmd/cariddi@latest"   # deep crawl + secret/endpoint/API-key extraction
+    install_go_tool mantra     "github.com/Brosck/mantra@latest"                     # JS/HTML API key leak hunter
 
     # Phase 4 tools
     install_go_tool dalfox     "github.com/hahwul/dalfox/v2@latest"
 
+    # GoWitness — web screenshot & technology fingerprinting
+    install_go_tool gowitness  "github.com/sensepost/gowitness@latest"
+
     # Other tools
-    install_go_tool dnsprober  "github.com/dnsProber/dnsprober@latest"
-    install_go_tool subprober  "github.com/Jeeva-05/subprober@latest"
+    install_go_tool dnsprober  "github.com/mrhenrike/dnsprober@latest"         # DNS bruteforcer
+    install_go_tool subprober  "github.com/0xSojalSec/Subprober@latest"        # subdomain HTTP prober
 else
     echo "[install] WARNING: Go not found — some tools require manual installation."
     echo "  Install Go from https://go.dev/dl/ and re-run this script."
 fi
 
 # ------------------------------------------------------------------------------
-# 3. Pip-based tools — fallback
+# 3. Pip-based tools — installed inside the virtualenv (section 4)
+# Note: Kali Linux Python 3.13 uses PEP 668 (externally-managed-environment).
+# All pip packages are installed into .venv below to avoid that restriction.
 # ------------------------------------------------------------------------------
-echo "[install] Installing pip-based tools..."
-pip3 install --user --quiet \
-    arjun \
-    dirsearch \
-    sslyze \
-    censys \
-    shodan \
-    2>/dev/null || true
 
 # Newman (Node.js)
 if command -v npm &>/dev/null; then
@@ -227,10 +226,33 @@ if command -v git &>/dev/null; then
     # trufflehog
     if ! command -v trufflehog &>/dev/null; then
         echo "[install] Installing trufflehog..."
-        pip3 install --user --quiet trufflehog 2>/dev/null || \
+        pip3 install --user --quiet --break-system-packages trufflehog 2>/dev/null || \
         (command -v go &>/dev/null && go install github.com/trufflesecurity/trufflehog/v3@latest 2>/dev/null) || \
             echo "[install]   WARN: trufflehog install failed"
     fi
+fi
+
+# GoWitness (git clone fallback if Go install failed)
+if ! command -v gowitness &>/dev/null; then
+    echo "[install] Cloning GoWitness from GitHub..."
+    if [ ! -d /opt/gowitness ]; then
+        git clone --depth 1 https://github.com/sensepost/gowitness.git /opt/gowitness 2>/dev/null || true
+    fi
+    if [ -d /opt/gowitness ] && command -v go &>/dev/null; then
+        echo "[install] Building GoWitness from source..."
+        (cd /opt/gowitness && go build -o /usr/local/bin/gowitness . 2>/dev/null) || \
+            echo "[install]   WARN: GoWitness build failed"
+    fi
+fi
+
+# linkfinder / SecretFinder (Python tools — cloned to /opt)
+if [ ! -d /opt/LinkFinder ]; then
+    echo "[install] Cloning LinkFinder..."
+    git clone --depth 1 https://github.com/GerbenJavado/LinkFinder.git /opt/LinkFinder 2>/dev/null || true
+fi
+if [ ! -d /opt/SecretFinder ]; then
+    echo "[install] Cloning SecretFinder..."
+    git clone --depth 1 https://github.com/m4ll0k/SecretFinder.git /opt/SecretFinder 2>/dev/null || true
 fi
 
 # Feroxbuster binary (if not in apt)
@@ -282,24 +304,63 @@ fi
 VENV_DIR="${VENV_DIR:-.venv}"
 if [[ ! -d "$VENV_DIR" ]]; then
     echo "[install] Creating virtualenv at $VENV_DIR..."
-    "$PYTHON" -m venv "$VENV_DIR"
+    "$PYTHON" -m venv "$VENV_DIR" || {
+        echo "[install] WARN: venv creation failed — trying with --without-pip..."
+        "$PYTHON" -m venv --without-pip "$VENV_DIR" || true
+    }
 fi
-echo "[install] Activating $VENV_DIR..."
-# shellcheck source=/dev/null
-source "$VENV_DIR/bin/activate"
 
-echo "[install] Upgrading pip..."
-pip install --upgrade pip -q
+# Resolve the venv pip binary (never embed flags in a variable — use run_pip() below)
+_VENV_PIP=""
+for _p in "$VENV_DIR/bin/pip" "$SCRIPT_DIR/$VENV_DIR/bin/pip"; do
+    [[ -x "$_p" ]] && { _VENV_PIP="$_p"; break; }
+done
+
+# Bootstrap pip into venv if it was created --without-pip
+if [[ -z "$_VENV_PIP" ]]; then
+    _VP="$VENV_DIR/bin/python"
+    [[ -x "$_VP" ]] || _VP="$SCRIPT_DIR/$VENV_DIR/bin/python"
+    if [[ -x "$_VP" ]]; then
+        echo "[install] Bootstrapping pip into $VENV_DIR via ensurepip..."
+        "$_VP" -m ensurepip --upgrade 2>/dev/null || \
+            curl -fsSL https://bootstrap.pypa.io/get-pip.py | "$_VP" 2>/dev/null || true
+        [[ -x "$VENV_DIR/bin/pip" ]] && _VENV_PIP="$VENV_DIR/bin/pip"
+    fi
+fi
+
+# run_pip: route through venv pip when available, fall back to system pip3
+# Flags are passed as arguments — never embedded in a variable.
+run_pip() {
+    if [[ -n "$_VENV_PIP" ]]; then
+        "$_VENV_PIP" "$@"
+    else
+        echo "[install] WARN: venv pip unavailable; using system pip3 --break-system-packages"
+        pip3 --break-system-packages "$@" 2>/dev/null || true
+    fi
+}
+
+echo "[install] Upgrading pip in $VENV_DIR..."
+run_pip install --upgrade pip -q 2>/dev/null || true
+
+# pip-based recon tools (arjun, dirsearch, sslyze, censys, shodan) into venv
+echo "[install] Installing pip-based recon tools into venv..."
+run_pip install -q \
+    arjun \
+    dirsearch \
+    sslyze \
+    censys \
+    shodan \
+    2>/dev/null || true
 
 REQ_TXT="$SCRIPT_DIR/requirements.txt"
 REQ_API="$SCRIPT_DIR/requirements-api.txt"
 if [[ -f "$REQ_TXT" ]]; then
     echo "[install] Installing Python deps from requirements.txt..."
-    pip install -r "$REQ_TXT" -q
+    run_pip install -r "$REQ_TXT" -q
 fi
 if [[ -f "$REQ_API" ]]; then
     echo "[install] Installing Python deps from requirements-api.txt..."
-    pip install -r "$REQ_API" -q
+    run_pip install -r "$REQ_API" -q
 fi
 
 # ------------------------------------------------------------------------------
@@ -326,7 +387,7 @@ ALL_TOOLS=(
     # Core / DNS
     dig nslookup host whois curl jq git timeout python3
     # Phase 1
-    subfinder amass assetfinder dnsx httpx asnmap mapcidr ct-monitor
+    subfinder amass assetfinder dnsx httpx asnmap mapcidr
     subdominator dnsbruter dnsprober
     cloud_enum s3scanner goblob gcpbucketbrute
     # Phase 2
@@ -335,10 +396,10 @@ ALL_TOOLS=(
     # Phase 3
     gau waybackurls spideyx gospider hakrawler katana
     ffuf feroxbuster dirsearch linkfinder jsscanner
-    newman kr arjun
+    newman kr arjun cariddi mantra
     # Phase 4
     nuclei dalfox sqlmap nikto wpscan wapiti skipfish cmsmap
-    testssl.sh testssl sslyze retire
+    testssl.sh testssl sslyze retire gowitness
     # Phase 5–9
     # (mostly Python modules — no extra binaries)
 )
@@ -357,7 +418,12 @@ done
 
 echo ""
 echo "  Python: $("$PYTHON" --version 2>&1)"
-echo "  pip:    $(pip --version 2>&1)"
+if [[ -n "${_VENV_PIP:-}" ]]; then
+    echo "  pip:    $("$_VENV_PIP" --version 2>&1 | head -1)"
+else
+    echo "  pip:    (venv pip not available)"
+fi
+echo "  venv:   $VENV_DIR"
 echo ""
 echo "[install] Done. Run the app with: ./start.sh"
 echo "          Or run a single scan:   ./lib/run_scan.sh 1 example.com full"

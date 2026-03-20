@@ -1,0 +1,85 @@
+# Technieum Docker Compose Development Configuration
+# Enables live code synchronization via bind mounts and file watch
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Two approaches for hot-reload:
+# 1. Bind mounts (volumes): Synchronize files immediately
+# 2. Develop watch: Auto-rebuild on file changes
+#
+# Both are configured below for maximum flexibility
+
+services:
+  technieum:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Allow cache for faster rebuilds
+      no_cache: false
+    
+    volumes:
+      # Bind mounts for live code synchronization
+      - ./app:/opt/technieum/app
+      - ./backend:/opt/technieum/backend
+      - ./api:/opt/technieum/api
+      - ./modules:/opt/technieum/modules
+      - ./lib:/opt/technieum/lib
+      - ./parsers:/opt/technieum/parsers
+      - ./intelligence:/opt/technieum/intelligence
+      - ./scripts:/opt/technieum/scripts
+      
+      # Persistent volumes
+      - technieum-data:/data
+      - technieum-logs:/data/logs
+    
+    # File watch configuration for auto-rebuild and sync
+    develop:
+      watch:
+        # Sync code changes immediately (no rebuild needed)
+        - action: sync
+          path: ./app
+          target: /opt/technieum/app
+        - action: sync
+          path: ./backend
+          target: /opt/technieum/backend
+        - action: sync
+          path: ./api
+          target: /opt/technieum/api
+        - action: sync
+          path: ./modules
+          target: /opt/technieum/modules
+        - action: sync
+          path: ./lib
+          target: /opt/technieum/lib
+        - action: sync
+          path: ./parsers
+          target: /opt/technieum/parsers
+        - action: sync
+          path: ./intelligence
+          target: /opt/technieum/intelligence
+        - action: sync
+          path: ./scripts
+          target: /opt/technieum/scripts
+        
+        # Rebuild on dependency file changes
+        - action: rebuild
+          path: requirements.txt
+        - action: rebuild
+          path: requirements-api.txt
+        - action: rebuild
+          path: Dockerfile
+    
+    environment:
+      TECHNIEUM_ENV: development
+      TECHNIEUM_DEBUG: "true"
+      PYTHONUNBUFFERED: "1"
+      API_WORKERS: "1"  # Single worker for debugging
+    
+    # Development resource limits (lower than production)
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4G
+        reservations:
+          cpus: "1"
+          memory: 2G

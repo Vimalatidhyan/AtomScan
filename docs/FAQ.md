@@ -1,15 +1,15 @@
 # Frequently Asked Questions
 
-Quick answers to common questions about ReconX.
+Quick answers to common questions about Technieum.
 
 ---
 
 ## General Questions
 
-### What is ReconX?
-ReconX is an automated attack surface mapping tool. Give it a domain name, and it automatically discovers all your subdomains, validates which are live, maps accessible web content, and scans for vulnerabilities. It orchestrates 50+ specialized security tools into a single unified workflow.
+### What is Technieum?
+Technieum is an automated attack surface mapping tool. Give it a domain name, and it automatically discovers all your subdomains, validates which are live, maps accessible web content, and scans for vulnerabilities. It orchestrates 50+ specialized security tools into a single unified workflow.
 
-### Who should use ReconX?
+### Who should use Technieum?
 - Security professionals conducting assessments
 - Penetration testers doing reconnaissance
 - Bug bounty hunters finding vulnerabilities
@@ -17,13 +17,13 @@ ReconX is an automated attack surface mapping tool. Give it a domain name, and i
 - Teams needing fast attack surface mapping
 
 ### How much does it cost?
-ReconX is free and open source (MIT License). You just need to install it on your own infrastructure.
+Technieum is free and open source (MIT License). You just need to install it on your own infrastructure.
 
 ### Do I need special skills to use it?
 No. Basic command-line skills will do. We've designed it to be accessible to security professionals of any experience level.
 
 ### Is it legal to use?
-Yes. ReconX is a reconnaissance tool. Like any security tool, it's legal when used:
+Yes. Technieum is a reconnaissance tool. Like any security tool, it's legal when used:
 - On systems you own
 - On systems you have permission to test
 - In compliance with local laws
@@ -34,7 +34,7 @@ Always get written permission before testing any system you don't own.
 
 ## Installation & Setup
 
-### How do I install ReconX?
+### How do I install Technieum?
 ```bash
 bash setup.sh
 pip3 install -r requirements.txt
@@ -53,7 +53,7 @@ This installs Python dependencies and all 50+ security tools. Takes 15-30 minute
 Typically 20-30 minutes depending on internet connection and your system. Tool downloads are largest part.
 
 ### Can I run it on Windows?
-ReconX is designed for Linux/macOS. Windows users can use Windows Subsystem for Linux (WSL) to run it.
+Technieum is designed for Linux/macOS. Windows users can use Windows Subsystem for Linux (WSL) to run it.
 
 ### Which API keys do I need?
 Most tools work without API keys. Optional (but helpful) keys include:
@@ -72,7 +72,7 @@ Some tools require elevated privileges. The setup script will prompt you when ne
 
 ### How do I run my first scan?
 ```bash
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 ```
 
 This scans the target completely (all 4 phases). Takes 2-6 hours depending on target size.
@@ -87,24 +87,24 @@ Depends on how many live hosts, URLs, and vulnerabilities exist.
 ### Can I scan multiple targets at once?
 Yes:
 ```bash
-python3 reconx.py -t example.com,other.com,third.com
+python3 technieum.py -t example.com,other.com,third.com
 ```
 
 Or from file:
 ```bash
-python3 reconx.py -t targets.txt
+python3 technieum.py -t targets.txt
 ```
 
 ### Can I interrupt a scan?
 Yes, press Ctrl+C. Your progress is saved. Resume with:
 ```bash
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 ### Can I run only certain phases?
 Yes. Phase 1 = discovery only, Phase 2 = validation, etc:
 ```bash
-python3 reconx.py -t example.com --phases 1
+python3 technieum.py -t example.com --phases 1
 ```
 
 ### Does the scan use a lot of bandwidth?
@@ -113,7 +113,7 @@ Moderate amounts. Mostly downloading public data (certificates, DNS records, web
 ### Can scans run in the background?
 Yes. Use nohup to keep running even if terminal closes:
 ```bash
-nohup python3 reconx.py -t example.com &
+nohup python3 technieum.py -t example.com &
 ```
 
 ---
@@ -149,7 +149,7 @@ python3 query.py -t example.com --export csv
 - Service versions
 
 ### How accurate are the results?
-Very. ReconX uses established tools (Nmap, Nuclei, etc.) that are industry-standard. False positives are rare. However:
+Very. Technieum uses established tools (Nmap, Nuclei, etc.) that are industry-standard. False positives are rare. However:
 - Some tools may timeout on large targets
 - Network issues may cause missed data
 - API rate limits may affect some tools
@@ -277,7 +277,7 @@ ps aux | grep -E "subfinder|nmap|nuclei"
 If frozen, interrupt and resume:
 ```bash
 Ctrl+C
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 ### Getting "command not found" errors
@@ -301,7 +301,7 @@ sqlite3 db/results.db "SELECT COUNT(*) FROM subdomains;"
 
 If empty, scan didn't complete. Check logs:
 ```bash
-tail -f logs/reconx.log
+tail -f logs/technieum.log
 ```
 
 ### API key isn't working
@@ -320,7 +320,7 @@ curl -s "https://api.shodan.io/shodan/host/8.8.8.8?key=YOUR_KEY"
 ### Getting permission denied errors
 Some tools need elevated access:
 ```bash
-sudo python3 reconx.py -t example.com
+sudo python3 technieum.py -t example.com
 ```
 
 Or give user permissions:
@@ -336,7 +336,7 @@ ping google.com
 
 Some tools fail gracefully on network issues. Try resuming:
 ```bash
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 For more troubleshooting, see TROUBLESHOOTING.md.
@@ -432,7 +432,7 @@ Phase D will add distributed workers for true scaling.
 
 ## Comparing to Other Tools
 
-### How is ReconX different?
+### How is Technieum different?
 - **Comprehensive:** Entire reconnaissance workflow in one tool
 - **Multi-tool:** Uses best-of-breed for each phase
 - **Automated:** Run all 4 phases with one command
@@ -442,16 +442,16 @@ Phase D will add distributed workers for true scaling.
 ### How does it compare to Metasploit?
 Different tools for different jobs:
 - **Metasploit:** Exploitation framework (attacks systems)
-- **ReconX:** Reconnaissance platform (maps systems)
+- **Technieum:** Reconnaissance platform (maps systems)
 
-ReconX feeds into Metasploit – use together for complete assessment.
+Technieum feeds into Metasploit – use together for complete assessment.
 
-### Can ReconX replace Shodan?
+### Can Technieum replace Shodan?
 No, different purposes:
 - **Shodan:** Internet-wide search engine for devices
-- **ReconX:** Deep analysis of specific targets
+- **Technieum:** Deep analysis of specific targets
 
-ReconX can use Shodan as a data source (if you have API key).
+Technieum can use Shodan as a data source (if you have API key).
 
 ---
 
@@ -483,14 +483,14 @@ Phase A, B, C, D roadmaps already exist in documentation. For custom features:
 
 ## Quick Decision Tree
 
-**"Is ReconX right for me?"**
+**"Is Technieum right for me?"**
 ```
 Do you need to assess an organization's attack surface?
-  → Yes: ReconX is perfect
+  → Yes: Technieum is perfect
   → No: Different tool may be better
 
 Do you have basic command-line skills?
-  → Yes: You can use ReconX
+  → Yes: You can use Technieum
   → Unsure: See QUICKSTART in README.md
 
 Do you have authorization to test targets?

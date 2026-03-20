@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# ReconX - Phase 6: CVE Correlation & Risk Scoring
+# Technieum - Phase 6: CVE Correlation & Risk Scoring
 # Correlates discovered services/versions with CVE databases, scores risk
 ################################################################################
 
@@ -26,7 +26,7 @@ mkdir -p "$PHASE_DIR"/{cve_data,risk_scores,exploits,kev_matches}
 log_info "=== Phase 6: CVE Correlation & Risk Scoring for $TARGET ==="
 log_info "Output directory: $PHASE_DIR"
 
-PYTHON="${RECONX_PYTHON:-python3}"
+PYTHON="${TECHNIEUM_PYTHON:-python3}"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # ─── 6A: Extract service/version inventory ────────────────────────────────────

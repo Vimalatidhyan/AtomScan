@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Report generation CLI for ReconX Enterprise."""
+"""Report generation CLI for Technieum Enterprise."""
 import argparse, sys, json, logging
 from datetime import datetime
 from pathlib import Path
@@ -18,7 +18,7 @@ def cmd_generate(args):
         data = {"scan_id": args.scan_id, "generated_at": datetime.utcnow().isoformat(), "format": "json", "summary": "Report stub - implement reporting module"}
         fname.write_text(json.dumps(data, indent=2))
     else:
-        fname.write_text(f"ReconX Enterprise Report\nScan ID: {args.scan_id}\nGenerated: {datetime.utcnow().isoformat()}\nFormat: {args.format}\n")
+        fname.write_text(f"Technieum Enterprise Report\nScan ID: {args.scan_id}\nGenerated: {datetime.utcnow().isoformat()}\nFormat: {args.format}\n")
     print(f"[+] Report generated: {fname}")
 
 def cmd_list(args):
@@ -30,7 +30,7 @@ def cmd_list(args):
         print(f"  {f.name}")
 
 def main():
-    parser = argparse.ArgumentParser(description="ReconX report generator")
+    parser = argparse.ArgumentParser(description="Technieum report generator")
     sub = parser.add_subparsers(dest="command")
 
     gen = sub.add_parser("generate")

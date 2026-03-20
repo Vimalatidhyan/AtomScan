@@ -1,5 +1,5 @@
 """
-Integration tests for ReconX TEST_MODE end-to-end scan.
+Integration tests for Technieum TEST_MODE end-to-end scan.
 
 Runs a full 4-phase scan against mock data using the --test flag codepath,
 then asserts that the database contains non-zero results in every category.
@@ -12,7 +12,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from reconx import ReconX
+from technieum import Technieum
 
 
 TARGET = "example.com"
@@ -33,10 +33,10 @@ class TestIntegrationTestMode(unittest.TestCase):
             pass
 
     def test_scan_populates_database(self):
-        reconx = ReconX(targets=[TARGET], db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
-        reconx.scan_target(TARGET)
+        technieum = Technieum(targets=[TARGET], db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
+        technieum.scan_target(TARGET)
 
-        stats = reconx.db.get_stats(TARGET)
+        stats = technieum.db.get_stats(TARGET)
 
         # All mock data categories must be non-zero after a test scan
         self.assertGreater(stats["subdomains"], 0, "subdomains should be > 0")
@@ -45,26 +45,26 @@ class TestIntegrationTestMode(unittest.TestCase):
         self.assertGreater(stats["open_ports"], 0, "open_ports should be > 0")
         self.assertGreater(stats["vulnerabilities"], 0, "vulnerabilities should be > 0")
 
-        reconx.db.close()
+        technieum.db.close()
 
     def test_scan_progress_marked_complete(self):
-        reconx = ReconX(targets=[TARGET], db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
-        reconx.scan_target(TARGET)
+        technieum = Technieum(targets=[TARGET], db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
+        technieum.scan_target(TARGET)
 
-        progress = reconx.db.get_progress(TARGET)
+        progress = technieum.db.get_progress(TARGET)
         self.assertIsNotNone(progress)
         self.assertTrue(progress["phase1_done"], "phase1 should be marked done")
         self.assertTrue(progress["phase2_done"], "phase2 should be marked done")
         self.assertTrue(progress["phase3_done"], "phase3 should be marked done")
         self.assertTrue(progress["phase4_done"], "phase4 should be marked done")
 
-        reconx.db.close()
+        technieum.db.close()
 
     def test_scan_only_selected_phases(self):
-        reconx = ReconX(targets=[TARGET], db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
-        reconx.scan_target(TARGET, phases=[1, 2])
+        technieum = Technieum(targets=[TARGET], db_path=self.db_path, output_dir=self.output_dir, test_mode=True)
+        technieum.scan_target(TARGET, phases=[1, 2])
 
-        progress = reconx.db.get_progress(TARGET)
+        progress = technieum.db.get_progress(TARGET)
         self.assertIsNotNone(progress)
         self.assertTrue(progress["phase1_done"])
         self.assertTrue(progress["phase2_done"])
@@ -72,7 +72,7 @@ class TestIntegrationTestMode(unittest.TestCase):
         self.assertFalse(progress["phase3_done"])
         self.assertFalse(progress["phase4_done"])
 
-        reconx.db.close()
+        technieum.db.close()
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# Production Runbook — ReconX Enterprise
+# Production Runbook — Technieum Enterprise
 
 ## Quick Reference
 
@@ -18,7 +18,7 @@
 1. Copy and populate env file:
    ```bash
    cp .env.production.example .env.production
-   # Edit .env.production — fill in RECONX_SECRET_KEY, DATABASE_URL, etc.
+   # Edit .env.production — fill in TECHNIEUM_SECRET_KEY, DATABASE_URL, etc.
    ```
 
 2. Export env vars (or use --env-file):
@@ -92,8 +92,8 @@ print('rolled back')
 
 2. Tag the broken image and revert:
    ```bash
-   docker tag reconx-api:latest reconx-api:broken-$(date +%Y%m%d)
-   docker tag reconx-api:previous reconx-api:latest
+   docker tag technieum-api:latest technieum-api:broken-$(date +%Y%m%d)
+   docker tag technieum-api:previous technieum-api:latest
    ```
 
 3. Roll back database migration if schema changed:
@@ -153,7 +153,7 @@ Returns uptime, DB row counts by status, and auth cache stats.
 ## Security
 
 - Rotate API keys via the `/api/v1/keys/` endpoint (or directly in DB).
-- Rotate `RECONX_SECRET_KEY` by updating the env var and restarting the API
+- Rotate `TECHNIEUM_SECRET_KEY` by updating the env var and restarting the API
   (existing CSRF tokens will be invalidated; users must refresh).
 - Rate limit: 1000 requests/hour per API key (configurable in `RateLimitMiddleware`).
 

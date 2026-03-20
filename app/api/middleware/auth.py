@@ -31,7 +31,7 @@ _key_cache: dict = {}
 AUTH_CACHE_TTL = 60  # seconds
 
 # Bootstrap API key — set via env var or auto-generated on first startup
-BOOTSTRAP_KEY: Optional[str] = os.environ.get("RECONX_API_KEY")
+BOOTSTRAP_KEY: Optional[str] = os.environ.get("TECHNIEUM_API_KEY")
 
 
 def hash_api_key(key: str) -> str:

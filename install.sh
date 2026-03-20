@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# ReconX — Full Tool Installer
+# Technieum — Full Tool Installer
 # Installs all system packages, Go tools, Python tools, and wordlists.
 # Supports: Kali Linux, Debian 12+, Ubuntu 22.04+, Arch/Manjaro
 #
@@ -70,7 +70,7 @@ log_info "Real user home: $REAL_HOME"
 # ------------------------------------------------------------------------------
 # Directories
 # ------------------------------------------------------------------------------
-TOOLS_DIR="/opt/reconx-tools"
+TOOLS_DIR="/opt/technieum-tools"
 WORDLISTS_DIR="/opt/wordlists"
 mkdir -p "$TOOLS_DIR" "$WORDLISTS_DIR"
 
@@ -218,7 +218,7 @@ if ! $PYTHON_ONLY; then
     if ! grep -q 'GOROOT=/usr/local/go' "$PROFILE_FILE" 2>/dev/null; then
         cat >> "$PROFILE_FILE" <<'GOENV'
 
-# --- Go environment (added by ReconX installer) ---
+# --- Go environment (added by Technieum installer) ---
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
 export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
@@ -415,7 +415,7 @@ if [[ ! -f "$SCRIPT_DIR/.env" ]]; then
         log_ok ".env created from .env.example — add your API keys"
     else
         cat > "$SCRIPT_DIR/.env" <<'ENVFILE'
-# ReconX API Keys — see README.md for how to obtain each key
+# Technieum API Keys — see README.md for how to obtain each key
 SHODAN_API_KEY=
 CENSYS_API_ID=
 CENSYS_API_SECRET=
@@ -430,7 +430,7 @@ DEHASHED_KEY=
 GITHUB_TOKEN=
 NVD_API_KEY=
 EMAILREP_API_KEY=
-DATABASE_URL=sqlite:///./reconx.db
+DATABASE_URL=sqlite:///./technieum.db
 SECRET_KEY=change-me-to-a-random-64-char-string
 LOG_LEVEL=INFO
 ENVFILE
@@ -446,7 +446,7 @@ mkdir -p "$SCRIPT_DIR/output" "$SCRIPT_DIR/logs"
 chown -R "$REAL_USER":"$REAL_USER" "$SCRIPT_DIR/output" "$SCRIPT_DIR/logs"
 
 # Make scripts executable
-chmod +x "$SCRIPT_DIR/reconx.py" \
+chmod +x "$SCRIPT_DIR/technieum.py" \
          "$SCRIPT_DIR/setup.sh" \
          "$SCRIPT_DIR/install.sh" \
          "$SCRIPT_DIR"/modules/*.sh 2>/dev/null || true
@@ -497,8 +497,8 @@ ${BOLD}Next steps:${NC}
   2. ${YELLOW}Activate the Python venv${NC} (Kali/Debian) before running:
         source $VENV_DIR/bin/activate
 
-  3. ${YELLOW}Run ReconX${NC}:
-        python3 $SCRIPT_DIR/reconx.py -t example.com
+  3. ${YELLOW}Run Technieum${NC}:
+        python3 $SCRIPT_DIR/technieum.py -t example.com
 
   4. ${YELLOW}Optional — start the web API${NC}:
         uvicorn backend.api.server:app --host 0.0.0.0 --port 8000

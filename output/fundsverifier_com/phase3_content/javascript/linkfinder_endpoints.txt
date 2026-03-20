@@ -1,2 +1,0 @@
-Error: invalid input defined or SSL error: HTTP Error 404: Not Found
-Usage: python /usr/local/bin/linkfinder [Options] use -h for help

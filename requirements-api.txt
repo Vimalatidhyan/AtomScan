@@ -1,5 +1,5 @@
 # ==============================================================================
-# ReconX — API server requirements
+# Technieum — API server requirements
 # Install alongside requirements.txt for full API + worker functionality:
 #
 #   pip install -r requirements.txt -r requirements-api.txt

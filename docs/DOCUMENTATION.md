@@ -1,4 +1,4 @@
-# ReconX - Attack Surface Management Framework
+# Technieum - Attack Surface Management Framework
 ## Complete Documentation & Roadmap
 
 **Version:** 1.0 (Current Release)  
@@ -29,7 +29,7 @@
 
 ## Executive Summary
 
-**ReconX** is an enterprise-grade Attack Surface Management (ASM) platform designed to discover, inventory, and monitor an organization's digital assets and their vulnerabilities. It orchestrates **50+ reconnaissance and vulnerability scanning tools** across four distinct phases to provide comprehensive attack surface visibility.
+**Technieum** is an enterprise-grade Attack Surface Management (ASM) platform designed to discover, inventory, and monitor an organization's digital assets and their vulnerabilities. It orchestrates **50+ reconnaissance and vulnerability scanning tools** across four distinct phases to provide comprehensive attack surface visibility.
 
 ### Key Capabilities (Current + Planned)
 
@@ -80,7 +80,7 @@
 ┌────────────────▼────────────────────────────────────────┐
 │              Orchestration & Execution Layer            │
 │                                                          │
-│  ReconX Orchestrator (Python)                          │
+│  Technieum Orchestrator (Python)                          │
 │  - Phase Management                                    │
 │  - Threading Control                                   │
 │  - Output Parsing                                      │
@@ -234,7 +234,7 @@ Reports & Export
 - URL discovery (gau, waybackurls, hakrawler, gospider, katana)
 
 **CLI Tools:**
-- `reconx.py`: Full orchestrator with all flags
+- `technieum.py`: Full orchestrator with all flags
 - `query.py`: Target summaries, filtering, CSV export
 
 **Configuration:**
@@ -294,7 +294,7 @@ cd /path/to/kali-linux-asm
 bash setup.sh
 
 # 3. Start scanning
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 ```
 
 ### Detailed Installation
@@ -380,27 +380,27 @@ All settings can be controlled via environment variables. Set before running:
 
 ```bash
 # Core settings
-export RECONX_PHASE_TIMEOUT=3600           # Seconds per phase
-export RECONX_THREADS=5                    # Concurrent targets
-export RECONX_CONTINUE_ON_FAIL=1           # Continue if tool fails
+export TECHNIEUM_PHASE_TIMEOUT=3600           # Seconds per phase
+export TECHNIEUM_THREADS=5                    # Concurrent targets
+export TECHNIEUM_CONTINUE_ON_FAIL=1           # Continue if tool fails
 
 # Phase 1: Discovery
-export RECONX_DNSX_THREADS=100             # DNS resolution threads
-export RECONX_HTTPX_THREADS=100            # HTTP probe threads
-export RECONX_SUBFINDER_THREADS=50         # Subfinder threads
+export TECHNIEUM_DNSX_THREADS=100             # DNS resolution threads
+export TECHNIEUM_HTTPX_THREADS=100            # HTTP probe threads
+export TECHNIEUM_SUBFINDER_THREADS=50         # Subfinder threads
 
 # Phase 2: Intelligence
-export RECONX_RUSTSCAN_BATCH=1000          # RustScan batch size
-export RECONX_NMAP_MAX_HOSTS=50            # Max hosts to deep scan
-export RECONX_MIN_DISK_MB=1024             # Min disk space check
+export TECHNIEUM_RUSTSCAN_BATCH=1000          # RustScan batch size
+export TECHNIEUM_NMAP_MAX_HOSTS=50            # Max hosts to deep scan
+export TECHNIEUM_MIN_DISK_MB=1024             # Min disk space check
 
 # Phase 3: Content Discovery
-export RECONX_FFUF_THREADS=80              # FFUF threads
-export RECONX_FEROX_THREADS=80             # Feroxbuster threads
+export TECHNIEUM_FFUF_THREADS=80              # FFUF threads
+export TECHNIEUM_FEROX_THREADS=80             # Feroxbuster threads
 
 # Phase 4: Vulnerability Scanning
-export RECONX_NUCLEI_RATE_HIGH=100         # Nuclei rate limit
-export RECONX_SQLMAP_THREADS=5             # SQLMap threads
+export TECHNIEUM_NUCLEI_RATE_HIGH=100         # Nuclei rate limit
+export TECHNIEUM_SQLMAP_THREADS=5             # SQLMap threads
 
 # API Keys
 export SHODAN_API_KEY="sk_abc123..."
@@ -416,7 +416,7 @@ Currently, `config.yaml` exists but is not loaded. Future implementation will:
 # config.yaml (not currently used, but shows intended structure)
 general:
   output_dir: "output"
-  database: "reconx.db"
+  database: "technieum.db"
   threads: 5
   timeout: 3600
 
@@ -467,19 +467,19 @@ api_keys:
 
 ```bash
 # Passive only (no risk of detection)
-python3 reconx.py -t example.com --profile passive
+python3 technieum.py -t example.com --profile passive
 
 # Standard (balanced speed/sensitivity)
-python3 reconx.py -t example.com --profile standard
+python3 technieum.py -t example.com --profile standard
 
 # Aggressive (maximum coverage, risk of triggering WAF/IDS)
-python3 reconx.py -t example.com --profile aggressive
+python3 technieum.py -t example.com --profile aggressive
 
 # Stealth (slow, minimal requests)
-python3 reconx.py -t example.com --profile stealth
+python3 technieum.py -t example.com --profile stealth
 
 # Custom (use config.yaml settings)
-python3 reconx.py -t example.com --profile custom
+python3 technieum.py -t example.com --profile custom
 ```
 
 ---
@@ -490,48 +490,48 @@ python3 reconx.py -t example.com --profile custom
 
 ```bash
 # Scan single target
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 
 # Scan multiple targets
-python3 reconx.py -t example.com,example.org,example.net
+python3 technieum.py -t example.com,example.org,example.net
 
 # Scan from file
-python3 reconx.py -f targets.txt
+python3 technieum.py -f targets.txt
 
 # Custom output directory
-python3 reconx.py -t example.com -o /path/to/output
+python3 technieum.py -t example.com -o /path/to/output
 
 # Custom database
-python3 reconx.py -t example.com -d /path/to/custom.db
+python3 technieum.py -t example.com -d /path/to/custom.db
 ```
 
 ### Phase-Based Scanning
 
 ```bash
 # Run all phases (default)
-python3 reconx.py -t example.com -p 1,2,3,4
+python3 technieum.py -t example.com -p 1,2,3,4
 
 # Only discovery and reconnaissance
-python3 reconx.py -t example.com -p 1,2
+python3 technieum.py -t example.com -p 1,2
 
 # Only vulnerability scanning
-python3 reconx.py -t example.com -p 4
+python3 technieum.py -t example.com -p 4
 
 # Skip phase 3 (content discovery is slow)
-python3 reconx.py -t example.com -p 1,2,4
+python3 technieum.py -t example.com -p 1,2,4
 ```
 
 ### Multi-Threading
 
 ```bash
 # Single target (sequential)
-python3 reconx.py -t example.com -T 1
+python3 technieum.py -t example.com -T 1
 
 # 5 concurrent targets (default)
-python3 reconx.py -t example.com,example.org,example.net -T 5
+python3 technieum.py -t example.com,example.org,example.net -T 5
 
 # Maximum parallelism (for large scanning)
-python3 reconx.py -f 100_targets.txt -T 20
+python3 technieum.py -f 100_targets.txt -T 20
 ```
 
 ### Querying Results
@@ -579,15 +579,15 @@ python3 query.py -t example.com --export all -o report.csv
 
 ```bash
 # Resume incomplete scan (currently uses phase flags)
-python3 reconx.py -t example.com -p 3,4
+python3 technieum.py -t example.com -p 3,4
 
 # Wait for previous scan to complete, check status
-sqlite3 reconx.db "SELECT * FROM scan_progress WHERE target='example.com'"
+sqlite3 technieum.db "SELECT * FROM scan_progress WHERE target='example.com'"
 
 # Force re-run specific phase
 # (Delete completion marker from database)
-sqlite3 reconx.db "UPDATE scan_progress SET phase1_done=0 WHERE target='example.com'"
-python3 reconx.py -t example.com -p 1
+sqlite3 technieum.db "UPDATE scan_progress SET phase1_done=0 WHERE target='example.com'"
+python3 technieum.py -t example.com -p 1
 ```
 
 ---
@@ -977,7 +977,7 @@ output/example_com/phase4_vulnscan/
 
 ### Phase A: RESTful API (Planned Q2 2026)
 
-Complete REST API for programmatic access to all ReconX functions.
+Complete REST API for programmatic access to all Technieum functions.
 
 #### Base URL
 ```
@@ -1200,7 +1200,7 @@ Response:
 
 ### Phase A: Interactive Web UI (Planned Q2 2026)
 
-Modern, responsive web interface for ReconX.
+Modern, responsive web interface for Technieum.
 
 #### Dashboard Home
 - Real-time scan progress
@@ -1391,7 +1391,7 @@ Modern, responsive web interface for ReconX.
 **Scenario:** Early-stage SaaS startup establishing first security program
 
 **Flow:**
-1. Run ReconX on startup's domain
+1. Run Technieum on startup's domain
 2. Get baseline of discovered assets
 3. Find exposed databases, secrets in git, weak SSL
 4. Create Jira issues for each finding
@@ -1420,7 +1420,7 @@ Modern, responsive web interface for ReconX.
 **Scenario:** Security team monitoring 500+ domains for continuous exposure
 
 **Flow:**
-1. Configure ReconX with all corporate domains
+1. Configure Technieum with all corporate domains
 2. Schedule daily/weekly scans
 3. Alerts when new subdomains discovered
 4. Alerts when new critical vulns found
@@ -1435,7 +1435,7 @@ Modern, responsive web interface for ReconX.
 **Scenario:** Health care org preparing for HIPAA audit
 
 **Flow:**
-1. Run ReconX against all patient-facing systems
+1. Run Technieum against all patient-facing systems
 2. Apply HIPAA policy checks
 3. Generate compliance report showing:
    - All assets inventoried
@@ -1456,7 +1456,7 @@ Modern, responsive web interface for ReconX.
 2. Export comprehensive asset inventory
 3. Identify weak points: unpatched services, weak SSL, known CVEs
 4. Plan red team approach based on data
-5. Use ReconX findings as "agreed-upon scope"
+5. Use Technieum findings as "agreed-upon scope"
 
 **Value:** Faster, data-driven red team planning
 
@@ -1466,7 +1466,7 @@ Modern, responsive web interface for ReconX.
 **Scenario:** Security team responding to breach notification
 
 **Flow:**
-1. Immediately scan breached domain with ReconX
+1. Immediately scan breached domain with Technieum
 2. Find compromised servers, backdoors
 3. Identify blast radius: what other assets affected
 4. Export for forensics team
@@ -1483,20 +1483,20 @@ Modern, responsive web interface for ReconX.
 **Passive First**
 ```bash
 # Low risk, stealthy scanning
-python3 reconx.py -t target.com --profile passive
+python3 technieum.py -t target.com --profile passive
 # Only phases 1-2 (discovery, port scan), no active probing
 ```
 
 **Graduated Approach**
 ```bash
 # Day 1: Passive discovery (1-2 hours)
-python3 reconx.py -t target.com -p 1,2
+python3 technieum.py -t target.com -p 1,2
 
 # Day 2: Content discovery (2-4 hours, can trigger WAF)
-python3 reconx.py -t target.com -p 3
+python3 technieum.py -t target.com -p 3
 
 # Day 3: Vulnerability scanning (2-4 hours, active testing)
-python3 reconx.py -t target.com -p 4
+python3 technieum.py -t target.com -p 4
 ```
 
 **Scope Management**
@@ -1505,8 +1505,8 @@ python3 reconx.py -t target.com -p 4
 # Only scan authorized systems
 # Use scope exclusions in config (Phase B):
 
-export RECONX_EXCLUDE_DOMAINS="internal.example.com,dev.example.com"
-export RECONX_EXCLUDE_IPS="10.0.0.0/8"
+export TECHNIEUM_EXCLUDE_DOMAINS="internal.example.com,dev.example.com"
+export TECHNIEUM_EXCLUDE_IPS="10.0.0.0/8"
 ```
 
 ### Performance Optimization
@@ -1514,21 +1514,21 @@ export RECONX_EXCLUDE_IPS="10.0.0.0/8"
 **Single Large Domain**
 ```bash
 # Use fewer workers to manage tool noise
-python3 reconx.py -t fortessecorp.com -T 1 -p 1,2,3,4
+python3 technieum.py -t fortessecorp.com -T 1 -p 1,2,3,4
 ```
 
 **Multiple Smaller Domains**
 ```bash
 # Parallelize across disjoint domains
-python3 reconx.py -f targets.txt -T 10 -p 1,2,3,4
+python3 technieum.py -f targets.txt -T 10 -p 1,2,3,4
 ```
 
 **Memory Constraints**
 ```bash
 # Reduce thread counts
-export RECONX_DNSX_THREADS=50     # Default 100
-export RECONX_HTTPX_THREADS=20    # Default 100
-export RECONX_FFUF_THREADS=20     # Default 80
+export TECHNIEUM_DNSX_THREADS=50     # Default 100
+export TECHNIEUM_HTTPX_THREADS=20    # Default 100
+export TECHNIEUM_FFUF_THREADS=20     # Default 80
 ```
 
 ### Result Quality
@@ -1583,7 +1583,7 @@ python3 query.py --api-usage
 # - Redundant tools (multiple subdomain tools find same results)
 
 # Phase B config profiles:
-python3 reconx.py -t target.com --profile fast
+python3 technieum.py -t target.com --profile fast
 # Disables: slow certificate tools, redundant subdom tools
 # Keeps: core discovery + critical vulnerability scanners
 ```
@@ -1597,9 +1597,9 @@ python3 reconx.py -t target.com --profile fast
 | Problem | Solution |
 |---------|----------|
 | Tools not found | `sudo bash install.sh && source ~/.bashrc` |
-| SQLite "locked" error | `sqlite3 reconx.db "PRAGMA wal_checkpoint(TRUNCATE);"` |
+| SQLite "locked" error | `sqlite3 technieum.db "PRAGMA wal_checkpoint(TRUNCATE);"` |
 | No results for Phase X | Check `output/target/phaseX/` for raw tool outputs |
-| API timeout | Increase `RECONX_PHASE_TIMEOUT` env var |
+| API timeout | Increase `TECHNIEUM_PHASE_TIMEOUT` env var |
 | Missing subdomains | Enable multiple tools, check DNS working |
 | No ports found | Verify target returns HTTP responses |
 | Missing vulnerabilities | Confirm tools installed, review tool outputs |
@@ -1608,14 +1608,14 @@ python3 reconx.py -t target.com --profile fast
 
 ```bash
 # Enable verbose output
-export RECONX_DEBUG=1
-python3 reconx.py -t target.com
+export TECHNIEUM_DEBUG=1
+python3 technieum.py -t target.com
 
 # Check tool availability
 bash modules/01_discovery.sh target.com output/test 2>&1 | head -50
 
 # Review database directly
-sqlite3 reconx.db
+sqlite3 technieum.db
 sqlite> SELECT * FROM vulnerabilities WHERE target='target.com' LIMIT 10;
 
 # Check raw tool outputs
@@ -1627,16 +1627,16 @@ cat output/target_com/phase1_discovery/all_subdomains.txt | wc -l
 
 ```bash
 # Slow DNS resolution
-export RECONX_DNSX_TIMEOUT=30
-export RECONX_DNSX_THREADS=200
+export TECHNIEUM_DNSX_TIMEOUT=30
+export TECHNIEUM_DNSX_THREADS=200
 
 # Slow HTTP probing
-export RECONX_HTTPX_TIMEOUT=20
-export RECONX_HTTPX_THREADS=200
+export TECHNIEUM_HTTPX_TIMEOUT=20
+export TECHNIEUM_HTTPX_THREADS=200
 
 # Reduced memory usage (slower)
-export RECONX_DNSX_THREADS=20
-export RECONX_HTTPX_THREADS=20
+export TECHNIEUM_DNSX_THREADS=20
+export TECHNIEUM_HTTPX_THREADS=20
 ```
 
 ---
@@ -1648,7 +1648,7 @@ export RECONX_HTTPX_THREADS=20
 1. **Report Issues**
    - Describe the problem
    - Include target domain (sanitized)
-   - Provide ReconX version and output
+   - Provide Technieum version and output
 
 2. **Suggest Features**
    - Review roadmap above
@@ -1683,7 +1683,7 @@ black . && flake8 . && mypy
 
 ## License
 
-ReconX is open-source under the MIT License.
+Technieum is open-source under the MIT License.
 
 **Legal:** Use only on systems you own or have explicit written authorization to test. Unauthorized scanning may violate laws in your jurisdiction. The authors assume no liability.
 
@@ -1693,7 +1693,7 @@ ReconX is open-source under the MIT License.
 
 - **Issues:** GitHub Issues tracker
 - **Discussions:** GitHub Discussions
-- **Email:** support@reconx.dev (future)
+- **Email:** support@technieum.dev (future)
 - **Documentation:** This file + wiki (future)
 
 ---

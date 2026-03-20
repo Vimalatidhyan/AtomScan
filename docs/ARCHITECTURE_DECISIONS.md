@@ -1,13 +1,13 @@
 # Architecture Decision Records (ADR)
 
-This document records architecture decisions for the ReconX → Enterprise ASM evolution in ADR style. Each entry is immutable once accepted; new decisions get new ADRs.
+This document records architecture decisions for the Technieum → Enterprise ASM evolution in ADR style. Each entry is immutable once accepted; new decisions get new ADRs.
 
 ---
 
 ## ADR-001: Incremental, Non-Breaking Migration
 
 **Status:** Accepted  
-**Context:** ReconX is in production use with a known CLI, four bash phases, and SQLite. A full rewrite would break users and scripts.  
+**Context:** Technieum is in production use with a known CLI, four bash phases, and SQLite. A full rewrite would break users and scripts.  
 **Decision:** Evolve the codebase incrementally. No breaking changes to existing CLI flags, output paths, or default behaviour. New features are additive and opt-in (e.g. new phases via `-p 0,5,6,7,8,9`).  
 **Consequences:** Some technical debt remains; new code must respect compatibility tests. Rollback is straightforward by not running new phases or new binaries.
 
@@ -26,7 +26,7 @@ This document records architecture decisions for the ReconX → Enterprise ASM e
 
 **Status:** Accepted  
 **Context:** Scanning is implemented as bash scripts (01–04) that invoke many external tools (Nmap, Nuclei, etc.). Moving everything to Python would be a large rewrite and could break tool chains.  
-**Decision:** Keep bash as the primary executor for scan phases. New phases (0, 5–9) are also bash scripts that may call Python modules for complex logic. The orchestrator (reconx.py) invokes scripts with `(target, output_dir)` and parses outputs in Python.  
+**Decision:** Keep bash as the primary executor for scan phases. New phases (0, 5–9) are also bash scripts that may call Python modules for complex logic. The orchestrator (technieum.py) invokes scripts with `(target, output_dir)` and parses outputs in Python.  
 **Consequences:** Consistency with existing design; easy to add new tools in bash. Python is used for parsing, DB, risk/compliance/graph logic, and API. Cross-platform is limited to Unix-like environments where bash and tools exist.
 
 ---
@@ -87,8 +87,8 @@ This document records architecture decisions for the ReconX → Enterprise ASM e
 ## ADR-010: Existing CLI Entry Points Preserved; New CLIs Alongside
 
 **Status:** Accepted  
-**Context:** reconx.py and query.py are the documented entry points. New capabilities (monitor, report, admin) need entry points.  
-**Decision:** Preserve `reconx.py` and `query.py` (including all existing flags and output behaviour). Add new scripts alongside: `monitor.py`, `report.py`, `admin.py`. No merging of query.py into reconx.py; keep single responsibility. query.py is placed at repository root (currently under docs/) for consistent CLI usage.  
+**Context:** technieum.py and query.py are the documented entry points. New capabilities (monitor, report, admin) need entry points.  
+**Decision:** Preserve `technieum.py` and `query.py` (including all existing flags and output behaviour). Add new scripts alongside: `monitor.py`, `report.py`, `admin.py`. No merging of query.py into technieum.py; keep single responsibility. query.py is placed at repository root (currently under docs/) for consistent CLI usage.  
 **Consequences:** Users and scripts that rely on current invocations keep working. New features are discoverable via new commands.
 
 ---
@@ -106,7 +106,7 @@ This document records architecture decisions for the ReconX → Enterprise ASM e
 
 **Status:** Accepted  
 **Context:** Regressions in existing behaviour would break users.  
-**Decision:** Maintain a dedicated compatibility test suite that asserts: (1) reconx.py with `-t domain -p 1,2,3,4` (and --test) behaviour; (2) query.py flags and export formats; (3) modules 01–04 produce expected output layout. These tests run on every PR and must pass before merging.  
+**Decision:** Maintain a dedicated compatibility test suite that asserts: (1) technieum.py with `-t domain -p 1,2,3,4` (and --test) behaviour; (2) query.py flags and export formats; (3) modules 01–04 produce expected output layout. These tests run on every PR and must pass before merging.  
 **Consequences:** Safe refactors and new features; explicit “no break” guarantee for documented behaviour.
 
 ---

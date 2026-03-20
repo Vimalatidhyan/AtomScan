@@ -1,4 +1,4 @@
-# ReconX Progress Tracker
+# Technieum Progress Tracker
 
 ## 🎯 Current Status: **BETA - Full Pipeline + DB Ingestion**
 

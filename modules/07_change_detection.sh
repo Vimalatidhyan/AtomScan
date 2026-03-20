@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# ReconX - Phase 7: Change Detection & Alerting
+# Technieum - Phase 7: Change Detection & Alerting
 # Compares current scan against baseline, generates delta report & alerts
 ################################################################################
 
@@ -23,9 +23,9 @@ source "$SCRIPT_DIR/../lib/common.sh"
 
 mkdir -p "$PHASE_DIR"/{baseline,delta,alerts}
 
-PYTHON="${RECONX_PYTHON:-python3}"
+PYTHON="${TECHNIEUM_PYTHON:-python3}"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-BASELINE_STORE="${RECONX_BASELINE_DIR:-$REPO_ROOT/.baselines}"
+BASELINE_STORE="${TECHNIEUM_BASELINE_DIR:-$REPO_ROOT/.baselines}"
 mkdir -p "$BASELINE_STORE"
 
 log_info "=== Phase 7: Change Detection & Alerting for $TARGET ==="

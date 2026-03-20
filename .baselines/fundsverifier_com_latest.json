@@ -1,0 +1,15 @@
+{
+  "target": "fundsverifier.com",
+  "timestamp": "2026-02-27T05:58:10.010682Z",
+  "subdomains": [
+    "api.test.fundsverifier.com",
+    "fundsverifier.com",
+    "fv.admin.fundsverifier.com",
+    "test.fundsverifier.com",
+    "tist1.fundsverifier.com",
+    "tist.fundsverifier.com"
+  ],
+  "open_ports": [],
+  "vulnerabilities": [],
+  "technologies": []
+}

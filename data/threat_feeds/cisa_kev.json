@@ -1,8 +1,0 @@
-{
-  "title": "CISA Known Exploited Vulnerabilities Catalog",
-  "catalogVersion": "2024.02.01",
-  "dateReleased": "2024-02-01T00:00:00Z",
-  "count": 0,
-  "note": "This is a placeholder. The KEV checker module downloads the live catalog from https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
-  "vulnerabilities": []
-}

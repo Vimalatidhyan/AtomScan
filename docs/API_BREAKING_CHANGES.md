@@ -74,7 +74,7 @@ This document records all API-level breaking changes introduced during the produ
 ## Nuclei Scan — Template Auto-Update Disabled
 
 **Previous behaviour**: Every vulnerability scan triggered `nuclei -update-templates`.
-**New behaviour**: Template update only runs when `RECONX_NUCLEI_UPDATE=true` is set in the environment.
+**New behaviour**: Template update only runs when `TECHNIEUM_NUCLEI_UPDATE=true` is set in the environment.
 
 **Default**: `false` — templates are not auto-updated.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ReconX Output Parsers
+Technieum Output Parsers
 Parses output from various reconnaissance tools into structured data
 """
 

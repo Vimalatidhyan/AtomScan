@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vulnerabilities | Technieum Enterprise</title>
+  <link rel="stylesheet" href="/assets/css/style.css?v=4.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+            <defs>
+              <linearGradient id="tBarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#FFD84D"/>
+                <stop offset="50%" style="stop-color:#FF8C00"/>
+                <stop offset="100%" style="stop-color:#FF2D00"/>
+              </linearGradient>
+              <linearGradient id="tStemGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#FF8C00"/>
+                <stop offset="100%" style="stop-color:#FFD84D"/>
+              </linearGradient>
+            </defs>
+            <rect x="8" y="16" width="104" height="24" rx="12" fill="url(#tBarGrad)"/>
+            <rect x="42" y="28" width="24" height="76" rx="12" fill="url(#tStemGrad)"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand">
+          <span class="brand-name">TECHNIEUM</span>
+          <small>Enterprise ASM</small>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Main</div>
+          <a href="/" class="sidebar-item"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dashboard</a>
+          <a href="/attack-surface" class="sidebar-item"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>Attack Surface</a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Security</div>
+          <a href="/assessments" class="sidebar-item"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>Assessments</a>
+          <a href="/vulnerabilities" class="sidebar-item active"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Vulnerabilities</a>
+          <a href="/threat-intel" class="sidebar-item"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="9"/></svg></span>Threat Intel</a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Discovery</div>
+          <a href="/subdomain-finder" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></span>
+            Subdomain Finder
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Analysis</div>
+          <a href="/graph" class="sidebar-item"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><line x1="8.6" y1="7.4" x2="15.4" y2="16.6"/><line x1="15.4" y1="7.4" x2="8.6" y2="16.6"/></svg></span>Attack Graph</a>
+          <a href="/reports" class="sidebar-item"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Reports</a>
+          <a href="/compliance" class="sidebar-item"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Compliance</a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">System</div>
+          <a href="/alerts" class="sidebar-item"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>Alerts</a>
+          <a href="/settings" class="sidebar-item"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></span>Settings</a>
+        </div>
+      </nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-avatar">AD</div><div class="sidebar-user-info"><div class="sidebar-user-name">Admin</div><div class="sidebar-user-role">Security Analyst</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="topbar-title">Vulnerabilities</h1>
+        <span class="topbar-breadcrumb">Security &rsaquo; Vulnerabilities</span>
+        <div class="topbar-spacer"></div>
+        <button class="btn btn-secondary btn-sm" id="exportBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+      </header>
+
+      <main class="content">
+        <!-- Severity Summary -->
+        <div class="stats-grid">
+          <div class="stat-card critical">
+            <div class="stat-label">Critical</div>
+            <div class="stat-value" id="criticalCount">0</div>
+          </div>
+          <div class="stat-card high">
+            <div class="stat-label">High</div>
+            <div class="stat-value" id="highCount">0</div>
+          </div>
+          <div class="stat-card warning">
+            <div class="stat-label">Medium</div>
+            <div class="stat-value" id="mediumCount">0</div>
+          </div>
+          <div class="stat-card info">
+            <div class="stat-label">Low</div>
+            <div class="stat-value" id="lowCount">0</div>
+          </div>
+        </div>
+
+        <!-- Filters + Table -->
+        <div class="card" style="margin-bottom:0; border-bottom:none; border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+          <div class="tabs" id="severityTabs">
+            <button class="tab active" data-severity="all">All <span class="tab-count" id="tabAllCount">0</span></button>
+            <button class="tab" data-severity="critical">Critical</button>
+            <button class="tab" data-severity="high">High</button>
+            <button class="tab" data-severity="medium">Medium</button>
+            <button class="tab" data-severity="low">Low</button>
+          </div>
+        </div>
+        <div class="card" style="border-radius: 0 0 var(--radius-lg) var(--radius-lg); border-top:none;">
+          <div class="filter-bar">
+            <div class="search-box">
+              <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+              <input type="text" id="searchInput" placeholder="Search by name, CVE, host..." class="form-control">
+            </div>
+            <select id="targetFilter" class="form-control" style="width:auto; min-width:180px;">
+              <option value="">All Targets</option>
+            </select>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Severity</th>
+                  <th>Name</th>
+                  <th>Host</th>
+                  <th>CVE</th>
+                  <th>Tool</th>
+                  <th>Discovered</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="findingsTable">
+                <tr><td colspan="7" class="text-center"><div class="spinner mt-4 mb-4"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination">
+            <div class="pagination-info" id="paginationInfo">Loading...</div>
+            <div class="pagination-controls" id="paginationControls"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Finding Detail Modal -->
+  <div class="modal-overlay" id="findingModal">
+    <div class="modal" style="max-width:800px;">
+      <div class="modal-header">
+        <h2 id="modalTitle">Finding Details</h2>
+        <button class="modal-close" id="closeFindingModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="flex gap-2 mb-4">
+          <span id="modalSeverity" class="badge"></span>
+          <span id="modalTool" class="badge badge-info"></span>
+        </div>
+        <div class="form-group">
+          <label>Host</label>
+          <div id="modalHost" class="font-mono" style="color:var(--text);">—</div>
+        </div>
+        <div class="form-group">
+          <label>CVE</label>
+          <div id="modalCVE" class="font-mono" style="color:var(--primary);">—</div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <div id="modalInfo" style="color:var(--text-secondary); line-height:1.6;">—</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('findingModal').classList.remove('open')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <!-- ensureApiKey from common.js / findings_v2.js -->
+  <script src="/assets/js/common.js?v=4.0"></script>
+  <script src="/assets/js/findings_v2.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-# ReconX Security Fixes - Applied Changes
+# Technieum Security Fixes - Applied Changes
 
 ## Critical Flaws Identified
 
@@ -196,7 +196,7 @@ fi
 
 ### 4. Update Python Orchestrator ⏳
 
-**File**: `reconx.py`
+**File**: `technieum.py`
 
 **Status**: Not yet started
 
@@ -261,7 +261,7 @@ if not (phase1_dir / "alive_hosts.txt").exists():
 **Status**: Not yet started
 
 **Required**:
-- Add YAML parsing in `reconx.py`
+- Add YAML parsing in `technieum.py`
 ```python
 import yaml
 
@@ -272,16 +272,16 @@ with open('config.yaml') as f:
 - Pass config to bash modules via environment variables
 ```python
 env = os.environ.copy()
-env['RECONX_PHASE1_TIMEOUT'] = str(config['phase1_discovery']['timeout'])
-env['RECONX_THREADS'] = str(config['general']['threads'])
+env['TECHNIEUM_PHASE1_TIMEOUT'] = str(config['phase1_discovery']['timeout'])
+env['TECHNIEUM_THREADS'] = str(config['general']['threads'])
 
 subprocess.run([module_script, target, output_dir], env=env)
 ```
 
 - Read config in bash modules
 ```bash
-TIMEOUT="${RECONX_PHASE1_TIMEOUT:-3600}"
-THREADS="${RECONX_THREADS:-5}"
+TIMEOUT="${TECHNIEUM_PHASE1_TIMEOUT:-3600}"
+THREADS="${TECHNIEUM_THREADS:-5}"
 ```
 
 ### 6. Remove Command Injection Risks ⏳
@@ -320,7 +320,7 @@ import logging
 import json
 
 logging.basicConfig(
-    filename='logs/reconx.log',
+    filename='logs/technieum.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
@@ -435,7 +435,7 @@ Result: Full report with all available data, clear tool status
 3. ⏳ `modules/02_intel.sh` - Needs same treatment
 4. ⏳ `modules/03_content.sh` - Needs same treatment
 5. ⏳ `modules/04_vuln.sh` - Needs same treatment
-6. ⏳ `reconx.py` - Needs best-effort mode and tool tracking
+6. ⏳ `technieum.py` - Needs best-effort mode and tool tracking
 7. ⏳ `config.yaml` - Needs to be actually used
 
 ## Files Created

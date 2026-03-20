@@ -11,7 +11,7 @@
 | File/Directory | Original location | Reason | Rollback |
 |---|---|---|---|
 | `api_secondary/` (routes + models) | `api/routes/`, `api/models/`, `api/config.py` | Superseded by `app/api/` after Round 1 canonicalization. Dead code once `api/server.py` was updated to import from `app/`. | `mv archive/legacy/api_secondary/* api/routes/` etc. |
-| `reconx_enterprise/` | `reconx-enterprise/` | Duplicate of the main stack. All unique content (if any) is already in `app/`. | `mv archive/legacy/reconx_enterprise/reconx-enterprise .` |
+| `technieum_enterprise/` | `technieum-enterprise/` | Duplicate of the main stack. All unique content (if any) is already in `app/`. | `mv archive/legacy/technieum_enterprise/technieum-enterprise .` |
 
 ---
 
@@ -31,7 +31,7 @@
 | `api/server.py` | Canonical backward-compat entrypoint (`uvicorn api.server:app`) |
 | `api/__init__.py` | Python package marker needed for entrypoint module |
 | `backend/` (all shims) | Backward-compat re-exports for existing scripts/docs |
-| `reconx.db` | Live database for development |
+| `technieum.db` | Live database for development |
 | `data/rate_limits.db` | Live rate-limit tracking DB |
 
 ---

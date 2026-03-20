@@ -6,7 +6,7 @@
 
 ## Role
 
-You are a Senior Python/Bash Security Tooling Engineer performing a complete refactoring of the **ReconX** Attack Surface Management framework. You have been given a detailed audit report and must fix every issue identified — bugs, performance bottlenecks, missing features, dead code, and architectural problems.
+You are a Senior Python/Bash Security Tooling Engineer performing a complete refactoring of the **Technieum** Attack Surface Management framework. You have been given a detailed audit report and must fix every issue identified — bugs, performance bottlenecks, missing features, dead code, and architectural problems.
 
 ## Project Location
 
@@ -19,7 +19,7 @@ You are a Senior Python/Bash Security Tooling Engineer performing a complete ref
 Before writing ANY code, read every one of these files in full. Do not skip any:
 
 ```
-reconx.py
+technieum.py
 db/database.py
 parsers/parser.py
 query.py
@@ -72,7 +72,7 @@ def parse_ffuf(self, file_path: str) -> List[Dict[str, str]]:
 class DatabaseManager:
     """Database Manager with WAL mode enabled"""
 
-    def __init__(self, db_path: str = "reconx.db"):
+    def __init__(self, db_path: str = "technieum.db"):
         self.db_path = db_path
         self.local = threading.local()
         self._init_database()
@@ -126,7 +126,7 @@ def export_csv(self, target: str, table: str, output_file: str):
     # ... rest of method
 ```
 
-#### Bug 5 — Mutable Default Argument (`reconx.py`, `run` method)
+#### Bug 5 — Mutable Default Argument (`technieum.py`, `run` method)
 
 **Problem:** `def run(self, phases: List[int] = [1, 2, 3, 4])` uses a mutable default.
 
@@ -159,7 +159,7 @@ done
 
 ### PRIORITY 2: Performance — Python Layer
 
-#### Perf 1 — Replace `subprocess.run` with Streaming `Popen` (`reconx.py`, `run_module`)
+#### Perf 1 — Replace `subprocess.run` with Streaming `Popen` (`technieum.py`, `run_module`)
 
 **Problem:** `subprocess.run(capture_output=True)` blocks for 30-120 minutes per phase, buffering ALL output in memory. The user sees nothing.
 
@@ -336,7 +336,7 @@ def parse_url_list(self, file_path: str, source_tool: str) -> List[Dict[str, str
             for line in self.iter_lines(file_path) if line.startswith('http')]
 ```
 
-Then add thin wrappers or update `reconx.py` to call `parse_url_list(path, 'gau')` etc. Also update the dynamic dispatch in `parse_phase3_output` to use a mapping:
+Then add thin wrappers or update `technieum.py` to call `parse_url_list(path, 'gau')` etc. Also update the dynamic dispatch in `parse_phase3_output` to use a mapping:
 ```python
 URL_TOOL_PARSERS = {
     'gau.txt': 'gau',
@@ -494,7 +494,7 @@ Same for SecretFinder.
 Create a new file `lib/common.sh` containing all shared functions:
 ```bash
 #!/bin/bash
-# ReconX shared utilities — sourced by all phase modules
+# Technieum shared utilities — sourced by all phase modules
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -574,9 +574,9 @@ And **remove** the duplicated function definitions from each module.
 
 ### PRIORITY 5: Config Loading & Logging & Dotenv
 
-#### 5A — Load config.yaml (`reconx.py`)
+#### 5A — Load config.yaml (`technieum.py`)
 
-Add a config loader at the top of `ReconX.__init__`:
+Add a config loader at the top of `Technieum.__init__`:
 ```python
 import yaml
 
@@ -599,7 +599,7 @@ self.threads = threads or general.get('threads', 5)
 # etc.
 ```
 
-#### 5B — Load .env (`reconx.py`)
+#### 5B — Load .env (`technieum.py`)
 
 Add at the very top of the file, before any other imports that use env vars:
 ```python
@@ -607,7 +607,7 @@ from dotenv import load_dotenv
 load_dotenv()
 ```
 
-#### 5C — Replace print() with logging (`reconx.py`)
+#### 5C — Replace print() with logging (`technieum.py`)
 
 Replace the manual `log_info/error/warn` methods with Python's logging module:
 ```python
@@ -619,7 +619,7 @@ def _setup_logging(self):
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
 
-    logger = logging.getLogger('reconx')
+    logger = logging.getLogger('technieum')
     logger.setLevel(logging.DEBUG)
 
     # Console handler
@@ -630,7 +630,7 @@ def _setup_logging(self):
 
     # File handler
     file_handler = RotatingFileHandler(
-        log_dir / 'reconx.log', maxBytes=10*1024*1024, backupCount=5
+        log_dir / 'technieum.log', maxBytes=10*1024*1024, backupCount=5
     )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(logging.Formatter(
@@ -643,7 +643,7 @@ def _setup_logging(self):
 
 Replace `self.log_info(msg)` with `self.logger.info(msg)`, `self.log_error(msg)` with `self.logger.error(msg)`, etc. Keep the color formatting for console output by using a custom formatter that adds ANSI codes based on log level.
 
-#### 5D — Add tqdm Progress Bars (`reconx.py`)
+#### 5D — Add tqdm Progress Bars (`technieum.py`)
 
 Wrap the phase execution in `scan_target` with tqdm:
 ```python
@@ -743,14 +743,14 @@ MOCK_FILES = {
 
 Empty file to make tests a package.
 
-#### 6C — Implement TEST_MODE in `reconx.py`
+#### 6C — Implement TEST_MODE in `technieum.py`
 
 Add `--test` flag to argparse:
 ```python
 parser.add_argument('--test', action='store_true', help='Run in test mode with mock data (no live scanning)')
 ```
 
-Add test mode method to `ReconX`:
+Add test mode method to `Technieum`:
 ```python
 def scan_target_test_mode(self, target: str, phases: List[int]) -> bool:
     """Run scan with mock data for testing"""
@@ -961,7 +961,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from reconx import ReconX
+from technieum import Technieum
 
 
 class TestIntegration:
@@ -970,18 +970,18 @@ class TestIntegration:
         db_path = str(tmp_path / "test.db")
         output_dir = str(tmp_path / "output")
 
-        reconx = ReconX(
+        technieum = Technieum(
             targets=["example.com"],
             output_dir=output_dir,
             db_path=db_path,
             threads=1,
         )
-        reconx.test_mode = True
+        technieum.test_mode = True
 
-        success = reconx.scan_target("example.com", [1, 2, 3, 4])
+        success = technieum.scan_target("example.com", [1, 2, 3, 4])
         assert success
 
-        stats = reconx.db.get_stats("example.com")
+        stats = technieum.db.get_stats("example.com")
         assert stats['subdomains'] > 0
         assert stats['alive_hosts'] > 0
         assert stats['urls'] > 0
@@ -1018,12 +1018,12 @@ If `requests`, `beautifulsoup4`, or `dnspython` are actually used somewhere I mi
 
 #### 7B — Add Database Cleanup
 
-Add `close()` call at the end of `reconx.py:main()`:
+Add `close()` call at the end of `technieum.py:main()`:
 ```python
 try:
-    reconx.run(phases=phases)
+    technieum.run(phases=phases)
 finally:
-    reconx.db.close()
+    technieum.db.close()
 ```
 
 ---
@@ -1031,7 +1031,7 @@ finally:
 ## Global Constraints
 
 1. **Do NOT change external tool CLI invocations** in bash — those tools are third-party.
-2. **Do NOT change the database schema** — maintain backward compatibility with existing `reconx.db` files.
+2. **Do NOT change the database schema** — maintain backward compatibility with existing `technieum.db` files.
 3. **Do NOT remove any existing CLI flags** — all of `-t`, `-f`, `-o`, `-d`, `-p`, `-T`, `--resume` must continue working.
 4. **Preserve the 4-phase sequential architecture** — phases depend on each other.
 5. **Every file you modify must be shown in full** — no partial snippets.
@@ -1042,7 +1042,7 @@ finally:
 
 Provide the **complete updated contents** of every file you modify or create:
 
-- `reconx.py` (modified)
+- `technieum.py` (modified)
 - `db/database.py` (modified)
 - `parsers/parser.py` (modified)
 - `query.py` (modified)

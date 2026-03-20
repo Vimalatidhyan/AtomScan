@@ -1,5 +1,5 @@
 # ==============================================================================
-# ReconX — Python Requirements
+# Technieum — Python Requirements
 # Target: Python 3.11+ on Kali Linux / Debian / Ubuntu
 # Install: pip3 install -r requirements.txt
 # ==============================================================================

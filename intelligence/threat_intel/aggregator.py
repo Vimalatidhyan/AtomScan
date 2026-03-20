@@ -133,7 +133,7 @@ def main() -> None:
     ap.add_argument("--target", required=True, help="Target domain")
     ap.add_argument("--phase-dir", required=True, help="Phase 5 output directory (e.g. .../phase5_threat_intel)")
     ap.add_argument("--output", required=True, help="Output summary JSON path")
-    ap.add_argument("--db", default="", help="Optional: insert into reconx DB (path to reconx.db)")
+    ap.add_argument("--db", default="", help="Optional: insert into technieum DB (path to technieum.db)")
     args = ap.parse_args()
 
     phase_dir = Path(args.phase_dir)

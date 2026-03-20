@@ -1,4 +1,4 @@
-# Agent navigation — ReconX repo
+# Agent navigation — Technieum repo
 
 Use this to navigate the repo. Root is kept minimal; detailed context lives in `archive/`.
 
@@ -13,7 +13,7 @@ Use this to navigate the repo. Root is kept minimal; detailed context lives in `
 | **config.yaml** | Global and phase config |
 | **requirements.txt** | CLI/orchestrator deps |
 | **requirements-api.txt** | API + worker deps |
-| **reconx.py** | Main CLI orchestrator |
+| **technieum.py** | Main CLI orchestrator |
 | **query.py** | Result query CLI |
 | **start.sh** | Start API + optional worker |
 | **install.sh**, **setup.sh** | Environment setup |
@@ -36,7 +36,7 @@ Use this to navigate the repo. Root is kept minimal; detailed context lives in `
 
 ## Onboarding context (for AI)
 
-Full context for the **onboard-reconx** skill is under **archive/context/**:
+Full context for the **onboard-technieum** skill is under **archive/context/**:
 
 - `archive/context/ProductDocumentation.txt` — README, architecture, pipeline
 - `archive/context/SolutionFileStructure.txt` — Repo file tree
@@ -44,7 +44,7 @@ Full context for the **onboard-reconx** skill is under **archive/context/**:
 - `archive/context/Services.txt` — API route code
 - `archive/context/Presentation.txt` — Web UI HTML
 
-See **.cursor/skills/onboard-reconx/SKILL.md** for the full onboarding workflow.
+See **.cursor/skills/onboard-technieum/SKILL.md** for the full onboarding workflow.
 
 ## Archive
 

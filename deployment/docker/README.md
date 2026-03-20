@@ -1,4 +1,4 @@
-# ReconX Docker
+# Technieum Docker
 
 ## Quick start (API + Web UI)
 
@@ -13,7 +13,7 @@ Then open http://localhost:8000 for the dashboard.
 - **API docs**: http://localhost:8000/docs  
 - **Health**: http://localhost:8000/api/health  
 
-Data is persisted in Docker volume `reconx-data` (DB at `/app/data/reconx.db` inside the container). Output and logs are written to `output/` and `logs/` on the host if you bind-mount them; the compose file currently uses a volume for DB only.
+Data is persisted in Docker volume `technieum-data` (DB at `/app/data/technieum.db` inside the container). Output and logs are written to `output/` and `logs/` on the host if you bind-mount them; the compose file currently uses a volume for DB only.
 
 ## Bind-mount DB and output (host directories)
 
@@ -23,10 +23,10 @@ To keep the database and output on the host instead of a named volume, edit `doc
 volumes:
   - ../../output:/app/output
   - ../../logs:/app/logs
-  - ../../data:/app/data   # create ./data on host, DB will be data/reconx.db
+  - ../../data:/app/data   # create ./data on host, DB will be data/technieum.db
 ```
 
-Set `RECONX_DB_PATH=/app/data/reconx.db` (already set). Create `data` and run:
+Set `TECHNIEUM_DB_PATH=/app/data/technieum.db` (already set). Create `data` and run:
 
 ```bash
 mkdir -p data output logs
@@ -44,13 +44,13 @@ docker compose -f deployment/docker/docker-compose.yml --profile tools run --rm 
 Or build and run the scanner standalone (DB will be inside the container unless you mount it):
 
 ```bash
-docker build -f deployment/docker/Dockerfile.scanner -t reconx-scanner .
-docker run --rm -v $(pwd)/data:/app/data -v $(pwd)/output:/app/output -e RECONX_DB_PATH=/app/data/reconx.db reconx-scanner -t example.com
+docker build -f deployment/docker/Dockerfile.scanner -t technieum-scanner .
+docker run --rm -v $(pwd)/data:/app/data -v $(pwd)/output:/app/output -e TECHNIEUM_DB_PATH=/app/data/technieum.db technieum-scanner -t example.com
 ```
 
 ## Build API image only
 
 ```bash
-docker build -f deployment/docker/Dockerfile.api -t reconx-api .
-docker run -p 8000:8000 -v reconx-data:/app/data -e RECONX_DB_PATH=/app/data/reconx.db reconx-api
+docker build -f deployment/docker/Dockerfile.api -t technieum-api .
+docker run -p 8000:8000 -v technieum-data:/app/data -e TECHNIEUM_DB_PATH=/app/data/technieum.db technieum-api
 ```

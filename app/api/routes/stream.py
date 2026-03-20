@@ -17,11 +17,21 @@ from app.db.models import ScanEvent, ScanProgress, ScanRun
 router = APIRouter()
 
 _POLL_INTERVAL = 2   # seconds between DB polls while waiting for new events
-_MAX_ITERATIONS = 600  # 20 minutes max stream duration (600 * 2s)
+# No hard iteration cap — stream runs until scan completes/fails/stops.
+# Two-layer keep-alive strategy:
+#   1. SSE comment ping (': \n\n') every poll — zero-overhead HTTP layer keep-alive
+#      that satisfies uvicorn, nginx, and browser 30-60s idle-close timers.
+#   2. JSON heartbeat event every 15 polls (~30 s) — lets the frontend confirm
+#      the stream is genuinely alive (not just a stale TCP connection).
 
 
 async def _event_stream(scan_id: int, last_event_id: int = 0):
-    """Yield SSE lines backed entirely by ScanEvent rows in the database."""
+    """Yield SSE lines backed entirely by ScanEvent rows in the database.
+
+    Streams indefinitely until the scan reaches a terminal state
+    (completed / failed / stopped).  Heartbeats every ~30 s prevent
+    proxy / browser connection timeouts during silent tool phases.
+    """
     db_conn = Database()
     try:
         db_conn.connect()
@@ -30,7 +40,7 @@ async def _event_stream(scan_id: int, last_event_id: int = 0):
         return
     idle = 0
     try:
-        for _ in range(_MAX_ITERATIONS):
+        while True:  # runs until terminal scan status — no hard time cap
             # Refresh session state so we see rows committed by the worker
             db_conn.session.expire_all()
 
@@ -75,15 +85,28 @@ async def _event_stream(scan_id: int, last_event_id: int = 0):
             if scan_run is None:
                 yield f"data: {json.dumps({'event': 'error', 'message': 'Scan not found'})}\n\n"
                 break
-            if scan_run.status in ("completed", "failed", "stopped"):
-                yield f"data: {json.dumps({'event': 'completed', 'status': scan_run.status, 'scan_id': scan_id})}\n\n"
-                break
+            if scan_run.status in ("completed", "failed", "stopped", "paused"):
+                # Only terminate AFTER all remaining events have been drained.
+                # Structured data events (alive_hosts, asn_data, etc.) are
+                # emitted during ingestion at the end of the scan — breaking
+                # early would skip them when there are more than 50 events.
+                if not new_events:
+                    if scan_run.status != "paused":
+                        yield f"data: {json.dumps({'event': 'completed', 'status': scan_run.status, 'scan_id': scan_id})}\n\n"
+                    break
 
-            # No new events — send heartbeat every ~30 s of idle
+            # SSE comment ping every poll — keeps the HTTP connection alive through
+            # uvicorn/nginx/browser idle-close timers (cost: ~3 bytes per 2 s).
+            yield ": \n\n"
+
+            # JSON heartbeat event every ~30 s so the frontend can distinguish
+            # a live-but-quiet stream from a dropped connection.
             if not new_events:
                 idle += 1
                 if idle % 15 == 0:
                     yield f"data: {json.dumps({'event': 'heartbeat', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+            else:
+                idle = 0
 
             await asyncio.sleep(_POLL_INTERVAL)
 
@@ -138,7 +161,7 @@ async def stream_progress(
             yield f"data: {json.dumps({'event': 'error', 'message': f'Database connection failed: {exc}'})}\n\n"
             return
         try:
-            for _ in range(_MAX_ITERATIONS):
+            while True:  # runs until terminal scan status
                 db_conn.session.expire_all()
 
                 new_events = (
@@ -213,14 +236,44 @@ async def stream_progress(
 async def stream_alerts():
     """Stream error/critical events across all active scans."""
 
+    # Tool-availability noise — these never belong in the alert bell (warning OR error level).
+    _NOISE_KEYWORDS = (
+        "not found", "not set", "not installed", "not a git repo",
+        "install:", "skipping", "falling back", "relying on",
+        "no output", "no scan targets", "no scan hosts",
+        "no subdomains", "no javascript", "no wordlist",
+        "creating basic", "failed or timed out",
+        "api credentials not set", "api_key not set",
+        # amass / libpostal
+        "requires libpostal", "requires sudo", "amass is installed but",
+        "amass not found", "subcommand not available", "passive enum",
+        "no results (exit non-zero",
+        # tool-specific missing
+        "cariddi not found", "hakrawler not found",
+        "gitleaks not found", "no urls to scan yet",
+        "dnsbruter not found", "dnsprober not found",
+        "getsubsidiaries not found", "sublist3r not found",
+    )
+
     async def _alert_gen():
+        from datetime import timedelta
         db_conn = Database()
         try:
             db_conn.connect()
         except Exception as exc:
             yield f"data: {json.dumps({'event': 'error', 'message': f'Database connection failed: {exc}'})}\n\n"
             return
-        last_id = 0
+        # Only stream events from the last 60 minutes — never replay old historical
+        # warnings from completed scans.  Prevents notification-bell flooding on
+        # page load from events stored days/weeks ago.
+        try:
+            cutoff_time = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=1)
+            baseline = db_conn.session.query(ScanEvent.id).filter(
+                ScanEvent.created_at < cutoff_time
+            ).order_by(ScanEvent.id.desc()).limit(1).scalar()
+            last_id = baseline if baseline is not None else 0
+        except Exception:
+            last_id = 0
         try:
             for _ in range(300):  # 10 minutes
                 db_conn.session.expire_all()
@@ -231,10 +284,20 @@ async def stream_alerts():
                         ScanEvent.level.in_(["error", "warning"]),
                     )
                     .order_by(ScanEvent.id)
-                    .limit(20)
+                    .limit(50)
                     .all()
                 )
                 for ev in alerts:
+                    # Drop raw JSON blobs (ffuf/nuclei output stored before fix)
+                    if ev.message and ev.message.lstrip().startswith(("{", "[")):
+                        last_id = ev.id
+                        continue
+                    # Skip tool-availability noise for BOTH warning and error levels
+                    if ev.message and any(
+                        kw in ev.message.lower() for kw in _NOISE_KEYWORDS
+                    ):
+                        last_id = ev.id
+                        continue
                     payload = {
                         "event": "alert",
                         "level": ev.level,

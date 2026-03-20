@@ -1,0 +1,9 @@
+#!/bin/sh
+# Technieum amass shim — bypasses the /usr/bin/amass wrapper that tries to
+# run `sudo libpostal_data download ...` (which hangs without a TTY when
+# called from a Python subprocess).
+#
+# The real amass binary at /usr/lib/amass/amass can also require libpostal
+# but at least doesn't block waiting for sudo — it prints an error and
+# continues.  The --nocolor flag suppresses ANSI codes in pipe output.
+exec /usr/lib/amass/amass "$@" 2>/dev/null

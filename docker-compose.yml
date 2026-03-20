@@ -1,0 +1,123 @@
+# ==============================================================================
+# Technieum Docker Compose Configuration
+# Production-ready: security, health checks, resource limits, build cache
+# Usage: docker compose up -d
+# Usage (dev): docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ==============================================================================
+
+services:
+  technieum:
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile.api
+    image: technieum:latest
+    container_name: technieum-main
+    hostname: technieum
+    restart: unless-stopped
+    
+    networks:
+      - technieum-net
+    
+    ports:
+      - "8001:8001"   # FastAPI server
+      - "8002:8002"   # Alternative port
+    
+    environment:
+      # Application config
+      TECHNIEUM_ENV: production
+      TECHNIEUM_WORKER: "true"
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      
+      # Database
+      DATABASE_URL: sqlite:////data/technieum.db
+      TECHNIEUM_DB_PATH: /data/technieum.db
+      
+      # Paths
+      TECHNIEUM_OUTPUT_DIR: /data/output
+      TECHNIEUM_LOGS_DIR: /data/logs
+      
+      # API Configuration
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      API_WORKERS: "4"
+      
+      # Worker Configuration
+      TECHNIEUM_WORKER_THREADS: "4"
+      TECHNIEUM_QUEUE_SIZE: "100"
+      
+      # Scanning Timeouts (in seconds)
+      TECHNIEUM_WHOIS_TIMEOUT: "60"
+      TECHNIEUM_SUBFINDER_TIMEOUT: "900"
+      TECHNIEUM_HTTPX_TIMEOUT: "15"
+      TECHNIEUM_HTTPX_RUN_TIMEOUT: "3600"
+      TECHNIEUM_DNSX_TIMEOUT: "1800"
+      TECHNIEUM_NUCLEI_TIMEOUT: "3600"
+      
+      # API Keys (set via .env file)
+      SHODAN_API_KEY: ${SHODAN_API_KEY:-}
+      CENSYS_API_ID: ${CENSYS_API_ID:-}
+      CENSYS_API_SECRET: ${CENSYS_API_SECRET:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      SECURITYTRAILS_API_KEY: ${SECURITYTRAILS_API_KEY:-}
+      VIRUSTOTAL_API_KEY: ${VIRUSTOTAL_API_KEY:-}
+      GREYNOISE_API_KEY: ${GREYNOISE_API_KEY:-}
+      ABUSEIPDB_API_KEY: ${ABUSEIPDB_API_KEY:-}
+      
+      # Feature Flags
+      TECHNIEUM_NUCLEI_UPDATE: "false"
+      TECHNIEUM_CONTINUE_ON_FAIL: "true"
+      TECHNIEUM_DEBUG: "false"
+    
+    volumes:
+      # Data persistence
+      - technieum-data:/data
+      - technieum-logs:/data/logs
+      
+      # Config files (read-only)
+      - ./config:/opt/technieum/config:ro
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 8G
+        reservations:
+          cpus: "2"
+          memory: 4G
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=technieum,component=api"
+
+# ==============================================================================
+# NETWORKS
+# ==============================================================================
+networks:
+  technieum-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ==============================================================================
+# VOLUMES
+# ==============================================================================
+volumes:
+  technieum-data:
+    driver: local
+  technieum-logs:
+    driver: local

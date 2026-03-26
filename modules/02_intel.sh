@@ -66,6 +66,7 @@ NMAP_HOST_TIMEOUT="${TECHNIEUM_NMAP_HOST_TIMEOUT:-120}"
 # Total nmap timeout (default calculated from host timeout, can be overridden)
 # This ensures nmap doesn't run indefinitely
 NMAP_TIMEOUT="${TECHNIEUM_NMAP_TIMEOUT:-0}"
+NMAP_RETRY_TIMEOUT="${TECHNIEUM_NMAP_RETRY_TIMEOUT:-1800}"
 NMAP_MAX_FILE_MB="${TECHNIEUM_NMAP_MAX_FILE_MB:-500}"
 # Common ports used as nmap fallback when RustScan is not installed.
 # These are the ports that actually matter for web/cloud targets.
@@ -278,9 +279,9 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
     fi
 
     # Allow full -p- scan via env override (useful when scan type is 'deep')
-    if [ "${TECHNIEUM_NMAP_FULL:-0}" = "1" ] || [ "${SCAN_TYPE:-full}" = "deep" ]; then
+    if [ "${TECHNIEUM_NMAP_FULL:-0}" = "1" ] || [ "${TECHNIEUM_SCAN_TYPE:-full}" = "deep" ]; then
         NMAP_PORT_FLAG="-p-"
-        log_info "Full port scan enabled (TECHNIEUM_NMAP_FULL=1 or scan_type=deep)"
+        log_info "Full port scan enabled (TECHNIEUM_NMAP_FULL=1 or TECHNIEUM_SCAN_TYPE=deep)"
     fi
 
     if [ -f "$NMAP_TARGETS" ]; then
@@ -288,15 +289,17 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
         if ! check_disk_space "$PORTS_DIR"; then
             log_error "Aborting Nmap due to low disk space"
         else
-            # Cap total nmap time to 3600s regardless of host count.
-            # With parallelism=10: 10 hosts run in parallel, so effective
-            # wall time ≈ ceil(hosts/10) × host_timeout ≤ 3600s.
-            # Allow override via TECHNIEUM_NMAP_TIMEOUT env var (set in seconds)
+            # Calculate total timeout based on host timeout and host count.
+            # For full scans we allow a larger runtime to avoid dropped results.
             if [ "$NMAP_TIMEOUT" -gt 0 ] 2>/dev/null; then
                 _NMAP_TIMEOUT="$NMAP_TIMEOUT"
             else
-                _NMAP_TIMEOUT=$(( NMAP_HOST_TIMEOUT * (NMAP_MAX_HOSTS / 10 + 1) ))
-                [ "$_NMAP_TIMEOUT" -gt 3600 ] && _NMAP_TIMEOUT=3600
+                _NMAP_TIMEOUT=$(( NMAP_HOST_TIMEOUT * (NMAP_MAX_HOSTS / 8 + 1) ))
+                if [ "$NMAP_PORT_FLAG" = "-p-" ]; then
+                    [ "$_NMAP_TIMEOUT" -lt 7200 ] && _NMAP_TIMEOUT=7200
+                else
+                    [ "$_NMAP_TIMEOUT" -lt 1800 ] && _NMAP_TIMEOUT=1800
+                fi
             fi
             log_info "Nmap scanning $NMAP_TARGET_COUNT targets via -iL (timeout=${_NMAP_TIMEOUT}s, port-flag=${NMAP_PORT_FLAG})..."
             run_timeout "$_NMAP_TIMEOUT" \
@@ -307,6 +310,18 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
                 -oX "$PORTS_DIR/nmap_all.xml" \
                 -oN "$PORTS_DIR/nmap_all.txt" \
                 2>/dev/null || log_warn "Nmap failed or timed out"
+            # Retry with common ports if full scan timed out and produced no usable output.
+            if [ "$NMAP_PORT_FLAG" = "-p-" ] && { [ ! -s "$PORTS_DIR/nmap_all.xml" ] && [ ! -s "$PORTS_DIR/nmap_all.txt" ]; }; then
+                log_warn "Nmap full-port scan produced no output, retrying with common ports for completeness"
+                run_timeout "$NMAP_RETRY_TIMEOUT" \
+                    nmap -sV -sC -T4 -Pn -p "${_NMAP_COMMON_PORTS}" \
+                    --host-timeout "${NMAP_HOST_TIMEOUT}s" \
+                    --min-parallelism 10 \
+                    -iL "$NMAP_TARGETS" \
+                    -oX "$PORTS_DIR/nmap_all.xml" \
+                    -oN "$PORTS_DIR/nmap_all.txt" \
+                    2>/dev/null || log_warn "Nmap fallback scan failed"
+            fi
             # Also copy to root for easier discovery
             if [ -f "$PORTS_DIR/nmap_all.xml" ]; then
                 cp "$PORTS_DIR/nmap_all.xml" "$OUTPUT_DIR/nmap.xml"

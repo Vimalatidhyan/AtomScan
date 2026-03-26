@@ -1,4 +1,4 @@
-﻿/**
+/**
  * output-ui-binder.js  -  Dynamic Output File -> UI Data Binding
  *
  * Calls /api/assessment/{scanId}/... endpoints and renders data into
@@ -75,7 +75,12 @@
     var head = '<tr>' + cols.map(function(c){ return '<th style="padding:.4rem .6rem;white-space:nowrap;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted,#888)">'+esc(c)+'</th>'; }).join('') + '</tr>';
     var body = rows.map(function(row){
       var cells = (Array.isArray(row) ? row : cols.map(function(c){ return row[c]??''; }))
-        .map(function(v){ return '<td style="padding:.35rem .6rem;font-size:.8rem">'+esc(String(v==null?'':v))+'</td>'; }).join('');
+        .map(function(v){
+          if (v && typeof v === 'object' && v.__html) {
+            return '<td style="padding:.35rem .6rem;font-size:.8rem">' + v.__html + '</td>';
+          }
+          return '<td style="padding:.35rem .6rem;font-size:.8rem">' + esc(String(v==null?'':v)) + '</td>';
+        }).join('');
       return '<tr>'+cells+'</tr>';
     }).join('');
     return '<style>.ob-tbl{width:100%;border-collapse:collapse}.ob-tbl tr:nth-child(even){background:rgba(0,0,0,.03)}.ob-tbl td,.ob-tbl th{border-bottom:1px solid var(--border,#e5e7eb)}</style>'
@@ -161,7 +166,16 @@
     var hosts=d.hosts||[];
     setBadge(badgeId, d.host_count||hosts.length||d.total_lines||0);
     setStat('detailPorts', d.open_ports||0);
-    if(d.raw_lines){ setBody(bodyId,listBox(d.raw_lines,'No port data')); return; }
+    if(d.raw_lines){
+      var rawHtml = '<pre style="margin:0;padding:.75rem;font-size:.75rem;line-height:1.45;white-space:pre-wrap;background:#0b1020;color:#dbeafe;max-height:420px;overflow:auto;">'
+        + esc((d.raw_lines||[]).join('\n')) + '</pre>';
+      if ((d.files||[]).length) {
+        rawHtml += '<div style="padding:.5rem .75rem;font-size:.75rem;color:var(--text-muted,#666)">Files: '
+          + esc((d.files||[]).map(function(f){ return f.file; }).join(', ')) + '</div>';
+      }
+      setBody(bodyId,rawHtml);
+      return;
+    }
     if(!hosts.length){ setBody(bodyId,'<div class="tm-empty">No port scan data found</div>'); return; }
     var html='';
     hosts.slice(0,100).forEach(function(host){
@@ -169,6 +183,10 @@
       html+='<div style="font-size:.75rem;font-weight:700;padding:.35rem .75rem;background:var(--bg-body,#f8f9fa);border-bottom:1px solid var(--border)">'+esc(host.ip)+' '+(host.hostname?'('+esc(host.hostname)+')':'')+'</div>';
       html+=mkTable(['Port','State','Service','Product'],portRows,'No open ports');
     });
+    if ((d.parse_errors||[]).length) {
+      html += '<div style="padding:.5rem .75rem;background:#fff7ed;color:#9a3412;font-size:.75rem;border-top:1px solid #fed7aa">'
+        + '<strong>Parse warnings:</strong> ' + esc(d.parse_errors.join(' | ')) + '</div>';
+    }
     setBody(bodyId, html||'<div class="tm-empty">No hosts</div>');
   }
 
@@ -253,12 +271,12 @@
     if(!total){ setBody(bodyId,'<div class="tm-empty">No tool errors or timeouts</div>'); return; }
     var html='';
     if(timeoutCount>0) html+='<div style="padding:.5rem .75rem;background:#fef3c7;border-bottom:1px solid #f59e0b;font-size:.75rem;font-weight:700;color:#92400e">Timeouts: '+timeoutCount+'</div>';
-    var rows=errors.map(function(e){ return {Tool:e.tool||'',File:e.file||'',Type:e.is_timeout?'<span style="color:#dc2626">TIMEOUT</span>':'Error',Lines:e.line_count||0}; });
-    html+=mkTable(['Tool','File','Type','Lines'],rows.slice(0,50),'No errors');
+    var rows=errors.map(function(e){ return {Tool:e.tool||'',File:e.file||'',Type:e.is_timeout?{__html:'<span style="color:#dc2626">TIMEOUT</span>'}:'Error',Lines:e.line_count||0,Size:e.size_bytes||0}; });
+    html+=mkTable(['Tool','File','Type','Lines','Size'],rows.slice(0,80),'No errors');
     errors.forEach(function(e){
       if(e.has_content&&e.lines.length){
         html+='<div style="font-size:.7rem;font-weight:700;padding:.35rem .75rem;background:var(--bg-body,#f8f9fa);border-bottom:1px solid var(--border)">'+esc(e.tool)+' ('+e.lines.length+' lines)</div>';
-        html+='<pre style="margin:0;padding:.5rem;font-size:.7rem;overflow-x:auto;background:#1f2937;color:#e5e7eb">'+esc(e.lines.join("\n"))+'</pre>';
+        html+='<pre style="margin:0;padding:.5rem;font-size:.72rem;white-space:pre-wrap;overflow:auto;max-height:320px;background:#1f2937;color:#e5e7eb">'+esc(e.lines.join("\n"))+'</pre>';
       }
     });
     setBody(bodyId, html);

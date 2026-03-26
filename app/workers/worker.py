@@ -44,8 +44,8 @@ configure_json_logging(level=_LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./technieum.db")
-WORKER_POLL_SEC = int(os.environ.get("WORKER_POLL_SEC", "5"))
-WORKER_MAX_JOBS = int(os.environ.get("WORKER_MAX_JOBS", "4"))  # max concurrent jobs per worker process
+WORKER_POLL_SEC = int(os.environ.get("WORKER_POLL_SEC", "2"))
+WORKER_MAX_JOBS = int(os.environ.get("WORKER_MAX_JOBS", "8"))  # max jobs processed per poll loop
 
 # Unique identifier for this worker process instance
 _WORKER_ID = f"{socket.gethostname()}-{os.getpid()}-{uuid.uuid4().hex[:8]}"

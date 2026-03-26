@@ -28,11 +28,11 @@ OUTPUT_DIR = Path(
     )
 )
 
-# Maximum bytes read from a single file before truncation (10 MB)
-_MAX_READ_BYTES = 10 * 1024 * 1024
+# Maximum bytes read from a single file before truncation (25 MB)
+_MAX_READ_BYTES = 25 * 1024 * 1024
 
 # Maximum lines returned for large TXT/LOG files in list endpoints
-_MAX_LINES = 2000
+_MAX_LINES = 10000
 
 # Supported extensions for recursive scan
 SUPPORTED_EXTENSIONS = frozenset({".json", ".txt", ".csv", ".xml", ".log", ".err"})
@@ -249,6 +249,20 @@ def _parse_txt(content: str) -> Dict[str, Any]:
         "total_lines": len(lines),
         "truncated": len(lines) > _MAX_LINES,
     }
+
+
+def _files_meta(paths: List[Path], scan_dir: Path) -> List[Dict[str, Any]]:
+    """Compact file metadata list used by UI for logging visibility."""
+    out: List[Dict[str, Any]] = []
+    for p in paths:
+        try:
+            out.append({
+                "file": str(p.relative_to(scan_dir)),
+                "size_bytes": p.stat().st_size,
+            })
+        except Exception:
+            out.append({"file": p.name, "size_bytes": None})
+    return out
 
 
 def _parse_csv(content: str) -> Dict[str, Any]:
@@ -677,23 +691,48 @@ def extract_secrets(scan_dir: Path) -> Dict[str, Any]:
 
 def extract_ports(scan_dir: Path) -> Dict[str, Any]:
     hosts: List[Dict[str, Any]] = []
-    for f in list(scan_dir.rglob("nmap_all.xml")) + list(scan_dir.rglob("nmap.xml")) + list(scan_dir.rglob("nmap.xml")):
+    xml_files = list(scan_dir.rglob("nmap_all.xml")) + list(scan_dir.rglob("nmap.xml"))
+    txt_files = list(scan_dir.rglob("nmap_all.txt")) + list(scan_dir.rglob("nmap.txt"))
+    parse_errors: List[str] = []
+    for f in xml_files:
         parsed = _parse_xml(_read_safe(f))
         if parsed.get("type") == "nmap_xml":
             hosts.extend(parsed.get("hosts", []))
-        if hosts:
-            break
+        elif parsed.get("parse_error"):
+            parse_errors.append(f"{f.name}: {parsed.get('parse_error')}")
+    # de-dupe hosts by ip+hostname, merge ports
+    dedup: Dict[Tuple[str, str], Dict[str, Any]] = {}
+    for h in hosts:
+        key = (h.get("ip", ""), h.get("hostname", ""))
+        if key not in dedup:
+            dedup[key] = {"ip": key[0], "hostname": key[1], "state": h.get("state"), "ports": []}
+        dedup[key]["ports"].extend(h.get("ports", []))
+    hosts = list(dedup.values())
     # TXT fallback - parse open ports from text output
     if not hosts:
-        for f in list(scan_dir.rglob("nmap_all.txt")) + list(scan_dir.rglob("nmap.txt")):
+        all_lines: List[str] = []
+        for f in txt_files:
             lines = _parse_txt(_read_safe(f))["lines"]
             if lines:
-                return {"raw_lines": lines[:500], "total_lines": len(lines), "hosts": []}
+                all_lines.extend(lines)
+        if all_lines:
+            return {
+                "raw_lines": all_lines[:5000],
+                "total_lines": len(all_lines),
+                "hosts": [],
+                "files": _files_meta(txt_files, scan_dir),
+            }
     open_ports = sum(
         len([p for p in h.get("ports", []) if p.get("state") == "open"])
         for h in hosts
     )
-    return {"hosts": hosts[:200], "host_count": len(hosts), "open_ports": open_ports}
+    return {
+        "hosts": hosts[:1000],
+        "host_count": len(hosts),
+        "open_ports": open_ports,
+        "files": _files_meta(xml_files + txt_files, scan_dir),
+        "parse_errors": parse_errors[:50],
+    }
 
 
 def extract_vulnerabilities(scan_dir: Path) -> Dict[str, Any]:
@@ -956,8 +995,9 @@ def extract_tool_errors(scan_dir: Path) -> Dict[str, Any]:
         errors.append({
             "tool": tool_name,
             "file": str(f.relative_to(scan_dir)),
+            "size_bytes": f.stat().st_size,
             "is_timeout": is_timeout,
-            "lines": lines[:50],
+            "lines": lines[:300],
             "line_count": len(lines),
             "has_content": bool(content.strip()),
         })

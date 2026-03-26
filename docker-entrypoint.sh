@@ -13,6 +13,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+API_PORT=${API_PORT:-8000}
+
 log_info()  { echo -e "${GREEN}[+]${NC} $*"; }
 log_warn()  { echo -e "${YELLOW}[!]${NC} $*"; }
 log_error() { echo -e "${RED}[-]${NC} $*"; }
@@ -47,8 +49,8 @@ init_database() {
         # Run migrations
         cd "${TECHNIEUM_HOME}"
         python -c "
-from app.db.database import DatabaseManager
-db = DatabaseManager('${TECHNIEUM_DB_PATH}')
+from app.db.database import apply_migrations
+apply_migrations()
 print('✓ Database initialized')
 " || log_warn "Database initialization failed - may already exist"
     fi
@@ -78,7 +80,7 @@ start_server() {
     # Run database migrations first
     log_info "Running migrations..."
     python -c "
-from app.db.migrations.runner import apply_migrations
+from app.db.database import apply_migrations
 apply_migrations()
 print('✓ Migrations applied')
 " || log_warn "Migration check completed"
@@ -86,10 +88,12 @@ print('✓ Migrations applied')
     # Start FastAPI with Uvicorn
     log_info "Starting Uvicorn on 0.0.0.0:${API_PORT}"
     
-    exec python -m uvicorn api.server:app \
+    # In server mode, keep a single worker by default and let app decide worker embedding.
+    export TECHNIEUM_WORKER="${TECHNIEUM_WORKER:-true}"
+    exec python -m uvicorn app.api.server:app \
         --host 0.0.0.0 \
         --port "${API_PORT}" \
-        --workers "${API_WORKERS:-4}" \
+        --workers "${API_WORKERS:-1}" \
         --loop uvloop \
         --http httptools \
         --access-log \
@@ -114,14 +118,14 @@ start_combined() {
     # Run migrations
     log_info "Running migrations..."
     python -c "
-from app.db.migrations.runner import apply_migrations
+from app.db.database import apply_migrations
 apply_migrations()
 print('✓ Migrations applied')
 " || log_warn "Migration check completed"
     
     # Start both services
     log_info "Starting API on 0.0.0.0:${API_PORT}"
-    log_info "Starting Worker (TECHNIEUM_WORKER=true)"
+    log_info "Starting dedicated worker process"
     
     # Use supervisor-like approach with background job
     python -m app.workers.worker &
@@ -129,7 +133,9 @@ print('✓ Migrations applied')
     
     trap "kill $WORKER_PID 2>/dev/null || true" EXIT
     
-    exec python -m uvicorn api.server:app \
+    # Disable embedded worker thread when dedicated worker process is running.
+    export TECHNIEUM_WORKER=false
+    exec python -m uvicorn app.api.server:app \
         --host 0.0.0.0 \
         --port "${API_PORT}" \
         --workers "${API_WORKERS:-1}" \
@@ -143,8 +149,27 @@ run_scan() {
     log_section "Running Scan: $*"
     
     cd "${TECHNIEUM_HOME}"
-    
+
+    # Ensure scan outputs are persisted to mounted Docker data path by default.
+    export TECHNIEUM_OUTPUT_DIR="${TECHNIEUM_OUTPUT_DIR:-${TECHNIEUM_DATA}/output}"
+    mkdir -p "${TECHNIEUM_OUTPUT_DIR}" "${TECHNIEUM_LOGS_DIR:-${TECHNIEUM_DATA}/logs}"
+    log_info "Scan output dir: ${TECHNIEUM_OUTPUT_DIR}"
+
     exec python technieum.py "$@"
+}
+
+run_oneshot() {
+    local target="${1:-}"
+    if [[ -z "$target" ]]; then
+        log_error "oneshot requires a target domain"
+        exit 2
+    fi
+    log_section "One-command automated scan: $target"
+    cd "${TECHNIEUM_HOME}"
+    export TECHNIEUM_OUTPUT_DIR="${TECHNIEUM_OUTPUT_DIR:-${TECHNIEUM_DATA}/output}"
+    mkdir -p "${TECHNIEUM_OUTPUT_DIR}" "${TECHNIEUM_LOGS_DIR:-${TECHNIEUM_DATA}/logs}"
+    log_info "Scan output dir: ${TECHNIEUM_OUTPUT_DIR}"
+    exec python technieum.py -t "$target" --phases 0,1,2,3,4,5,6,7,8,9
 }
 
 run_query() {
@@ -175,10 +200,10 @@ Environment Variables:
   TECHNIEUM_WORKER           Enable worker: true/false (default: true)
   API_HOST                   API listen address (default: 0.0.0.0)
   API_PORT                   API port (default: 8000)
-  API_WORKERS                Number of worker threads (default: 4)
+  API_WORKERS                Number of API processes (default: 1)
   
 Examples:
-  docker run -p 8000:8000 technieum:latest server
+  docker run -p 8000:8000 technieum:latest combined
   docker run technieum:latest scan example.com
   docker run -it technieum:latest shell
   docker run -it technieum:latest query -t example.com --summary
@@ -212,6 +237,9 @@ main() {
             ;;
         scan)
             run_scan "$@"
+            ;;
+        oneshot)
+            run_oneshot "$@"
             ;;
         query)
             run_query "$@"

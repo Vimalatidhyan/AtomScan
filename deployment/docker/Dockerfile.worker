@@ -1,12 +1,9 @@
 # Technieum Scan Worker
-# Multi-stage build:
-#   Stage 1 (go-builder) — dedicated kali-rolling image compiles all Go tools
-#   Stage 2 (final)      — clean kali-rolling image, copies compiled binaries
-#
+# Multi-stage build with tool verification
 # Build: docker build -f deployment/docker/Dockerfile.worker -t technieum-worker .
 
 # =============================================================================
-# STAGE 1: Go tool compiler (separate Kali image)
+# STAGE 1: Go tool compiler
 # =============================================================================
 FROM kalilinux/kali-rolling AS go-builder
 
@@ -14,11 +11,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/root/go
 ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
+ENV GO111MODULE=on
+ENV GOPROXY=https://proxy.golang.org,direct
 
-# Build dependencies for compiling Go tools
+# Build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget curl git ca-certificates \
-    build-essential gcc \
+    wget curl git ca-certificates build-essential gcc \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Go 1.22.4
@@ -34,7 +32,7 @@ RUN ARCH="$(uname -m)"; \
     rm -f /tmp/go.tar.gz && \
     go version
 
-# Install Go security tools — sequential, errors fully visible, each non-fatal
+# Install Go security tools
 RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest || echo "WARN: subfinder failed"
 RUN go install github.com/owasp-amass/amass/v4/...@master                   || echo "WARN: amass failed"
 RUN go install github.com/tomnomnom/assetfinder@latest                       || echo "WARN: assetfinder failed"
@@ -54,9 +52,12 @@ RUN go install github.com/LukaSikic/subzy@latest                             || 
 RUN go install github.com/gitleaks/gitleaks/v8@latest                        || echo "WARN: gitleaks failed"
 RUN go install github.com/tomnomnom/anew@latest                              || echo "WARN: anew failed"
 RUN go install github.com/tomnomnom/qsreplace@latest                         || echo "WARN: qsreplace failed"
+RUN go install github.com/trufflesecurity/trufflehog/v3@latest                || echo "WARN: trufflehog failed"
+RUN go install github.com/hahwul/dalfox/v2@latest                           || echo "WARN: dalfox failed"
+RUN go install github.com/jaeles-project/gospider@latest                     || echo "WARN: gospider failed"
 
 # =============================================================================
-# STAGE 2: Final worker image (clean Kali)
+# STAGE 2: Final worker image
 # =============================================================================
 FROM kalilinux/kali-rolling
 
@@ -68,7 +69,7 @@ ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
 
 WORKDIR /app
 
-# ── 1. System packages ────────────────────────────────────────────────────
+# System packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-dev \
     git curl wget jq unzip \
@@ -83,48 +84,48 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates bash \
     && rm -rf /var/lib/apt/lists/*
 
-# ── 2. RustScan — .deb from GitHub releases (not in kali-rolling apt) ───────────────
+# RustScan
 RUN wget -q https://github.com/RustScan/RustScan/releases/download/2.2.3/rustscan_2.2.3_amd64.deb \
         -O /tmp/rustscan.deb \
     && dpkg -i /tmp/rustscan.deb \
     && rm -f /tmp/rustscan.deb \
     || echo "WARN: RustScan install failed"
 
-# ── 3. WPScan (Ruby gem) ──────────────────────────────────────────────────
+# WPScan
 RUN gem install wpscan || echo "WARN: wpscan gem install failed"
 
-# ── 4. testssl.sh ─────────────────────────────────────────────────────────
+# testssl.sh
 RUN mkdir -p /opt/technieum-tools && \
     git clone --depth 1 https://github.com/drwetter/testssl.sh.git \
         /opt/technieum-tools/testssl.sh && \
     ln -sf /opt/technieum-tools/testssl.sh/testssl.sh /usr/local/bin/testssl.sh
 
-# ── 5. LinkFinder ─────────────────────────────────────────────────────────
+# LinkFinder
 RUN git clone --depth 1 https://github.com/GerbenJavado/LinkFinder.git \
         /opt/technieum-tools/LinkFinder && \
     pip3 install --no-cache-dir -r /opt/technieum-tools/LinkFinder/requirements.txt
 
-# ── 6. GCPBucketBrute ─────────────────────────────────────────────────────────
+# GCPBucketBrute
 RUN git clone --depth 1 https://github.com/RhinoSecurityLabs/GCPBucketBrute.git \
         /opt/technieum-tools/GCPBucketBrute && \
     pip3 install --no-cache-dir -r /opt/technieum-tools/GCPBucketBrute/requirements.txt && \
     ln -sf /opt/technieum-tools/GCPBucketBrute/gcpbucketbrute.py /usr/local/bin/gcpbucketbrute && \
     chmod +x /opt/technieum-tools/GCPBucketBrute/gcpbucketbrute.py
 
-# ── 7. Python security tools ──────────────────────────────────────────────
+# Python security tools
 RUN pip3 install --no-cache-dir sublist3r truffleHog arjun wafw00f sqlmap
 
-# ── 8. Nuclei templates (pre-warm) ────────────────────────────────────────
+# Nuclei templates
 RUN nuclei -update-templates -silent 2>/dev/null || true
 
-# ── 9. Python application requirements ────────────────────────────────────
+# Python requirements
 COPY requirements.txt requirements-api.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt -r requirements-api.txt
 
-# ── 10. Copy Go binaries LAST — prevents pip httpx from overwriting PD httpx ─────────────
+# Copy Go binaries
 COPY --from=go-builder /root/go/bin/ /usr/local/bin/
 
-# ── 11. Application source ─────────────────────────────────────────────────
+# Copy application source
 COPY app/      ./app/
 COPY lib/      ./lib/
 COPY modules/  ./modules/
@@ -133,6 +134,24 @@ COPY config.yaml .
 
 RUN chmod +x ./lib/*.sh ./modules/*.sh 2>/dev/null || true && \
     mkdir -p /app/data /app/output /app/logs
+
+# =============================================================================
+# TOOL VERIFICATION & AUTO-FIX
+# =============================================================================
+RUN echo "========================================" && \
+    echo "TOOL VERIFICATION REPORT" && \
+    echo "========================================" && \
+    for cmd in nmap masscan nikto sqlmap wapiti wpscan testssl.sh sslyze \
+               subfinder amass assetfinder dnsx httpx asnmap mapcidr nuclei \
+               katana ffuf gau waybackurls hakrawler subjack gospider \
+               dalfox cariddi gitleaks trufflehog rustscan; do \
+        if command -v "$cmd" &>/dev/null; then \
+            echo "[OK]   $cmd"; \
+        else \
+            echo "[FAIL] $cmd - NOT FOUND"; \
+        fi; \
+    done && \
+    echo "========================================"
 
 ENV PYTHONUNBUFFERED=1
 ENV DATABASE_URL=sqlite:////app/data/technieum.db

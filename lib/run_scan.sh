@@ -174,6 +174,7 @@ run_module() {
     fi
     if [ ! -x "$path" ]; then chmod +x "$path" 2>/dev/null || true; fi
     log_info "[phase:${phase}] Running $mod"
+    export TECHNIEUM_SCAN_TYPE="$SCAN_TYPE"
     # Use TIMEOUT_PHASE per phase, modules handle their own subtasks timeouts
     run_with_timeout "$(( TIMEOUT_PHASE * 2 ))" bash "$path" "$DOMAIN" "$OUTPUT_DIR" || true
 }

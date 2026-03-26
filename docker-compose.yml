@@ -9,8 +9,8 @@ services:
   technieum:
     build:
       context: .
-      dockerfile: deployment/docker/Dockerfile.api
-    image: technieum:latest
+      dockerfile: Dockerfile
+    image: technieum:v2.1
     container_name: technieum-main
     hostname: technieum
     restart: unless-stopped
@@ -19,28 +19,28 @@ services:
       - technieum-net
     
     ports:
-      - "8001:8001"   # FastAPI server
-      - "8002:8002"   # Alternative port
+      - "8000:8000"
     
     environment:
       # Application config
       TECHNIEUM_ENV: production
-      TECHNIEUM_WORKER: "true"
+      TECHNIEUM_WORKER: "false"
+      TECHNIEUM_DATA: /opt/technieum/data
       PYTHONUNBUFFERED: "1"
       PYTHONDONTWRITEBYTECODE: "1"
       
       # Database
-      DATABASE_URL: sqlite:////data/technieum.db
-      TECHNIEUM_DB_PATH: /data/technieum.db
+      DATABASE_URL: sqlite:////opt/technieum/data/technieum.db
+      TECHNIEUM_DB_PATH: /opt/technieum/data/technieum.db
       
       # Paths
-      TECHNIEUM_OUTPUT_DIR: /data/output
-      TECHNIEUM_LOGS_DIR: /data/logs
+      TECHNIEUM_OUTPUT_DIR: /opt/technieum/output
+      TECHNIEUM_LOGS_DIR: /opt/technieum/logs
       
       # API Configuration
       API_HOST: 0.0.0.0
       API_PORT: 8000
-      API_WORKERS: "4"
+      API_WORKERS: "1"
       
       # Worker Configuration
       TECHNIEUM_WORKER_THREADS: "4"
@@ -52,13 +52,16 @@ services:
       TECHNIEUM_HTTPX_TIMEOUT: "15"
       TECHNIEUM_HTTPX_RUN_TIMEOUT: "3600"
       TECHNIEUM_DNSX_TIMEOUT: "1800"
-      TECHNIEUM_NUCLEI_TIMEOUT: "3600"
+      TECHNIEUM_NUCLEI_TIMEOUT: "5400"
+      TECHNIEUM_NMAP_TIMEOUT: "7200"
+      TECHNIEUM_NMAP_HOST_TIMEOUT: "180"
       
       # API Keys (set via .env file)
       SHODAN_API_KEY: ${SHODAN_API_KEY:-}
       CENSYS_API_ID: ${CENSYS_API_ID:-}
       CENSYS_API_SECRET: ${CENSYS_API_SECRET:-}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      PDCP_API_KEY: ${PDCP_API_KEY:-}
       SECURITYTRAILS_API_KEY: ${SECURITYTRAILS_API_KEY:-}
       VIRUSTOTAL_API_KEY: ${VIRUSTOTAL_API_KEY:-}
       GREYNOISE_API_KEY: ${GREYNOISE_API_KEY:-}
@@ -70,12 +73,14 @@ services:
       TECHNIEUM_DEBUG: "false"
     
     volumes:
-      # Data persistence
-      - technieum-data:/data
-      - technieum-logs:/data/logs
+      # Local-like folder mapping
+      - ./output:/opt/technieum/output
+      - ./logs:/opt/technieum/logs
+      - ./data:/opt/technieum/data
       
-      # Config files (read-only)
+      # Optional config directory
       - ./config:/opt/technieum/config:ro
+    command: ["combined"]
     
     # Resource limits
     deploy:
@@ -113,11 +118,3 @@ networks:
       config:
         - subnet: 172.20.0.0/16
 
-# ==============================================================================
-# VOLUMES
-# ==============================================================================
-volumes:
-  technieum-data:
-    driver: local
-  technieum-logs:
-    driver: local

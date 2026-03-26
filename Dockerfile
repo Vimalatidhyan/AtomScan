@@ -35,7 +35,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libssl-dev libffi-dev libxml2-dev libxslt1-dev libpcap-dev \
     dnsutils bind9-dnsutils bind9-host whois dnsmasq iputils-ping \
     traceroute netcat-openbsd \
-    nmap masscan rustscan nikto sqlmap wapiti wpscan skipfish \
+    nmap masscan nikto sqlmap wapiti wpscan skipfish \
     testssl.sh sslyze dirsearch feroxbuster \
     gnupg apt-transport-https \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

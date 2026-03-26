@@ -1,0 +1,219 @@
+﻿Run started:2026-03-26 17:30:03.999559+00:00
+
+Test results:
+>> Issue: [B314:blacklist] Using xml.etree.ElementTree.fromstring to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.fromstring with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called
+   Severity: Medium   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree
+   Location: app/api\helpers\output_ui_binder.py:318:15
+317	    try:
+318	        root = ET.fromstring(content)
+319	        if root.tag == "nmaprun":
+
+--------------------------------------------------
+>> Issue: [B314:blacklist] Using xml.etree.ElementTree.parse to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.parse with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called
+   Severity: Medium   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree
+   Location: app/api\helpers\scan_output_reader.py:80:19
+79	        try:
+80	            tree = ET.parse(str(xml_path))
+81	            root = tree.getroot()
+
+--------------------------------------------------
+>> Issue: [B104:hardcoded_bind_all_interfaces] Possible binding to all interfaces.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-605 (https://cwe.mitre.org/data/definitions/605.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html
+   Location: app/api\models\scan.py:37:43
+36	        # Reject localhost and internal domains
+37	        if v in ['localhost', '127.0.0.1', '0.0.0.0'] or v.endswith('.local'):
+38	            raise ValueError('Cannot scan localhost or internal domains')
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: app/api\routes\scans.py:307:22
+306	                text(
+307	                    f"DELETE FROM {_subq_table}"
+308	                    f" WHERE {_subq_col} IN"
+309	                    f" (SELECT id FROM {_subq_parent} WHERE scan_run_id = :sid)"
+310	                ),
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: app/api\routes\scans.py:320:30
+319	            db.execute(text("SAVEPOINT sp_del"))
+320	            db.execute(text(f"DELETE FROM {table} WHERE scan_run_id = :sid"), {"sid": scan_id})
+321	            db.execute(text("RELEASE SAVEPOINT sp_del"))
+
+--------------------------------------------------
+>> Issue: [B104:hardcoded_bind_all_interfaces] Possible binding to all interfaces.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-605 (https://cwe.mitre.org/data/definitions/605.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html
+   Location: app/api\server.py:245:26
+244	    import uvicorn
+245	    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: app/db\database.py:133:26
+132	                    conn.execute(text(
+133	                        f"DELETE FROM {sub_table}"
+134	                        f" WHERE {sub_col} IN"
+135	                        f" (SELECT {sub_table}.{sub_col} FROM {sub_table}"
+136	                        f"  LEFT JOIN scan_runs ON scan_runs.id ="
+137	                        f"  (SELECT scan_run_id FROM {parent_table}"
+138	                        f"   WHERE {parent_table}.id = {sub_table}.{sub_col} LIMIT 1)"
+139	                        f"  WHERE scan_runs.id IS NULL)"
+140	                    ))
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: app/db\database.py:147:26
+146	                    conn.execute(text(
+147	                        f"DELETE FROM {table}"
+148	                        f" WHERE scan_run_id NOT IN (SELECT id FROM scan_runs)"
+149	                    ))
+
+--------------------------------------------------
+>> Issue: [B324:hashlib] Use of weak MD5 hash for security. Consider usedforsecurity=False
+   Severity: High   Confidence: High
+   CWE: CWE-327 (https://cwe.mitre.org/data/definitions/327.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b324_hashlib.html
+   Location: app/intelligence\change_detection\baseline_manager.py:21:14
+20	        serialized = self._serialize_scan(scan_data)
+21	        md5 = hashlib.md5(serialized.encode()).hexdigest()
+22	        snapshot = {
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: app/intelligence\risk_scoring\epss.py:23:17
+22	            url = f"{self.BASE_URL}?cve={cve_id}"
+23	            with urllib.request.urlopen(url, timeout=5) as resp:
+24	                data = j.loads(resp.read())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: app/intelligence\risk_scoring\kev.py:45:17
+44	            import urllib.request
+45	            with urllib.request.urlopen(KEV_URL, timeout=15) as resp:
+46	                data = json.loads(resp.read())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: app/intelligence\threat_intel\sources\abuse_ch.py:16:17
+15	            req = urllib.request.Request(self.URLHAUS + "url/", data=data, method="POST")
+16	            with urllib.request.urlopen(req, timeout=5) as resp:
+17	                return json.loads(resp.read())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: app/intelligence\threat_intel\sources\abuse_ch.py:26:17
+25	            req = urllib.request.Request(self.THREATFOX, data=payload, method="POST", headers={"Content-Type": "application/json"})
+26	            with urllib.request.urlopen(req, timeout=5) as resp:
+27	                return json.loads(resp.read())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: app/intelligence\threat_intel\sources\alienvault_otx.py:15:17
+14	            req = urllib.request.Request(f"{OTX_BASE}{path}", headers={"X-OTX-API-KEY": self.api_key})
+15	            with urllib.request.urlopen(req, timeout=8) as resp:
+16	                return json.loads(resp.read())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: app/intelligence\threat_intel\sources\crowdsec.py:19:17
+18	            )
+19	            with urllib.request.urlopen(req, timeout=5) as resp:
+20	                return json.loads(resp.read())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: app/intelligence\threat_intel\sources\dehashed.py:22:17
+21	            req = urllib.request.Request(url, headers={"Authorization": f"Basic {self._auth()}", "Accept": "application/json"})
+22	            with urllib.request.urlopen(req, timeout=10) as resp:
+23	                return json.loads(resp.read())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: app/intelligence\threat_intel\sources\greynoise.py:19:17
+18	            )
+19	            with urllib.request.urlopen(req, timeout=5) as resp:
+20	                return json.loads(resp.read())
+
+--------------------------------------------------
+>> Issue: [B314:blacklist] Using xml.etree.ElementTree.parse to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.parse with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called
+   Severity: Medium   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree
+   Location: app/scanner\parser.py:216:19
+215	        try:
+216	            tree = ET.parse(file_path)
+217	            root = tree.getroot()
+
+--------------------------------------------------
+>> Issue: [B314:blacklist] Using xml.etree.ElementTree.parse to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.parse with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called
+   Severity: Medium   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree
+   Location: app/workers\worker.py:225:11
+224	    inserted = 0
+225	    tree = ET.parse(str(nmap_xml))
+226	    root = tree.getroot()
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 9465
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 26
+		Medium: 18
+		High: 1
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 4
+		Medium: 5
+		High: 36
+Files skipped (0):

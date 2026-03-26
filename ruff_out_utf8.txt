@@ -1,0 +1,2070 @@
+﻿F401 [*] `typing.Generator` imported but unused
+  --> app\api\helpers\output_ui_binder.py:19:31
+   |
+17 | import xml.etree.ElementTree as ET
+18 | from pathlib import Path
+19 | from typing import Any, Dict, Generator, List, Optional, Tuple
+   |                               ^^^^^^^^^
+20 |
+21 | # ---------------------------------------------------------------------------
+   |
+help: Remove unused import: `typing.Generator`
+
+F841 Local variable `source` is assigned to but never used
+   --> app\api\helpers\output_ui_binder.py:914:17
+    |
+912 |             f = base / fn
+913 |             if f.is_file():
+914 |                 source = "certspotter" if "certspotter" in fn else "crt.sh"
+    |                 ^^^^^^
+915 |                 for ln in _parse_txt(_read_safe(f))["lines"]:
+916 |                     ln = ln.strip()
+    |
+help: Remove assignment to unused variable `source`
+
+F401 [*] `starlette.responses.JSONResponse` imported but unused
+  --> app\api\middleware\auth.py:8:33
+   |
+ 6 | from starlette.middleware.base import BaseHTTPMiddleware
+ 7 | from starlette.requests import Request
+ 8 | from starlette.responses import JSONResponse
+   |                                 ^^^^^^^^^^^^
+ 9 | from datetime import datetime, timezone
+10 | import hashlib
+   |
+help: Remove unused import: `starlette.responses.JSONResponse`
+
+F401 [*] `datetime.timezone` imported but unused
+  --> app\api\middleware\auth.py:9:32
+   |
+ 7 | from starlette.requests import Request
+ 8 | from starlette.responses import JSONResponse
+ 9 | from datetime import datetime, timezone
+   |                                ^^^^^^^^
+10 | import hashlib
+11 | import logging
+   |
+help: Remove unused import: `datetime.timezone`
+
+F401 [*] `os` imported but unused
+ --> app\api\middleware\logging.py:7:8
+  |
+5 | import logging
+6 | import logging.handlers
+7 | import os
+  |        ^^
+8 | import time
+9 | import uuid
+  |
+help: Remove unused import: `os`
+
+W293 [*] Blank line contains whitespace
+  --> app\api\models\finding.py:38:1
+   |
+36 |         description="Finding status"
+37 |     )
+38 |     
+   | ^^^^
+39 |     @field_validator('remediation')
+40 |     @classmethod
+   |
+help: Remove whitespace from blank line
+
+F401 [*] `pydantic.validator` imported but unused
+ --> app\api\models\scan.py:2:40
+  |
+1 | """Scan Pydantic schemas with enhanced validation."""
+2 | from pydantic import BaseModel, Field, validator, field_validator
+  |                                        ^^^^^^^^^
+3 | from datetime import datetime
+4 | from typing import Optional, List
+  |
+help: Remove unused import: `pydantic.validator`
+
+W293 [*] Blank line contains whitespace
+  --> app\api\models\scan.py:24:1
+   |
+22 |         description="Custom phase selection (0-4)"
+23 |     )
+24 |     
+   | ^^^^
+25 |     @field_validator('domain')
+26 |     @classmethod
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\api\models\scan.py:30:1
+   |
+28 |         """Validate domain format and remove dangerous characters."""
+29 |         v = v.lower().strip()
+30 |         
+   | ^^^^^^^^
+31 |         # Reject IP addresses (should use IP scanning endpoint)
+32 |         ip_pattern = r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$'
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\api\models\scan.py:35:1
+   |
+33 |         if re.match(ip_pattern, v):
+34 |             raise ValueError('Use IP scanning endpoint for IP addresses')
+35 |         
+   | ^^^^^^^^
+36 |         # Reject localhost and internal domains
+37 |         if v in ['localhost', '127.0.0.1', '0.0.0.0'] or v.endswith('.local'):
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\api\models\scan.py:39:1
+   |
+37 |         if v in ['localhost', '127.0.0.1', '0.0.0.0'] or v.endswith('.local'):
+38 |             raise ValueError('Cannot scan localhost or internal domains')
+39 |         
+   | ^^^^^^^^
+40 |         # Basic domain validation
+41 |         domain_pattern = r'^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$'
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\api\models\scan.py:44:1
+   |
+42 |         if not re.match(domain_pattern, v):
+43 |             raise ValueError('Invalid domain format')
+44 |         
+   | ^^^^^^^^
+45 |         return v
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\api\models\scan.py:46:1
+   |
+45 |         return v
+46 |     
+   | ^^^^
+47 |     @field_validator('custom_phases')
+48 |     @classmethod
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\api\models\scan.py:60:1
+   |
+58 |             return sorted(v)
+59 |         return v
+60 |     
+   | ^^^^
+61 |     model_config = {
+62 |         "json_schema_extra": {
+   |
+help: Remove whitespace from blank line
+
+F401 [*] `app.db.models.ComplianceFinding` imported but unused
+  --> app\api\routes\assets.py:14:36
+   |
+12 |     Subdomain, ScanRun, Vulnerability, PortScan,
+13 |     DNSRecord, DomainTechnology, Technology, ThreatIntelData,
+14 |     ISPLocation, ComplianceReport, ComplianceFinding, RiskScore,
+   |                                    ^^^^^^^^^^^^^^^^^
+15 |     HTTPHeader, ScanEvent,
+16 | )
+   |
+help: Remove unused import: `app.db.models.ComplianceFinding`
+
+F401 [*] `app.api.models.common.StatusResponse` imported but unused
+  --> app\api\routes\assets.py:18:35
+   |
+16 | )
+17 | from app.api.models.asset import AssetListResponse, AssetResponse
+18 | from app.api.models.common import StatusResponse
+   |                                   ^^^^^^^^^^^^^^
+19 |
+20 | router = APIRouter()
+   |
+help: Remove unused import: `app.api.models.common.StatusResponse`
+
+E712 Avoid equality comparisons to `True`; use `Subdomain.is_alive:` for truth checks
+   --> app\api\routes\assets.py:629:56
+    |
+627 |         db.query(Subdomain)
+628 |         .join(vuln_counts, Subdomain.id == vuln_counts.c.subdomain_id)
+629 |         .filter(vuln_counts.c.vuln_count >= min_vulns, Subdomain.is_alive == True)
+    |                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+630 |     )
+631 |     if scan_run_id:
+    |
+help: Replace with `Subdomain.is_alive`
+
+F401 [*] `sqlalchemy.distinct` imported but unused
+  --> app\api\routes\findings.py:9:36
+   |
+ 7 | from fastapi import APIRouter, Depends, HTTPException, Query
+ 8 | from sqlalchemy.orm import Session
+ 9 | from sqlalchemy import func, case, distinct
+   |                                    ^^^^^^^^
+10 | from typing import Optional
+   |
+help: Remove unused import: `sqlalchemy.distinct`
+
+F401 [*] `fastapi.HTTPException` imported but unused
+ --> app\api\routes\intel.py:2:41
+  |
+1 | """Threat intelligence API routes."""
+2 | from fastapi import APIRouter, Depends, HTTPException, Query
+  |                                         ^^^^^^^^^^^^^
+3 | from sqlalchemy.orm import Session
+4 | from typing import Optional, List
+  |
+help: Remove unused import: `fastapi.HTTPException`
+
+W293 [*] Blank line contains whitespace
+  --> app\api\routes\intel.py:82:1
+   |
+80 |     total = q.count()
+81 |     items = q.offset((page-1)*per_page).limit(per_page).all()
+82 |     
+   | ^^^^
+83 |     # Redact PII: show only first 3 chars + *** + domain
+84 |     redacted_items = []
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\api\routes\intel.py:93:1
+   |
+91 |         else:
+92 |             redacted_email = "***"
+93 |         
+   | ^^^^^^^^
+94 |         redacted_items.append(DataLeakItem(
+95 |             id=d.id,
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\intel.py:99:1
+    |
+ 97 |             breach=d.breach_name
+ 98 |         ))
+ 99 |     
+    | ^^^^
+100 |     return DataLeaksResponse(total=total, items=redacted_items)
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\intel.py:108:1
+    |
+106 |     if not indicators:
+107 |         return MalwareLookupResponse(ioc=ioc, found=False, indicators=[])
+108 |     
+    | ^^^^
+109 |     indicator_items = [
+110 |         MalwareIndicatorItem(
+    |
+help: Remove whitespace from blank line
+
+E712 Avoid equality comparisons to `True`; use `APIKey.is_active:` for truth checks
+  --> app\api\routes\metrics.py:40:56
+   |
+38 |             "vulnerabilities_total": db.query(Vulnerability).count(),
+39 |             "asset_snapshots_total": db.query(AssetSnapshot).count(),
+40 |             "api_keys_active": db.query(APIKey).filter(APIKey.is_active == True).count(),
+   |                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+41 |         },
+42 |         "auth_cache": {
+   |
+help: Replace with `APIKey.is_active`
+
+F401 [*] `app.db.models.DNSRecord` imported but unused
+  --> app\api\routes\scans.py:14:70
+   |
+13 | from app.db.database import get_db
+14 | from app.db.models import ScanRun, ScanProgress, ScanJob, ScanEvent, DNSRecord, ISPLocation
+   |                                                                      ^^^^^^^^^
+15 | from app.api.models.scan import ScanCreateRequest, ScanUpdateRequest, ScanResponse, ScanListResponse
+16 | from app.api.models.common import StatusResponse
+   |
+help: Remove unused import
+
+F401 [*] `app.db.models.ISPLocation` imported but unused
+  --> app\api\routes\scans.py:14:81
+   |
+13 | from app.db.database import get_db
+14 | from app.db.models import ScanRun, ScanProgress, ScanJob, ScanEvent, DNSRecord, ISPLocation
+   |                                                                                 ^^^^^^^^^^^
+15 | from app.api.models.scan import ScanCreateRequest, ScanUpdateRequest, ScanResponse, ScanListResponse
+16 | from app.api.models.common import StatusResponse
+   |
+help: Remove unused import
+
+F401 [*] `app.api.models.scan.ScanResponse` imported but unused
+  --> app\api\routes\scans.py:15:71
+   |
+13 | from app.db.database import get_db
+14 | from app.db.models import ScanRun, ScanProgress, ScanJob, ScanEvent, DNSRecord, ISPLocation
+15 | from app.api.models.scan import ScanCreateRequest, ScanUpdateRequest, ScanResponse, ScanListResponse
+   |                                                                       ^^^^^^^^^^^^
+16 | from app.api.models.common import StatusResponse
+   |
+help: Remove unused import
+
+F401 [*] `app.api.models.scan.ScanListResponse` imported but unused
+  --> app\api\routes\scans.py:15:85
+   |
+13 | from app.db.database import get_db
+14 | from app.db.models import ScanRun, ScanProgress, ScanJob, ScanEvent, DNSRecord, ISPLocation
+15 | from app.api.models.scan import ScanCreateRequest, ScanUpdateRequest, ScanResponse, ScanListResponse
+   |                                                                                     ^^^^^^^^^^^^^^^^
+16 | from app.api.models.common import StatusResponse
+   |
+help: Remove unused import
+
+E713 [*] Test for membership should be `not in`
+   --> app\api\routes\scans.py:152:26
+    |
+150 |     # use of mock data through a stale UI checkbox / localStorage value.
+151 |     import os as _os
+152 |     if test_mode and not _os.environ.get("TECHNIEUM_TEST_MODE", "").strip() in ("1", "true", "yes"):
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+153 |         test_mode = False
+154 |     """Create a new scan.
+    |
+help: Convert to `not in`
+
+E401 [*] Multiple imports on one line
+   --> app\api\routes\scans.py:484:5
+    |
+482 |     import json as _json
+483 |     from pathlib import Path
+484 |     import os, re
+    |     ^^^^^^^^^^^^^
+485 |
+486 |     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
+    |
+help: Split imports
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:601:1
+    |
+599 |     from pathlib import Path
+600 |     import os
+601 |     
+    | ^^^^
+602 |     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
+603 |     if not scan:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:607:1
+    |
+606 |     dns_records = []
+607 |     
+    | ^^^^
+608 |     try:
+609 |         repo_root = Path(__file__).resolve().parents[3]
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:612:1
+    |
+610 |         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
+611 |         slug = f"{scan.domain.replace('.', '_')}_scan_{scan_id}"
+612 |         
+    | ^^^^^^^^
+613 |         # Try to find dnsx_resolved.json in phase1_discovery
+614 |         dnsx_files = [
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:618:1
+    |
+616 |             output_base / slug / "dnsx_resolved.json",
+617 |         ]
+618 |         
+    | ^^^^^^^^
+619 |         for dnsx_file in dnsx_files:
+620 |             if dnsx_file.is_file():
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:634:1
+    |
+632 |                         a_records = record.get("a", [])
+633 |                         status = record.get("status_code", "UNKNOWN")
+634 |                         
+    | ^^^^^^^^^^^^^^^^^^^^^^^^
+635 |                         # Add entry for each IP address
+636 |                         if a_records:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:678:1
+    |
+676 |     from pathlib import Path
+677 |     import os
+678 |     
+    | ^^^^
+679 |     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
+680 |     if not scan:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:684:1
+    |
+683 |     certificates = []
+684 |     
+    | ^^^^
+685 |     try:
+686 |         repo_root = Path(__file__).resolve().parents[3]
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:689:1
+    |
+687 |         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
+688 |         slug = f"{scan.domain.replace('.', '_')}_scan_{scan_id}"
+689 |         
+    | ^^^^^^^^
+690 |         # Check for CT directory with certificate files
+691 |         ct_dir = output_base / slug / "phase1_discovery" / "ct"
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:692:1
+    |
+690 |         # Check for CT directory with certificate files
+691 |         ct_dir = output_base / slug / "phase1_discovery" / "ct"
+692 |         
+    | ^^^^^^^^
+693 |         if ct_dir.is_dir():
+694 |             # Parse certspotter.txt and crtsh.txt files
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:698:1
+    |
+696 |                 source = "certspotter" if source_file == "certspotter.txt" else "crt.sh"
+697 |                 cert_file = ct_dir / source_file
+698 |                 
+    | ^^^^^^^^^^^^^^^^
+699 |                 if cert_file.is_file():
+700 |                     try:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:717:1
+    |
+715 |                     except Exception:
+716 |                         continue
+717 |         
+    | ^^^^^^^^
+718 |         # Also try phase1_summary.json if it has detailed certificate data
+719 |         phase1_file = output_base / slug / "phase1_summary.json"
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:722:1
+    |
+720 |         if not phase1_file.is_file():
+721 |             phase1_file = output_base / slug / "phase1_discovery" / "phase1_summary.json"
+722 |         
+    | ^^^^^^^^
+723 |         if phase1_file.is_file():
+724 |             try:
+    |
+help: Remove whitespace from blank line
+
+F401 [*] `json` imported but unused
+   --> app\api\routes\scans.py:767:20
+    |
+765 | def get_asn_records(scan_id: int, db: Session = Depends(get_db)):
+766 |     """Return ASN and IP data from asn_by_ip.txt file."""
+767 |     import json as _json
+    |                    ^^^^^
+768 |     from pathlib import Path
+769 |     import os
+    |
+help: Remove unused import: `json`
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:771:1
+    |
+769 |     import os
+770 |     import logging
+771 |     
+    | ^^^^
+772 |     logger = logging.getLogger(__name__)
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:773:1
+    |
+772 |     logger = logging.getLogger(__name__)
+773 |     
+    | ^^^^
+774 |     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
+775 |     if not scan:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:780:1
+    |
+778 |     asn_records = []
+779 |     file_found = False
+780 |     
+    | ^^^^
+781 |     try:
+782 |         repo_root = Path(__file__).resolve().parents[3]
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:785:1
+    |
+783 |         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
+784 |         domain_slug = scan.domain.replace('.', '_')
+785 |         
+    | ^^^^^^^^
+786 |         # Try exact slug first (pattern: domain_scan_id)
+787 |         slugs_to_try = [
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:791:1
+    |
+789 |             f"{domain_slug}_{scan_id}",        # trutrip_co_1
+790 |         ]
+791 |         
+    | ^^^^^^^^
+792 |         logger.info(f"ASN: Looking for scan {scan_id} ({scan.domain}) in {output_base}")
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:793:1
+    |
+792 |         logger.info(f"ASN: Looking for scan {scan_id} ({scan.domain}) in {output_base}")
+793 |         
+    | ^^^^^^^^
+794 |         # Try each slug pattern
+795 |         found_dir = None
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:803:1
+    |
+801 |                 logger.info(f"ASN: Found directory: {scan_dir}")
+802 |                 break
+803 |         
+    | ^^^^^^^^
+804 |         # If no exact match, search for a directory containing the domain
+805 |         if not found_dir:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:812:1
+    |
+810 |                     logger.info(f"ASN: Found directory by domain search: {d}")
+811 |                     break
+812 |         
+    | ^^^^^^^^
+813 |         if not found_dir:
+814 |             logger.warning(f"ASN: No directory found for scan {scan_id} ({domain_slug})")
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:825:1
+    |
+823 |                 found_dir / "asn_info.txt",
+824 |             ]
+825 |             
+    | ^^^^^^^^^^^^
+826 |             for asn_file in asn_files:
+827 |                 logger.info(f"ASN: Checking {asn_file}")
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:835:1
+    |
+833 |                         lines = content.split('\n')
+834 |                         logger.info(f"ASN: Parsing {len(lines)} lines from {asn_file.name}")
+835 |                         
+    | ^^^^^^^^^^^^^^^^^^^^^^^^
+836 |                         for line in lines:
+837 |                             line = line.strip()
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:840:1
+    |
+838 |                             if not line or line.startswith('#'):
+839 |                                 continue
+840 |                             
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+841 |                             # Parse: IP | ASN | Organization
+842 |                             parts = [p.strip() for p in line.split('|')]
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:847:1
+    |
+845 |                                 asn = parts[1]
+846 |                                 org = parts[2]
+847 |                                 
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+848 |                                 asn_records.append({
+849 |                                     "ip": ip,
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:875:1
+    |
+873 |                         continue
+874 |                     break
+875 |             
+    | ^^^^^^^^^^^^
+876 |             if not file_found:
+877 |                 logger.warning(f"ASN: No asn_by_ip.txt file found in {found_dir}")
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:906:1
+    |
+904 |     import os
+905 |     import logging
+906 |     
+    | ^^^^
+907 |     logger = logging.getLogger(__name__)
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:908:1
+    |
+907 |     logger = logging.getLogger(__name__)
+908 |     
+    | ^^^^
+909 |     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
+910 |     if not scan:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:921:1
+    |
+919 |         "name_servers": [],
+920 |     }
+921 |     
+    | ^^^^
+922 |     try:
+923 |         repo_root = Path(__file__).resolve().parents[3]
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:926:1
+    |
+924 |         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
+925 |         domain_slug = scan.domain.replace('.', '_')
+926 |         
+    | ^^^^^^^^
+927 |         # Try exact slug first (pattern: domain_scan_id)
+928 |         slugs_to_try = [
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:932:1
+    |
+930 |             f"{domain_slug}_{scan_id}",        # trutrip_co_1
+931 |         ]
+932 |         
+    | ^^^^^^^^
+933 |         logger.info(f"WHOIS: Looking for scan {scan_id} ({scan.domain}) in {output_base}")
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:934:1
+    |
+933 |         logger.info(f"WHOIS: Looking for scan {scan_id} ({scan.domain}) in {output_base}")
+934 |         
+    | ^^^^^^^^
+935 |         # Try each slug pattern
+936 |         found_dir = None
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:944:1
+    |
+942 |                 logger.info(f"WHOIS: Found directory: {scan_dir}")
+943 |                 break
+944 |         
+    | ^^^^^^^^
+945 |         # If no exact match, search for a directory containing the domain
+946 |         if not found_dir:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:953:1
+    |
+951 |                     logger.info(f"WHOIS: Found directory by domain search: {d}")
+952 |                     break
+953 |         
+    | ^^^^^^^^
+954 |         if not found_dir:
+955 |             logger.warning(f"WHOIS: No directory found for scan {scan_id} ({domain_slug})")
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:957:1
+    |
+955 |             logger.warning(f"WHOIS: No directory found for scan {scan_id} ({domain_slug})")
+956 |             return whois_data
+957 |         
+    | ^^^^^^^^
+958 |         # Try to find whois.txt in phase1_discovery (try multiple naming patterns)
+959 |         whois_files = [
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:966:1
+    |
+964 |             found_dir / "whois_info.txt",
+965 |         ]
+966 |         
+    | ^^^^^^^^
+967 |         whois_content = None
+968 |         for whois_file in whois_files:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:974:1
+    |
+972 |                 whois_content = whois_file.read_text(encoding="utf-8", errors="ignore")
+973 |                 break
+974 |         
+    | ^^^^^^^^
+975 |         if not whois_content:
+976 |             logger.warning(f"WHOIS: No file found for scan {scan_id}")
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:978:1
+    |
+976 |             logger.warning(f"WHOIS: No file found for scan {scan_id}")
+977 |             return whois_data  # Return empty structure if no file found
+978 |         
+    | ^^^^^^^^
+979 |         # Parse WHOIS text format (key: value pairs)
+980 |         lines = whois_content.split('\n')
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:982:1
+    |
+980 |         lines = whois_content.split('\n')
+981 |         nameservers = {}  # Use dict to pair NS names with IPs
+982 |         
+    | ^^^^^^^^
+983 |         for line in lines:
+984 |             line = line.strip()
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:987:1
+    |
+985 |             if not line or line.startswith('>>>'):
+986 |                 continue
+987 |             
+    | ^^^^^^^^^^^^
+988 |             if ':' in line:
+989 |                 parts = line.split(':', 1)
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\api\routes\scans.py:992:1
+    |
+990 |                 key = parts[0].strip().lower()
+991 |                 value = parts[1].strip() if len(parts) > 1 else ""
+992 |                 
+    | ^^^^^^^^^^^^^^^^
+993 |                 # Domain information
+994 |                 if key == 'domain name':
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+    --> app\api\routes\scans.py:1018:1
+     |
+1016 |                                 status_code
+1017 |                             ]
+1018 |                 
+     | ^^^^^^^^^^^^^^^^
+1019 |                 # Registrant information
+1020 |                 elif key == 'registrant':
+     |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+    --> app\api\routes\scans.py:1028:1
+     |
+1026 |                 elif key == 'eligibility type':
+1027 |                     whois_data['registrant_info']['eligibility_type'] = value
+1028 |                 
+     | ^^^^^^^^^^^^^^^^
+1029 |                 # Contact information
+1030 |                 elif key == 'registrar abuse contact email':
+     |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+    --> app\api\routes\scans.py:1036:1
+     |
+1034 |                 elif key == 'tech contact name':
+1035 |                     whois_data['contact_info']['tech_contact'] = value
+1036 |                 
+     | ^^^^^^^^^^^^^^^^
+1037 |                 # Name servers ΓÇö track sequence for pairing
+1038 |                 elif key == 'name server':
+     |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+    --> app\api\routes\scans.py:1047:1
+     |
+1045 |                         last_ns_name = list(nameservers.keys())[-1]
+1046 |                         nameservers[last_ns_name]['ip'] = value
+1047 |         
+     | ^^^^^^^^
+1048 |         # Convert dict to list
+1049 |         whois_data['name_servers'] = list(nameservers.values())
+     |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+    --> app\api\routes\scans.py:1051:1
+     |
+1049 |         whois_data['name_servers'] = list(nameservers.values())
+1050 |         logger.info(f"WHOIS: Parsed {len(whois_data['domain_info'])} domain fields, {len(whois_data['registrant_info'])} registrant ΓÇª
+1051 |         
+     | ^^^^^^^^
+1052 |     except Exception as e:
+1053 |         logger.error(f"WHOIS: Error parsing data: {e}")
+     |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+    --> app\api\routes\scans.py:1066:1
+     |
+1064 |     from pathlib import Path
+1065 |     import os
+1066 |     
+     | ^^^^
+1067 |     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
+1068 |     if not scan:
+     |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+    --> app\api\routes\scans.py:1072:1
+     |
+1071 |     assets = []
+1072 |     
+     | ^^^^
+1073 |     try:
+1074 |         repo_root = Path(__file__).resolve().parents[3]
+     |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+    --> app\api\routes\scans.py:1077:1
+     |
+1075 |         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
+1076 |         slug = f"{scan.domain.replace('.', '_')}_scan_{scan_id}"
+1077 |         
+     | ^^^^^^^^
+1078 |         # Try to read httpx_alive.json for detailed host information
+1079 |         httpx_file = output_base / slug / "phase1_discovery" / "httpx_alive.json"
+     |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+    --> app\api\routes\scans.py:1082:1
+     |
+1080 |         if not httpx_file.is_file():
+1081 |             httpx_file = output_base / slug / "httpx_alive.json"
+1082 |         
+     | ^^^^^^^^
+1083 |         if httpx_file.is_file():
+1084 |             try:
+     |
+help: Remove whitespace from blank line
+
+E402 Module level import not at top of file
+   --> app\api\server.py:111:1
+    |
+110 | # Import and register routers
+111 | from app.api.routes import scans, assets, findings, intel, reports, stream, webhooks
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+112 | from app.api.routes import metrics as metrics_router
+113 | from app.api.routes import subdomain_lookup
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:112:1
+    |
+110 | # Import and register routers
+111 | from app.api.routes import scans, assets, findings, intel, reports, stream, webhooks
+112 | from app.api.routes import metrics as metrics_router
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+113 | from app.api.routes import subdomain_lookup
+114 | from app.api.routes import assessment as assessment_router
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:113:1
+    |
+111 | from app.api.routes import scans, assets, findings, intel, reports, stream, webhooks
+112 | from app.api.routes import metrics as metrics_router
+113 | from app.api.routes import subdomain_lookup
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+114 | from app.api.routes import assessment as assessment_router
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:114:1
+    |
+112 | from app.api.routes import metrics as metrics_router
+113 | from app.api.routes import subdomain_lookup
+114 | from app.api.routes import assessment as assessment_router
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+115 |
+116 | app.include_router(scans.router, prefix="/api/v1/scans", tags=["scans"])
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:154:1
+    |
+152 | # The api/server.py shim also registers these (via re-export) for backward
+153 | # compatibility with the original launch command.
+154 | from pathlib import Path as _Path
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+155 | from fastapi.staticfiles import StaticFiles as _StaticFiles
+156 | from fastapi.responses import FileResponse as _FileResponse
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:155:1
+    |
+153 | # compatibility with the original launch command.
+154 | from pathlib import Path as _Path
+155 | from fastapi.staticfiles import StaticFiles as _StaticFiles
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+156 | from fastapi.responses import FileResponse as _FileResponse
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:156:1
+    |
+154 | from pathlib import Path as _Path
+155 | from fastapi.staticfiles import StaticFiles as _StaticFiles
+156 | from fastapi.responses import FileResponse as _FileResponse
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+157 |
+158 | _ROOT = _Path(__file__).resolve().parents[2]
+    |
+
+E401 [*] Multiple imports on one line
+ --> app\common\logger.py:2:1
+  |
+1 | """Structured logging setup."""
+2 | import logging, sys
+  | ^^^^^^^^^^^^^^^^^^^
+3 | def setup_logging(name: str) -> logging.Logger:
+4 |     logger = logging.getLogger(name)
+  |
+help: Split imports
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:10:1
+   |
+ 8 | class Config:
+ 9 |     """Application configuration from environment variables."""
+10 |     
+   | ^^^^
+11 |     # Database
+12 |     DATABASE_PATH = os.getenv("DATABASE_PATH", "./technieum.db")
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:13:1
+   |
+11 |     # Database
+12 |     DATABASE_PATH = os.getenv("DATABASE_PATH", "./technieum.db")
+13 |     
+   | ^^^^
+14 |     # Security
+15 |     SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE_ME_IN_PRODUCTION")
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:17:1
+   |
+15 |     SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE_ME_IN_PRODUCTION")
+16 |     API_KEY_HASH_ALGORITHM = "sha256"
+17 |     
+   | ^^^^
+18 |     # Rate Limiting
+19 |     RATE_LIMIT_REQUESTS_PER_HOUR = int(os.getenv("RATE_LIMIT_REQUESTS_PER_HOUR", "1000"))
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:21:1
+   |
+19 |     RATE_LIMIT_REQUESTS_PER_HOUR = int(os.getenv("RATE_LIMIT_REQUESTS_PER_HOUR", "1000"))
+20 |     RATE_LIMIT_REDIS_URL = os.getenv("RATE_LIMIT_REDIS_URL", None)  # Optional Redis for distributed limiting
+21 |     
+   | ^^^^
+22 |     # CORS
+23 |     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:24:1
+   |
+22 |     # CORS
+23 |     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
+24 |     
+   | ^^^^
+25 |     # Threat Intelligence API Keys
+26 |     VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY", "")
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:35:1
+   |
+33 |     ALIENVAULT_API_KEY = os.getenv("ALIENVAULT_API_KEY", "")
+34 |     C99_API_KEY = os.getenv("C99_API_KEY", "")
+35 |     
+   | ^^^^
+36 |     # External Scanners
+37 |     NMAP_PATH = os.getenv("NMAP_PATH", "/usr/bin/nmap")
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:41:1
+   |
+39 |     SUBFINDER_PATH = os.getenv("SUBFINDER_PATH", "/usr/local/bin/subfinder")
+40 |     HTTPX_PATH = os.getenv("HTTPX_PATH", "/usr/local/bin/httpx")
+41 |     
+   | ^^^^
+42 |     # Scanning
+43 |     MAX_CONCURRENT_SCANS = int(os.getenv("MAX_CONCURRENT_SCANS", "3"))
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:45:1
+   |
+43 |     MAX_CONCURRENT_SCANS = int(os.getenv("MAX_CONCURRENT_SCANS", "3"))
+44 |     SCAN_TIMEOUT_SECONDS = int(os.getenv("SCAN_TIMEOUT_SECONDS", "3600"))
+45 |     
+   | ^^^^
+46 |     # Webhooks
+47 |     WEBHOOK_TIMEOUT_SECONDS = int(os.getenv("WEBHOOK_TIMEOUT_SECONDS", "10"))
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:49:1
+   |
+47 |     WEBHOOK_TIMEOUT_SECONDS = int(os.getenv("WEBHOOK_TIMEOUT_SECONDS", "10"))
+48 |     WEBHOOK_MAX_RETRIES = int(os.getenv("WEBHOOK_MAX_RETRIES", "3"))
+49 |     
+   | ^^^^
+50 |     # Logging
+51 |     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:53:1
+   |
+51 |     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+52 |     LOG_FILE = os.getenv("LOG_FILE", "./logs/technieum.log")
+53 |     
+   | ^^^^
+54 |     @classmethod
+55 |     def validate(cls):
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:58:1
+   |
+56 |         """Validate required environment variables."""
+57 |         errors = []
+58 |         
+   | ^^^^^^^^
+59 |         if cls.SECRET_KEY == "CHANGE_ME_IN_PRODUCTION":
+60 |             errors.append("SECRET_KEY must be set to a secure random value")
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:61:1
+   |
+59 |         if cls.SECRET_KEY == "CHANGE_ME_IN_PRODUCTION":
+60 |             errors.append("SECRET_KEY must be set to a secure random value")
+61 |         
+   | ^^^^^^^^
+62 |         # Warn about missing API keys
+63 |         if not cls.VIRUSTOTAL_API_KEY:
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\config.py:67:1
+   |
+65 |         if not cls.SHODAN_API_KEY:
+66 |             errors.append("Warning: SHODAN_API_KEY not set - asset enrichment limited")
+67 |         
+   | ^^^^^^^^
+68 |         return errors
+   |
+help: Remove whitespace from blank line
+
+F401 [*] `sqlite3` imported but unused
+  --> app\db\database.py:81:12
+   |
+79 | def _fix_legacy_scan_progress(eng) -> None:
+80 |     """Detect and fix the old scan_progress table that has wrong columns."""
+81 |     import sqlite3
+   |            ^^^^^^^
+82 |     try:
+83 |         with eng.connect() as conn:
+   |
+help: Remove unused import: `sqlite3`
+
+F401 [*] `typing.Callable` imported but unused
+  --> app\db\migrations\runner.py:15:20
+   |
+13 | import logging
+14 | from dataclasses import dataclass, field
+15 | from typing import Callable, Optional
+   |                    ^^^^^^^^
+16 |
+17 | from sqlalchemy import Engine, text
+   |
+help: Remove unused import: `typing.Callable`
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\change_detection\alert_generator.py:26:1
+   |
+24 |         """Generate alerts based on configured thresholds."""
+25 |         alerts = []
+26 |         
+   | ^^^^^^^^
+27 |         # Alert type 1: New critical/high vulnerabilities
+28 |         for vuln in self.delta.get("new_vulnerabilities", []):
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\change_detection\alert_generator.py:36:1
+   |
+34 |                     "data": vuln
+35 |                 })
+36 |         
+   | ^^^^^^^^
+37 |         # Alert type 2: Service down
+38 |         for service in self.delta.get("changed_services", []):
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\change_detection\alert_generator.py:46:1
+   |
+44 |                     "data": service
+45 |                 })
+46 |         
+   | ^^^^^^^^
+47 |         # Alert type 3: Mass asset churn
+48 |         summary = self.delta.get("summary", {})
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\change_detection\alert_generator.py:56:1
+   |
+54 |                 "data": summary
+55 |             })
+56 |         
+   | ^^^^^^^^
+57 |         # Alert type 4: Configuration drift
+58 |         if self.delta.get("technology_changes", []):
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\change_detection\alert_generator.py:66:1
+   |
+64 |                     "data": tech_change
+65 |                 })
+66 |         
+   | ^^^^^^^^
+67 |         # Alert type 5: Compliance degradation
+68 |         compliance_impact = self.delta.get("compliance_impact", {})
+   |
+help: Remove whitespace from blank line
+
+F401 [*] `typing.List` imported but unused
+ --> app\intelligence\change_detection\baseline_manager.py:2:26
+  |
+1 | """Baseline snapshot manager for change detection."""
+2 | from typing import Dict, List, Optional
+  |                          ^^^^
+3 | import json, hashlib, logging
+4 | from datetime import datetime
+  |
+help: Remove unused import
+
+F401 [*] `typing.Optional` imported but unused
+ --> app\intelligence\change_detection\baseline_manager.py:2:32
+  |
+1 | """Baseline snapshot manager for change detection."""
+2 | from typing import Dict, List, Optional
+  |                                ^^^^^^^^
+3 | import json, hashlib, logging
+4 | from datetime import datetime
+  |
+help: Remove unused import
+
+E401 [*] Multiple imports on one line
+ --> app\intelligence\change_detection\baseline_manager.py:3:1
+  |
+1 | """Baseline snapshot manager for change detection."""
+2 | from typing import Dict, List, Optional
+3 | import json, hashlib, logging
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 | from datetime import datetime
+  |
+help: Split imports
+
+F401 [*] `typing.List` imported but unused
+ --> app\intelligence\change_detection\calculate_delta.py:2:31
+  |
+1 | """Delta calculator for change detection between scan baselines."""
+2 | from typing import Any, Dict, List
+  |                               ^^^^
+  |
+help: Remove unused import: `typing.List`
+
+F401 [*] `os` imported but unused
+ --> app\intelligence\compliance\evidence_collector.py:5:8
+  |
+4 | import json
+5 | import os
+  |        ^^
+6 | from datetime import datetime
+7 | from pathlib import Path
+  |
+help: Remove unused import: `os`
+
+W293 Blank line contains whitespace
+  --> app\intelligence\graph\build_graph.py:13:1
+   |
+11 | def build_graph(relationships: List[Dict], return_format: str = "networkx") -> Union["nx.DiGraph", Dict[str, Any]]:  # type: ignore[naΓÇª
+12 |     """Build directed attack surface graph.
+13 |     
+   | ^^^^
+14 |     Args:
+15 |         relationships: List of edge dictionaries with source, target, etc.
+   |
+help: Remove whitespace from blank line
+
+W293 Blank line contains whitespace
+  --> app\intelligence\graph\build_graph.py:17:1
+   |
+15 |         relationships: List of edge dictionaries with source, target, etc.
+16 |         return_format: "networkx" (default) or "dict" for serializable format
+17 |         
+   | ^^^^^^^^
+18 |     Returns:
+19 |         NetworkX DiGraph or dict with nodes/edges structure
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\graph\build_graph.py:35:1
+   |
+33 |     if return_format == "dict":
+34 |         return nx.node_link_data(G)
+35 |     
+   | ^^^^
+36 |     return G
+   |
+help: Remove whitespace from blank line
+
+F401 [*] `typing.Optional` imported but unused
+ --> app\intelligence\graph\risk_propagation.py:4:37
+  |
+2 | from __future__ import annotations
+3 |
+4 | from typing import Any, Dict, List, Optional, Union
+  |                                     ^^^^^^^^
+5 |
+6 | import logging
+  |
+help: Remove unused import: `typing.Optional`
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\graph\risk_propagation.py:50:1
+   |
+48 |     if _NX_AVAILABLE and isinstance(graph, nx.DiGraph):
+49 |         graph = nx.node_link_data(graph)
+50 |     
+   | ^^^^
+51 |     nodes: List[Dict[str, Any]] = graph.get("nodes", [])
+52 |     edges: List[Dict[str, Any]] = graph.get("edges", graph.get("links", graph.get("relationships", [])))
+   |
+help: Remove whitespace from blank line
+
+E401 [*] Multiple imports on one line
+ --> app\intelligence\graph\visualize.py:3:1
+  |
+1 | """Graph visualization utilities."""
+2 | from typing import Any
+3 | import json, logging
+  | ^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | logger = logging.getLogger(__name__)
+  |
+help: Split imports
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\business_context.py:34:23
+   |
+32 |         """Map score to text level."""
+33 |         score = self.calculate_criticality()
+34 |         if score >= 80: return "CRITICAL"
+   |                       ^
+35 |         if score >= 60: return "HIGH"
+36 |         if score >= 40: return "MEDIUM"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\business_context.py:35:23
+   |
+33 |         score = self.calculate_criticality()
+34 |         if score >= 80: return "CRITICAL"
+35 |         if score >= 60: return "HIGH"
+   |                       ^
+36 |         if score >= 40: return "MEDIUM"
+37 |         if score >= 20: return "LOW"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\business_context.py:36:23
+   |
+34 |         if score >= 80: return "CRITICAL"
+35 |         if score >= 60: return "HIGH"
+36 |         if score >= 40: return "MEDIUM"
+   |                       ^
+37 |         if score >= 20: return "LOW"
+38 |         return "MINIMAL"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\business_context.py:37:23
+   |
+35 |         if score >= 60: return "HIGH"
+36 |         if score >= 40: return "MEDIUM"
+37 |         if score >= 20: return "LOW"
+   |                       ^
+38 |         return "MINIMAL"
+   |
+
+F401 [*] `app.intelligence.risk_scoring.cvss.CVSSv31Calculator` imported but unused
+ --> app\intelligence\risk_scoring\calculate.py:6:48
+  |
+4 | import logging
+5 |
+6 | from app.intelligence.risk_scoring.cvss import CVSSv31Calculator
+  |                                                ^^^^^^^^^^^^^^^^^
+7 | from app.intelligence.risk_scoring.epss import EPSSClient
+8 | from app.intelligence.risk_scoring.kev import KEVChecker
+  |
+help: Remove unused import: `app.intelligence.risk_scoring.cvss.CVSSv31Calculator`
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\calculate.py:16:17
+   |
+14 | def _age_penalty(discovered_at: datetime) -> int:
+15 |     days = (datetime.utcnow() - discovered_at).days
+16 |     if days < 30: return 0
+   |                 ^
+17 |     if days < 90: return -5
+18 |     if days < 365: return -10
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\calculate.py:17:17
+   |
+15 |     days = (datetime.utcnow() - discovered_at).days
+16 |     if days < 30: return 0
+17 |     if days < 90: return -5
+   |                 ^
+18 |     if days < 365: return -10
+19 |     if days < 730: return -15
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\calculate.py:18:18
+   |
+16 |     if days < 30: return 0
+17 |     if days < 90: return -5
+18 |     if days < 365: return -10
+   |                  ^
+19 |     if days < 730: return -15
+20 |     return -20
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\calculate.py:19:18
+   |
+17 |     if days < 90: return -5
+18 |     if days < 365: return -10
+19 |     if days < 730: return -15
+   |                  ^
+20 |     return -20
+   |
+
+F841 Local variable `epss_client` is assigned to but never used
+  --> app\intelligence\risk_scoring\calculate.py:32:5
+   |
+30 | ) -> Dict[int, int]:
+31 |     """Calculate final risk score for each finding (0-100)."""
+32 |     epss_client = EPSSClient()
+   |     ^^^^^^^^^^^
+33 |     kev_checker = KEVChecker()
+34 |     bcs = BusinessContextScorer(asset_metadata)
+   |
+help: Remove assignment to unused variable `epss_client`
+
+F841 Local variable `kev_checker` is assigned to but never used
+  --> app\intelligence\risk_scoring\calculate.py:33:5
+   |
+31 |     """Calculate final risk score for each finding (0-100)."""
+32 |     epss_client = EPSSClient()
+33 |     kev_checker = KEVChecker()
+   |     ^^^^^^^^^^^
+34 |     bcs = BusinessContextScorer(asset_metadata)
+35 |     asset_criticality = bcs.calculate_criticality() / 100.0
+   |
+help: Remove assignment to unused variable `kev_checker`
+
+F401 [*] `typing.Optional` imported but unused
+ --> app\intelligence\risk_scoring\cvss.py:2:26
+  |
+1 | """CVSS v3.1 vector parser and scorer."""
+2 | from typing import Dict, Optional
+  |                          ^^^^^^^^
+3 |
+4 | METRIC_VALUES = {
+  |
+help: Remove unused import: `typing.Optional`
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\risk_scoring\cvss.py:43:1
+   |
+41 |             AV = METRIC_VALUES["AV"].get(m.get("AV", "N"), 0.85)
+42 |             AC = METRIC_VALUES["AC"].get(m.get("AC", "L"), 0.77)
+43 |             
+   | ^^^^^^^^^^^^
+44 |             # Fix: Use scope-dependent PR values
+45 |             scope = m.get("S", "U")
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\risk_scoring\cvss.py:50:1
+   |
+48 |             pr_value = m.get("PR", "N")
+49 |             PR = METRIC_VALUES["PR"][scope_key].get(pr_value, 0.85)
+50 |             
+   | ^^^^^^^^^^^^
+51 |             UI = METRIC_VALUES["UI"].get(m.get("UI", "N"), 0.85)
+52 |             C = METRIC_VALUES["C"].get(m.get("C", "N"), 0.0)
+   |
+help: Remove whitespace from blank line
+
+E741 Ambiguous variable name: `I`
+  --> app\intelligence\risk_scoring\cvss.py:53:13
+   |
+51 |             UI = METRIC_VALUES["UI"].get(m.get("UI", "N"), 0.85)
+52 |             C = METRIC_VALUES["C"].get(m.get("C", "N"), 0.0)
+53 |             I = METRIC_VALUES["I"].get(m.get("I", "N"), 0.0)
+   |             ^
+54 |             A = METRIC_VALUES["A"].get(m.get("A", "N"), 0.0)
+55 |             ISCBase = 1 - (1 - C) * (1 - I) * (1 - A)
+   |
+
+E401 [*] Multiple imports on one line
+  --> app\intelligence\risk_scoring\epss.py:21:13
+   |
+19 |             return self._cache[cve_id]
+20 |         try:
+21 |             import urllib.request, json as j
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+22 |             url = f"{self.BASE_URL}?cve={cve_id}"
+23 |             with urllib.request.urlopen(url, timeout=5) as resp:
+   |
+help: Split imports
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\epss.py:39:29
+   |
+37 |     def score_to_severity(self, epss_score: float) -> str:
+38 |         """Convert EPSS score (0-1) to severity label."""
+39 |         if epss_score >= 0.8: return "critical"
+   |                             ^
+40 |         if epss_score >= 0.5: return "high"
+41 |         if epss_score >= 0.2: return "medium"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\epss.py:40:29
+   |
+38 |         """Convert EPSS score (0-1) to severity label."""
+39 |         if epss_score >= 0.8: return "critical"
+40 |         if epss_score >= 0.5: return "high"
+   |                             ^
+41 |         if epss_score >= 0.2: return "medium"
+42 |         return "low"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\epss.py:41:29
+   |
+39 |         if epss_score >= 0.8: return "critical"
+40 |         if epss_score >= 0.5: return "high"
+41 |         if epss_score >= 0.2: return "medium"
+   |                             ^
+42 |         return "low"
+   |
+
+E401 [*] Multiple imports on one line
+ --> app\intelligence\risk_scoring\kev.py:4:1
+  |
+2 | from typing import Dict, List, Optional
+3 | from pathlib import Path
+4 | import json, logging
+  | ^^^^^^^^^^^^^^^^^^^^
+5 |
+6 | logger = logging.getLogger(__name__)
+  |
+help: Split imports
+
+E741 Ambiguous variable name: `l`
+  --> app\intelligence\threat_intel\aggregator.py:97:44
+   |
+95 |             if f.suffix == ".csv" and f.stat().st_size > 0:
+96 |                 with open(f) as fp:
+97 |                     lines = [l.strip() for l in fp if l.strip()]
+   |                                            ^
+98 |                 type_counts["blocklists"] = type_counts.get("blocklists", 0) + len(lines)
+99 |                 for line in lines[:100]:  # cap for summary
+   |
+
+F823 Local variable `os` referenced before assignment
+   --> app\intelligence\threat_intel\aggregator.py:146:9
+    |
+144 |     phase_dir = Path(args.phase_dir)
+145 |     if not phase_dir.is_dir():
+146 |         os.makedirs(phase_dir, exist_ok=True)
+    |         ^^
+147 |
+148 |     summary = aggregate(phase_dir, args.target)
+    |
+
+F401 [*] `typing.List` imported but unused
+ --> app\intelligence\threat_intel\correlator.py:2:26
+  |
+1 | """Correlator for linking assets, vulnerabilities, and threat data."""
+2 | from typing import Dict, List, Optional
+  |                          ^^^^
+3 | from sqlalchemy.orm import Session
+4 | import logging
+  |
+help: Remove unused import
+
+F401 [*] `typing.Optional` imported but unused
+ --> app\intelligence\threat_intel\correlator.py:2:32
+  |
+1 | """Correlator for linking assets, vulnerabilities, and threat data."""
+2 | from typing import Dict, List, Optional
+  |                                ^^^^^^^^
+3 | from sqlalchemy.orm import Session
+4 | import logging
+  |
+help: Remove unused import
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:11:1
+   |
+ 9 | class ThreatCorrelator:
+10 |     """Correlate vulnerabilities with external threat intelligence."""
+11 |     
+   | ^^^^
+12 |     def __init__(self, db: Session):
+13 |         self.db = db
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:14:1
+   |
+12 |     def __init__(self, db: Session):
+13 |         self.db = db
+14 |     
+   | ^^^^
+15 |     def correlate_scan_run(self, scan_run_id: int) -> Dict:
+16 |         """Correlate all findings in a scan run with threat intel.
+   |
+help: Remove whitespace from blank line
+
+W293 Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:17:1
+   |
+15 |     def correlate_scan_run(self, scan_run_id: int) -> Dict:
+16 |         """Correlate all findings in a scan run with threat intel.
+17 |         
+   | ^^^^^^^^
+18 |         Args:
+19 |             scan_run_id: Scan run to correlate
+   |
+help: Remove whitespace from blank line
+
+W293 Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:20:1
+   |
+18 |         Args:
+19 |             scan_run_id: Scan run to correlate
+20 |             
+   | ^^^^^^^^^^^^
+21 |         Returns:
+22 |             Dict with correlation results and statistics
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:25:1
+   |
+23 |         """
+24 |         from app.db.models import Vulnerability, ThreatIntelData, ActiveExploit, MalwareIndicator
+25 |         
+   | ^^^^^^^^
+26 |         vulnerabilities = self.db.query(Vulnerability).filter(
+27 |             Vulnerability.scan_run_id == scan_run_id
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:29:1
+   |
+27 |             Vulnerability.scan_run_id == scan_run_id
+28 |         ).all()
+29 |         
+   | ^^^^^^^^
+30 |         correlations = []
+31 |         stats = {
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:37:1
+   |
+35 |             "with_malware": 0
+36 |         }
+37 |         
+   | ^^^^^^^^
+38 |         for vuln in vulnerabilities:
+39 |             correlation = {
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:46:1
+   |
+44 |                 "malware_indicators": []
+45 |             }
+46 |             
+   | ^^^^^^^^^^^^
+47 |             # Find threat intel by CVE
+48 |             if vuln.cve_id:
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:52:1
+   |
+50 |                     ThreatIntelData.indicator_value.contains(vuln.cve_id)
+51 |                 ).all()
+52 |                 
+   | ^^^^^^^^^^^^^^^^
+53 |                 if threat_intel:
+54 |                     correlation["threat_intel"] = [
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:63:1
+   |
+61 |                     ]
+62 |                     stats["with_threat_intel"] += 1
+63 |             
+   | ^^^^^^^^^^^^
+64 |             # Find active exploits
+65 |             active_exploits = self.db.query(ActiveExploit).filter(
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:68:1
+   |
+66 |                 ActiveExploit.vulnerability_id == vuln.id
+67 |             ).all()
+68 |             
+   | ^^^^^^^^^^^^
+69 |             if active_exploits:
+70 |                 correlation["active_exploits"] = [
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:79:1
+   |
+77 |                 ]
+78 |                 stats["with_active_exploits"] += 1
+79 |             
+   | ^^^^^^^^^^^^
+80 |             # Find malware indicators targeting this asset
+81 |             if vuln.subdomain_id:
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:85:1
+   |
+83 |                     MalwareIndicator.scan_run_id == scan_run_id
+84 |                 ).all()
+85 |                 
+   | ^^^^^^^^^^^^^^^^
+86 |                 if malware:
+87 |                     correlation["malware_indicators"] = [
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app\intelligence\threat_intel\correlator.py:96:1
+   |
+94 |                     ]
+95 |                     stats["with_malware"] += 1
+96 |             
+   | ^^^^^^^^^^^^
+97 |             if correlation["threat_intel"] or correlation["active_exploits"] or correlation["malware_indicators"]:
+98 |                 correlations.append(correlation)
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:99:1
+    |
+ 97 |             if correlation["threat_intel"] or correlation["active_exploits"] or correlation["malware_indicators"]:
+ 98 |                 correlations.append(correlation)
+ 99 |         
+    | ^^^^^^^^
+100 |         logger.info(f"Correlated {len(correlations)} vulnerabilities with threat intel for scan {scan_run_id}")
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:101:1
+    |
+100 |         logger.info(f"Correlated {len(correlations)} vulnerabilities with threat intel for scan {scan_run_id}")
+101 |         
+    | ^^^^^^^^
+102 |         return {
+103 |             "scan_run_id": scan_run_id,
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:107:1
+    |
+105 |             "correlations": correlations
+106 |         }
+107 |     
+    | ^^^^
+108 |     def correlate_by_asset(self, asset_id: int, asset_type: str) -> Dict:
+109 |         """Correlate threats for a specific asset.
+    |
+help: Remove whitespace from blank line
+
+W293 Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:110:1
+    |
+108 |     def correlate_by_asset(self, asset_id: int, asset_type: str) -> Dict:
+109 |         """Correlate threats for a specific asset.
+110 |         
+    | ^^^^^^^^
+111 |         Args:
+112 |             asset_id: Asset identifier
+    |
+help: Remove whitespace from blank line
+
+W293 Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:114:1
+    |
+112 |             asset_id: Asset identifier
+113 |             asset_type: 'subdomain', 'port_scan', 'dns_record', etc.
+114 |             
+    | ^^^^^^^^^^^^
+115 |         Returns:
+116 |             Dict with asset-specific correlation data
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:119:1
+    |
+117 |         """
+118 |         from app.db.models import Vulnerability
+119 |         
+    | ^^^^^^^^
+120 |         # Find vulnerabilities affecting this asset
+121 |         if asset_type == "subdomain":
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:132:1
+    |
+130 |             logger.warning(f"Unsupported asset type: {asset_type}")
+131 |             return {"error": "Unsupported asset type"}
+132 |         
+    | ^^^^^^^^
+133 |         # Reuse scan run correlation logic
+134 |         if not vulnerabilities:
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:141:1
+    |
+139 |                 "correlations": []
+140 |             }
+141 |         
+    | ^^^^^^^^
+142 |         # Get unique scan run IDs and correlate each
+143 |         scan_run_ids = list(set(v.scan_run_id for v in vulnerabilities))
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:145:1
+    |
+143 |         scan_run_ids = list(set(v.scan_run_id for v in vulnerabilities))
+144 |         all_correlations = []
+145 |         
+    | ^^^^^^^^
+146 |         for scan_run_id in scan_run_ids:
+147 |             result = self.correlate_scan_run(scan_run_id)
+    |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:152:1
+    |
+150 |             filtered = [c for c in result["correlations"] if c["vulnerability_id"] in asset_vuln_ids]
+151 |             all_correlations.extend(filtered)
+152 |         
+    | ^^^^^^^^
+153 |         return {
+154 |             "asset_id": asset_id,
+    |
+help: Remove whitespace from blank line
+
+W293 Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:163:1
+    |
+161 | def correlate_findings(db: Session, scan_run_id: int) -> Dict:
+162 |     """Convenience function to correlate a scan run.
+163 |     
+    | ^^^^
+164 |     Args:
+165 |         db: Database session
+    |
+help: Remove whitespace from blank line
+
+W293 Blank line contains whitespace
+   --> app\intelligence\threat_intel\correlator.py:167:1
+    |
+165 |         db: Database session
+166 |         scan_run_id: Scan run to correlate
+167 |         
+    | ^^^^^^^^
+168 |     Returns:
+169 |         Correlation results
+    |
+help: Remove whitespace from blank line
+
+F401 [*] `typing.List` imported but unused
+ --> app\intelligence\threat_intel\sources\abuse_ch.py:2:26
+  |
+1 | """Abuse.ch API clients (URLhaus, MalwareBazaar, ThreatFox)."""
+2 | from typing import Dict, List, Optional
+  |                          ^^^^
+3 | import logging, urllib.request, json, urllib.parse
+  |
+help: Remove unused import
+
+F401 [*] `typing.Optional` imported but unused
+ --> app\intelligence\threat_intel\sources\abuse_ch.py:2:32
+  |
+1 | """Abuse.ch API clients (URLhaus, MalwareBazaar, ThreatFox)."""
+2 | from typing import Dict, List, Optional
+  |                                ^^^^^^^^
+3 | import logging, urllib.request, json, urllib.parse
+  |
+help: Remove unused import
+
+E401 [*] Multiple imports on one line
+ --> app\intelligence\threat_intel\sources\abuse_ch.py:3:1
+  |
+1 | """Abuse.ch API clients (URLhaus, MalwareBazaar, ThreatFox)."""
+2 | from typing import Dict, List, Optional
+3 | import logging, urllib.request, json, urllib.parse
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | logger = logging.getLogger(__name__)
+  |
+help: Split imports
+
+E401 [*] Multiple imports on one line
+ --> app\intelligence\threat_intel\sources\alienvault_otx.py:3:1
+  |
+1 | """AlienVault OTX API client."""
+2 | from typing import Dict, Optional
+3 | import logging, urllib.request, json
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | logger = logging.getLogger(__name__)
+  |
+help: Split imports
+
+E401 [*] Multiple imports on one line
+ --> app\intelligence\threat_intel\sources\crowdsec.py:3:1
+  |
+1 | """CrowdSec CTI API client."""
+2 | from typing import Dict, Optional
+3 | import logging, urllib.request, json
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | logger = logging.getLogger(__name__)
+  |
+help: Split imports
+
+E401 [*] Multiple imports on one line
+ --> app\intelligence\threat_intel\sources\dehashed.py:3:1
+  |
+1 | """DeHashed API client for leaked credential lookup."""
+2 | from typing import Dict, Optional
+3 | import logging, urllib.request, urllib.parse, json, base64
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | logger = logging.getLogger(__name__)
+  |
+help: Split imports
+
+E401 [*] Multiple imports on one line
+ --> app\intelligence\threat_intel\sources\greynoise.py:3:1
+  |
+1 | """GreyNoise Community API client."""
+2 | from typing import Dict, Optional
+3 | import logging, urllib.request, json
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | logger = logging.getLogger(__name__)
+  |
+help: Split imports
+
+F401 [*] `pathlib.Path` imported but unused
+  --> app\scanner\parser.py:9:21
+   |
+ 7 | import json
+ 8 | import re
+ 9 | from pathlib import Path
+   |                     ^^^^
+10 | from typing import List, Dict, Any, Optional, Iterator
+11 | import xml.etree.ElementTree as ET
+   |
+help: Remove unused import: `pathlib.Path`
+
+F401 [*] `app.db.models.ScanJob` imported but unused
+   --> app\workers\worker.py:194:31
+    |
+193 | def _finish_job(db: Session, job, success: bool, error: str = "") -> None:
+194 |     from app.db.models import ScanJob  # noqa: F811
+    |                               ^^^^^^^
+195 |     job.status = "done" if success else "failed"
+196 |     job.finished_at = datetime.now(timezone.utc)
+    |
+help: Remove unused import: `app.db.models.ScanJob`
+
+Found 178 errors.
+[*] 144 fixable with the `--fix` option (13 hidden fixes can be enabled with the `--unsafe-fixes` option).

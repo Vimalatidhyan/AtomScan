@@ -1,0 +1,1139 @@
+﻿E701 Multiple statements on one line (colon)
+  --> .claude\skills\codebase-visualizer\scripts\visualize.py:15:64
+   |
+13 |     try:
+14 |         for item in sorted(path.iterdir()):
+15 |             if item.name in IGNORE or item.name.startswith('.'): continue
+   |                                                                ^
+16 |             if item.is_file():
+17 |                 size = item.stat().st_size
+   |
+
+E701 Multiple statements on one line (colon)
+  --> .claude\skills\codebase-visualizer\scripts\visualize.py:45:20
+   |
+43 |     }
+44 |     def fmt(b):
+45 |         if b < 1024: return f"{b} B"
+   |                    ^
+46 |         if b < 1048576: return f"{b/1024:.1f} KB"
+47 |         return f"{b/1048576:.1f} MB"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> .claude\skills\codebase-visualizer\scripts\visualize.py:46:23
+   |
+44 |     def fmt(b):
+45 |         if b < 1024: return f"{b} B"
+46 |         if b < 1048576: return f"{b/1024:.1f} KB"
+   |                       ^
+47 |         return f"{b/1048576:.1f} MB"
+48 |     lang_bars = "".join(
+   |
+
+invalid-syntax: Expected an identifier, but found a keyword `if` that cannot be used here
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:100:23
+    |
+ 98 |     const data = {json.dumps(data)};
+ 99 |     const colors = {json.dumps(colors)};
+100 |     function fmt(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(ΓÇª
+    |                       ^^
+101 |     function render(node, parent) {
+102 |       if (node.children) {
+    |
+
+invalid-syntax: f-string: expecting `}`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:100:37
+    |
+ 98 |     const data = {json.dumps(data)};
+ 99 |     const colors = {json.dumps(colors)};
+100 |     function fmt(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(ΓÇª
+    |                                     ^^^^^^
+101 |     function render(node, parent) {
+102 |       if (node.children) {
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:100:43
+    |
+ 98 | ΓÇª(data)};
+ 99 | ΓÇªps(colors)};
+100 | ΓÇª< 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(1) + ' MB'; }
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+101 | ΓÇªrent) {
+102 | ΓÇª
+    |
+
+invalid-syntax: f-string: single `}` is not allowed
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:100:146
+    |
+ 98 | ΓÇª
+ 99 | ΓÇª
+100 | ΓÇª1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(1) + ' MB'; }
+    |                                                                   ^
+101 | ΓÇª
+102 | ΓÇª
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:100:147
+    |
+ 98 |   ΓÇªumps(data)};
+ 99 |   ΓÇª.dumps(colors)};
+100 |   ΓÇª (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(1) + ' MB'; }
+    |  ____________________________________________________________________________________________________________________________^
+101 | | ΓÇª, parent) {
+    | |___________^
+102 |   ΓÇª {
+103 |   ΓÇªment.createElement('details');
+    |
+
+invalid-syntax: Expected an identifier, but found a keyword `if` that cannot be used here
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:102:7
+    |
+100 |     function fmt(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(ΓÇª
+101 |     function render(node, parent) {
+102 |       if (node.children) {
+    |       ^^
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+    |
+
+invalid-syntax: Expected `,`, found `{`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:102:26
+    |
+100 |     function fmt(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(ΓÇª
+101 |     function render(node, parent) {
+102 |       if (node.children) {
+    |                          ^
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+    |
+
+invalid-syntax: Expected `,`, found name
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:103:15
+    |
+101 |     function render(node, parent) {
+102 |       if (node.children) {
+103 |         const det = document.createElement('details');
+    |               ^^^
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |
+
+invalid-syntax: Expected `,`, found `=`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:103:19
+    |
+101 |     function render(node, parent) {
+102 |       if (node.children) {
+103 |         const det = document.createElement('details');
+    |                   ^
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |
+
+invalid-syntax: Expected `,`, found `;`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:103:54
+    |
+101 |     function render(node, parent) {
+102 |       if (node.children) {
+103 |         const det = document.createElement('details');
+    |                                                      ^
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |
+
+invalid-syntax: Expected `,`, found `=`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:104:18
+    |
+102 |       if (node.children) {
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+    |                  ^
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+    |
+
+invalid-syntax: Expected an expression
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:104:29
+    |
+102 |       if (node.children) {
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+    |                             ^
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+    |
+
+invalid-syntax: Expected `,`, found `;`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:104:62
+    |
+102 |       if (node.children) {
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+    |                                                              ^
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+    |
+
+invalid-syntax: Expected `,`, found `=`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:105:23
+    |
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |                       ^
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+107 |         node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
+    |
+
+invalid-syntax: Got unexpected token `
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:105:25
+    |
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |                         ^
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+107 |         node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
+    |
+
+invalid-syntax: Expected `,`, found `<`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:105:26
+    |
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |                          ^
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+107 |         node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
+    |
+
+invalid-syntax: Expected an expression
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:105:35
+    |
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |                                   ^
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+107 |         node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
+    |
+
+invalid-syntax: Expected `}`, found `class`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:105:41
+    |
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |                                         ^^^^^
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+107 |         node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
+    |
+
+invalid-syntax: Expected an identifier
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:105:46
+    |
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |                                              ^^^^^^^^^^^^^^
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+107 |         node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:105:70
+    |
+103 |         const det = document.createElement('details');
+104 |         det.open = parent === document.getElementById('root');
+105 |         det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+106 |         const ul = document.createElement('ul'); ul.className = 'tree';
+107 |         node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:105:113
+    |
+103 |           const det = document.createElement('details');
+104 |           det.open = parent === document.getElementById('root');
+105 |           det.innerHTML = `<summary><span class="folder">≡ƒôü ${node.name}</span><span class="size">${fmt(node.size)}</span></summary>`;
+    |  __________________________________________________________________________________________________________________^
+106 | |         const ul = document.createElement('ul'); ul.className = 'tree';
+107 | |         node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
+108 | |         node.children.forEach(c => render(c, ul));
+109 | |         det.appendChild(ul);
+110 | |         const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
+111 | |       } else {
+    | |______^
+112 |           const li = document.createElement('li'); li.className = 'file';
+113 |           li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |
+
+invalid-syntax: f-string: single `}` is not allowed
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:111:7
+    |
+109 |         det.appendChild(ul);
+110 |         const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
+111 |       } else {
+    |       ^
+112 |         const li = document.createElement('li'); li.className = 'file';
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:111:8
+    |
+109 |         det.appendChild(ul);
+110 |         const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
+111 |       } else {
+    |        ^^^^^^
+112 |         const li = document.createElement('li'); li.className = 'file';
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |
+
+invalid-syntax: Expected `,`, found name
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:112:15
+    |
+110 |         const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+    |               ^^
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+114 |         parent.appendChild(li);
+    |
+
+invalid-syntax: Expected `,`, found `=`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:112:18
+    |
+110 |         const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+    |                  ^
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+114 |         parent.appendChild(li);
+    |
+
+invalid-syntax: Expected `,`, found `;`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:112:48
+    |
+110 |         const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+    |                                                ^
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+114 |         parent.appendChild(li);
+    |
+
+invalid-syntax: Expected `,`, found `=`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:112:63
+    |
+110 |         const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+    |                                                               ^
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+114 |         parent.appendChild(li);
+    |
+
+invalid-syntax: Expected `,`, found `;`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:112:71
+    |
+110 |         const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+    |                                                                       ^
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+114 |         parent.appendChild(li);
+    |
+
+invalid-syntax: Expected `,`, found `=`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:113:22
+    |
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |                      ^
+114 |         parent.appendChild(li);
+115 |       }
+    |
+
+invalid-syntax: Got unexpected token `
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:113:24
+    |
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |                        ^
+114 |         parent.appendChild(li);
+115 |       }
+    |
+
+invalid-syntax: Expected `,`, found `<`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:113:25
+    |
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |                         ^
+114 |         parent.appendChild(li);
+115 |       }
+    |
+
+invalid-syntax: Expected `}`, found `class`
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:113:31
+    |
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |                               ^^^^^
+114 |         parent.appendChild(li);
+115 |       }
+    |
+
+invalid-syntax: Expected an identifier
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:113:36
+    |
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+114 |         parent.appendChild(li);
+115 |       }
+    |
+
+invalid-syntax: Expected an expression
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:113:80
+    |
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |                                                                                ^
+114 |         parent.appendChild(li);
+115 |       }
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:113:91
+    |
+111 |       } else {
+112 |         const li = document.createElement('li'); li.className = 'file';
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+    |                                                                                           ^^^^^^^^^^
+114 |         parent.appendChild(li);
+115 |       }
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:113:112
+    |
+111 | ΓÇª
+112 | ΓÇªssName = 'file';
+113 | ΓÇªound:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fmt(node.size)}</span>`;
+    |                                                          ^^^^^^^^^^^^^^^^^^^^
+114 | ΓÇª
+115 | ΓÇª
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:113:148
+    |
+111 |         } else {
+112 |           const li = document.createElement('li'); li.className = 'file';
+113 |           li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fmt(node.size)}</spanΓÇª
+    |  ____________________________________________________________________________________________________________________________________________________^
+114 | |         parent.appendChild(li);
+115 | |       }
+    | |______^
+116 |       }
+117 |       data.children.forEach(c => render(c, document.getElementById('root')));
+    |
+
+invalid-syntax: f-string: single `}` is not allowed
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:115:7
+    |
+113 |         li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+114 |         parent.appendChild(li);
+115 |       }
+    |       ^
+116 |     }
+117 |     data.children.forEach(c => render(c, document.getElementById('root')));
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:115:8
+    |
+113 |           li.innerHTML = `<span class="dot" style="background:${colors[node.ext]||'#6b7280'}"></span>${node.name}<span class="size">${fΓÇª
+114 |           parent.appendChild(li);
+115 |         }
+    |  ________^
+116 | |     }
+    | |____^
+117 |       data.children.forEach(c => render(c, document.getElementById('root')));
+118 |     </script>
+    |
+
+invalid-syntax: f-string: single `}` is not allowed
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:116:5
+    |
+114 |         parent.appendChild(li);
+115 |       }
+116 |     }
+    |     ^
+117 |     data.children.forEach(c => render(c, document.getElementById('root')));
+118 |   </script>
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:116:6
+    |
+114 |           parent.appendChild(li);
+115 |         }
+116 |       }
+    |  ______^
+117 | |     data.children.forEach(c => render(c, document.getElementById('root')));
+118 | |   </script>
+119 | | </body></html>'''
+    | |______________^
+120 |       output.write_text(html)
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:119:15
+    |
+117 |     data.children.forEach(c => render(c, document.getElementById('root')));
+118 |   </script>
+119 | </body></html>'''
+    |               ^^^
+120 |     output.write_text(html)
+    |
+
+invalid-syntax: Expected a statement
+   --> .claude\skills\codebase-visualizer\scripts\visualize.py:119:18
+    |
+117 |     data.children.forEach(c => render(c, document.getElementById('root')));
+118 |   </script>
+119 | </body></html>'''
+    |                  ^
+120 |     output.write_text(html)
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:111:1
+    |
+110 | # Import and register routers
+111 | from app.api.routes import scans, assets, findings, intel, reports, stream, webhooks
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+112 | from app.api.routes import metrics as metrics_router
+113 | from app.api.routes import subdomain_lookup
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:112:1
+    |
+110 | # Import and register routers
+111 | from app.api.routes import scans, assets, findings, intel, reports, stream, webhooks
+112 | from app.api.routes import metrics as metrics_router
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+113 | from app.api.routes import subdomain_lookup
+114 | from app.api.routes import assessment as assessment_router
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:113:1
+    |
+111 | from app.api.routes import scans, assets, findings, intel, reports, stream, webhooks
+112 | from app.api.routes import metrics as metrics_router
+113 | from app.api.routes import subdomain_lookup
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+114 | from app.api.routes import assessment as assessment_router
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:114:1
+    |
+112 | from app.api.routes import metrics as metrics_router
+113 | from app.api.routes import subdomain_lookup
+114 | from app.api.routes import assessment as assessment_router
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+115 |
+116 | app.include_router(scans.router, prefix="/api/v1/scans", tags=["scans"])
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:154:1
+    |
+152 | # The api/server.py shim also registers these (via re-export) for backward
+153 | # compatibility with the original launch command.
+154 | from pathlib import Path as _Path
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+155 | from fastapi.staticfiles import StaticFiles as _StaticFiles
+156 | from fastapi.responses import FileResponse as _FileResponse
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:155:1
+    |
+153 | # compatibility with the original launch command.
+154 | from pathlib import Path as _Path
+155 | from fastapi.staticfiles import StaticFiles as _StaticFiles
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+156 | from fastapi.responses import FileResponse as _FileResponse
+    |
+
+E402 Module level import not at top of file
+   --> app\api\server.py:156:1
+    |
+154 | from pathlib import Path as _Path
+155 | from fastapi.staticfiles import StaticFiles as _StaticFiles
+156 | from fastapi.responses import FileResponse as _FileResponse
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+157 |
+158 | _ROOT = _Path(__file__).resolve().parents[2]
+    |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\business_context.py:34:23
+   |
+32 |         """Map score to text level."""
+33 |         score = self.calculate_criticality()
+34 |         if score >= 80: return "CRITICAL"
+   |                       ^
+35 |         if score >= 60: return "HIGH"
+36 |         if score >= 40: return "MEDIUM"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\business_context.py:35:23
+   |
+33 |         score = self.calculate_criticality()
+34 |         if score >= 80: return "CRITICAL"
+35 |         if score >= 60: return "HIGH"
+   |                       ^
+36 |         if score >= 40: return "MEDIUM"
+37 |         if score >= 20: return "LOW"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\business_context.py:36:23
+   |
+34 |         if score >= 80: return "CRITICAL"
+35 |         if score >= 60: return "HIGH"
+36 |         if score >= 40: return "MEDIUM"
+   |                       ^
+37 |         if score >= 20: return "LOW"
+38 |         return "MINIMAL"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\business_context.py:37:23
+   |
+35 |         if score >= 60: return "HIGH"
+36 |         if score >= 40: return "MEDIUM"
+37 |         if score >= 20: return "LOW"
+   |                       ^
+38 |         return "MINIMAL"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\calculate.py:15:17
+   |
+13 | def _age_penalty(discovered_at: datetime) -> int:
+14 |     days = (datetime.utcnow() - discovered_at).days
+15 |     if days < 30: return 0
+   |                 ^
+16 |     if days < 90: return -5
+17 |     if days < 365: return -10
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\calculate.py:16:17
+   |
+14 |     days = (datetime.utcnow() - discovered_at).days
+15 |     if days < 30: return 0
+16 |     if days < 90: return -5
+   |                 ^
+17 |     if days < 365: return -10
+18 |     if days < 730: return -15
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\calculate.py:17:18
+   |
+15 |     if days < 30: return 0
+16 |     if days < 90: return -5
+17 |     if days < 365: return -10
+   |                  ^
+18 |     if days < 730: return -15
+19 |     return -20
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\calculate.py:18:18
+   |
+16 |     if days < 90: return -5
+17 |     if days < 365: return -10
+18 |     if days < 730: return -15
+   |                  ^
+19 |     return -20
+   |
+
+E741 Ambiguous variable name: `I`
+  --> app\intelligence\risk_scoring\cvss.py:53:13
+   |
+51 |             UI = METRIC_VALUES["UI"].get(m.get("UI", "N"), 0.85)
+52 |             C = METRIC_VALUES["C"].get(m.get("C", "N"), 0.0)
+53 |             I = METRIC_VALUES["I"].get(m.get("I", "N"), 0.0)
+   |             ^
+54 |             A = METRIC_VALUES["A"].get(m.get("A", "N"), 0.0)
+55 |             ISCBase = 1 - (1 - C) * (1 - I) * (1 - A)
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\epss.py:40:29
+   |
+38 |     def score_to_severity(self, epss_score: float) -> str:
+39 |         """Convert EPSS score (0-1) to severity label."""
+40 |         if epss_score >= 0.8: return "critical"
+   |                             ^
+41 |         if epss_score >= 0.5: return "high"
+42 |         if epss_score >= 0.2: return "medium"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\epss.py:41:29
+   |
+39 |         """Convert EPSS score (0-1) to severity label."""
+40 |         if epss_score >= 0.8: return "critical"
+41 |         if epss_score >= 0.5: return "high"
+   |                             ^
+42 |         if epss_score >= 0.2: return "medium"
+43 |         return "low"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app\intelligence\risk_scoring\epss.py:42:29
+   |
+40 |         if epss_score >= 0.8: return "critical"
+41 |         if epss_score >= 0.5: return "high"
+42 |         if epss_score >= 0.2: return "medium"
+   |                             ^
+43 |         return "low"
+   |
+
+E741 Ambiguous variable name: `l`
+  --> app\intelligence\threat_intel\aggregator.py:97:44
+   |
+95 |             if f.suffix == ".csv" and f.stat().st_size > 0:
+96 |                 with open(f) as fp:
+97 |                     lines = [l.strip() for l in fp if l.strip()]
+   |                                            ^
+98 |                 type_counts["blocklists"] = type_counts.get("blocklists", 0) + len(lines)
+99 |                 for line in lines[:100]:  # cap for summary
+   |
+
+F823 Local variable `os` referenced before assignment
+   --> app\intelligence\threat_intel\aggregator.py:146:9
+    |
+144 |     phase_dir = Path(args.phase_dir)
+145 |     if not phase_dir.is_dir():
+146 |         os.makedirs(phase_dir, exist_ok=True)
+    |         ^^
+147 |
+148 |     summary = aggregate(phase_dir, args.target)
+    |
+
+E712 Avoid equality comparisons to `True`; use `APIToken.is_active:` for truth checks
+  --> archive\legacy\reconx_enterprise\reconx-enterprise\backend\api\middleware\auth.py:44:21
+   |
+42 |                 token_obj = session.query(APIToken).filter(
+43 |                     APIToken.token_hash == token_hash,
+44 |                     APIToken.is_active == True,
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+45 |                 ).first()
+   |
+help: Replace with `APIToken.is_active`
+
+E712 Avoid equality comparisons to `True`; use `Subdomain.is_alive:` for truth checks
+  --> archive\legacy\reconx_enterprise\reconx-enterprise\backend\api\routes\assets.py:67:9
+   |
+65 |     ).filter(
+66 |         vuln_counts.c.vuln_count >= min_vulns,
+67 |         Subdomain.is_alive == True,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+68 |     )
+69 |     if scan_run_id:
+   |
+help: Replace with `Subdomain.is_alive`
+
+E402 Module level import not at top of file
+  --> archive\legacy\reconx_enterprise\reconx-enterprise\backend\api\server.py:52:1
+   |
+51 | # Register routers
+52 | from backend.api.routes import scans, assets, findings, intel, reports, stream, webhooks
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+53 |
+54 | app.include_router(scans.router, prefix="/api/v1/scans", tags=["scans"])
+   |
+
+E701 Multiple statements on one line (colon)
+  --> archive\legacy\reconx_enterprise\reconx-enterprise\backend\db\database.py:27:24
+   |
+25 |     def connect(self): self.session = SessionLocal()
+26 |     def close(self):
+27 |         if self.session: self.session.close()
+   |                        ^
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\business_context.py:34:23
+   |
+32 |         """Map score to text level."""
+33 |         score = self.calculate_criticality()
+34 |         if score >= 80: return "CRITICAL"
+   |                       ^
+35 |         if score >= 60: return "HIGH"
+36 |         if score >= 40: return "MEDIUM"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\business_context.py:35:23
+   |
+33 |         score = self.calculate_criticality()
+34 |         if score >= 80: return "CRITICAL"
+35 |         if score >= 60: return "HIGH"
+   |                       ^
+36 |         if score >= 40: return "MEDIUM"
+37 |         if score >= 20: return "LOW"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\business_context.py:36:23
+   |
+34 |         if score >= 80: return "CRITICAL"
+35 |         if score >= 60: return "HIGH"
+36 |         if score >= 40: return "MEDIUM"
+   |                       ^
+37 |         if score >= 20: return "LOW"
+38 |         return "MINIMAL"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\business_context.py:37:23
+   |
+35 |         if score >= 60: return "HIGH"
+36 |         if score >= 40: return "MEDIUM"
+37 |         if score >= 20: return "LOW"
+   |                       ^
+38 |         return "MINIMAL"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\calculate.py:15:17
+   |
+13 | def _age_penalty(discovered_at: datetime) -> int:
+14 |     days = (datetime.utcnow() - discovered_at).days
+15 |     if days < 30: return 0
+   |                 ^
+16 |     if days < 90: return -5
+17 |     if days < 365: return -10
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\calculate.py:16:17
+   |
+14 |     days = (datetime.utcnow() - discovered_at).days
+15 |     if days < 30: return 0
+16 |     if days < 90: return -5
+   |                 ^
+17 |     if days < 365: return -10
+18 |     if days < 730: return -15
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\calculate.py:17:18
+   |
+15 |     if days < 30: return 0
+16 |     if days < 90: return -5
+17 |     if days < 365: return -10
+   |                  ^
+18 |     if days < 730: return -15
+19 |     return -20
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\calculate.py:18:18
+   |
+16 |     if days < 90: return -5
+17 |     if days < 365: return -10
+18 |     if days < 730: return -15
+   |                  ^
+19 |     return -20
+   |
+
+F841 Local variable `epss_client` is assigned to but never used
+  --> intelligence\risk_scoring\calculate.py:31:5
+   |
+29 | ) -> Dict[int, int]:
+30 |     """Calculate final risk score for each finding (0-100)."""
+31 |     epss_client = EPSSClient()
+   |     ^^^^^^^^^^^
+32 |     kev_checker = KEVChecker()
+33 |     bcs = BusinessContextScorer(asset_metadata)
+   |
+help: Remove assignment to unused variable `epss_client`
+
+F841 Local variable `kev_checker` is assigned to but never used
+  --> intelligence\risk_scoring\calculate.py:32:5
+   |
+30 |     """Calculate final risk score for each finding (0-100)."""
+31 |     epss_client = EPSSClient()
+32 |     kev_checker = KEVChecker()
+   |     ^^^^^^^^^^^
+33 |     bcs = BusinessContextScorer(asset_metadata)
+34 |     asset_criticality = bcs.calculate_criticality() / 100.0
+   |
+help: Remove assignment to unused variable `kev_checker`
+
+E741 Ambiguous variable name: `I`
+  --> intelligence\risk_scoring\cvss.py:53:13
+   |
+51 |             UI = METRIC_VALUES["UI"].get(m.get("UI", "N"), 0.85)
+52 |             C = METRIC_VALUES["C"].get(m.get("C", "N"), 0.0)
+53 |             I = METRIC_VALUES["I"].get(m.get("I", "N"), 0.0)
+   |             ^
+54 |             A = METRIC_VALUES["A"].get(m.get("A", "N"), 0.0)
+55 |             ISCBase = 1 - (1 - C) * (1 - I) * (1 - A)
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\epss.py:40:29
+   |
+38 |     def score_to_severity(self, epss_score: float) -> str:
+39 |         """Convert EPSS score (0-1) to severity label."""
+40 |         if epss_score >= 0.8: return "critical"
+   |                             ^
+41 |         if epss_score >= 0.5: return "high"
+42 |         if epss_score >= 0.2: return "medium"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\epss.py:41:29
+   |
+39 |         """Convert EPSS score (0-1) to severity label."""
+40 |         if epss_score >= 0.8: return "critical"
+41 |         if epss_score >= 0.5: return "high"
+   |                             ^
+42 |         if epss_score >= 0.2: return "medium"
+43 |         return "low"
+   |
+
+E701 Multiple statements on one line (colon)
+  --> intelligence\risk_scoring\epss.py:42:29
+   |
+40 |         if epss_score >= 0.8: return "critical"
+41 |         if epss_score >= 0.5: return "high"
+42 |         if epss_score >= 0.2: return "medium"
+   |                             ^
+43 |         return "low"
+   |
+
+E741 Ambiguous variable name: `l`
+   --> intelligence\threat_intel\aggregator.py:99:44
+    |
+ 97 |             if f.suffix == ".csv" and f.stat().st_size > 0:
+ 98 |                 with open(f) as fp:
+ 99 |                     lines = [l.strip() for l in fp if l.strip()]
+    |                                            ^
+100 |                 type_counts["blocklists"] = type_counts.get("blocklists", 0) + len(lines)
+101 |                 for line in lines[:100]:  # cap for summary
+    |
+
+E741 Ambiguous variable name: `l`
+  --> scripts\show_nuclei_results.py:17:32
+   |
+15 |         continue
+16 |     with open(path) as f:
+17 |         lines = [l.strip() for l in f if l.strip()]
+   |                                ^
+18 |     print(f"  Findings: {len(lines)}")
+19 |     for l in lines:
+   |
+
+E741 Ambiguous variable name: `l`
+  --> scripts\show_nuclei_results.py:19:9
+   |
+17 |         lines = [l.strip() for l in f if l.strip()]
+18 |     print(f"  Findings: {len(lines)}")
+19 |     for l in lines:
+   |         ^
+20 |         try:
+21 |             d = json.loads(l)
+   |
+
+E722 Do not use bare `except`
+  --> scripts\show_nuclei_results.py:26:9
+   |
+24 |             matched = d.get("matched-at", "?")
+25 |             print(f"  - [{sev.upper()}] {name} @ {matched}")
+26 |         except:
+   |         ^^^^^^
+27 |             print("  - (parse error)")
+   |
+
+E402 Module level import not at top of file
+  --> technieum.py:27:1
+   |
+25 | load_dotenv()
+26 |
+27 | import yaml
+   | ^^^^^^^^^^^
+28 | from tqdm import tqdm
+   |
+
+E402 Module level import not at top of file
+  --> technieum.py:28:1
+   |
+27 | import yaml
+28 | from tqdm import tqdm
+   | ^^^^^^^^^^^^^^^^^^^^^
+29 |
+30 | # Add current directory to path
+   |
+
+E402 Module level import not at top of file
+  --> technieum.py:33:1
+   |
+31 | sys.path.insert(0, str(Path(__file__).parent))
+32 |
+33 | from app.db.database import DatabaseManager
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+34 | from app.parsers.parser import (
+35 |     SubdomainParser, HttpParser, DnsParser, PortParser,
+   |
+
+E402 Module level import not at top of file
+  --> technieum.py:34:1
+   |
+33 |   from app.db.database import DatabaseManager
+34 | / from app.parsers.parser import (
+35 | |     SubdomainParser, HttpParser, DnsParser, PortParser,
+36 | |     UrlParser, DirectoryParser, VulnerabilityParser,
+37 | |     LeakParser, TakeoverParser, URL_TOOL_PARSERS
+38 | | )
+   | |_^
+   |
+
+E402 Module level import not at top of file
+  --> test_output_ui_binding.py:16:1
+   |
+14 |   sys.path.insert(0, str(project_root))
+15 |
+16 | / from app.api.helpers.output_ui_binder import (
+17 | |     ScanOutputScanner,
+18 | |     UIModuleRouter,
+19 | |     UniversalFileParser,
+20 | |     get_dashboard_output_data,
+21 | | )
+   | |_^
+   |
+
+F841 Local variable `engine` is assigned to but never used
+   --> tests\test_api_scan_cycle.py:117:5
+    |
+115 |     from sqlalchemy import create_engine
+116 |
+117 |     engine = create_engine(
+    |     ^^^^^^
+118 |         os.environ.get("DATABASE_URL", "sqlite:///:memory:"),
+119 |         connect_args={"check_same_thread": False},
+    |
+help: Remove assignment to unused variable `engine`
+
+E402 Module level import not at top of file
+  --> tests\test_contract.py:19:1
+   |
+17 | Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+18 |
+19 | import app.db.database as _db_module
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+20 | _db_module.SessionLocal = Session
+   |
+
+E402 Module level import not at top of file
+  --> tests\test_contract.py:22:1
+   |
+20 | _db_module.SessionLocal = Session
+21 |
+22 | import app.workers.worker as _worker
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+23 | _worker._engine = engine
+24 | _worker._Session = Session
+   |
+
+E402 Module level import not at top of file
+  --> tests\test_contract.py:26:1
+   |
+24 | _worker._Session = Session
+25 |
+26 | from app.api.server import app
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+27 | from app.db.database import get_db
+28 | from app.db.base import Base
+   |
+
+E402 Module level import not at top of file
+  --> tests\test_contract.py:27:1
+   |
+26 | from app.api.server import app
+27 | from app.db.database import get_db
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+28 | from app.db.base import Base
+29 | from app.db.models import APIKey, ScanRun, ScanProgress
+   |
+
+E402 Module level import not at top of file
+  --> tests\test_contract.py:28:1
+   |
+26 | from app.api.server import app
+27 | from app.db.database import get_db
+28 | from app.db.base import Base
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+29 | from app.db.models import APIKey, ScanRun, ScanProgress
+   |
+
+E402 Module level import not at top of file
+  --> tests\test_contract.py:29:1
+   |
+27 | from app.db.database import get_db
+28 | from app.db.base import Base
+29 | from app.db.models import APIKey, ScanRun, ScanProgress
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+30 |
+31 | VALID_KEY = "b" * 32
+   |
+
+E702 Multiple statements on one line (semicolon)
+   --> tests\test_queue.py:279:19
+    |
+277 |         t1 = threading.Thread(target=try_claim)
+278 |         t2 = threading.Thread(target=try_claim)
+279 |         t1.start(); t2.start()
+    |                   ^
+280 |         t1.join(); t2.join()
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> tests\test_queue.py:280:18
+    |
+278 |         t2 = threading.Thread(target=try_claim)
+279 |         t1.start(); t2.start()
+280 |         t1.join(); t2.join()
+    |                  ^
+281 |
+282 |         assert not errors, f"Claim errors: {errors}"
+    |
+
+Found 103 errors.
+No fixes available (5 hidden fixes can be enabled with the `--unsafe-fixes` option).

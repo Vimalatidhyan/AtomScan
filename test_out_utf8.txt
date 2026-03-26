@@ -1,0 +1,23 @@
+﻿python : C:\Users\Vimal
+atithyan\AppData\Local\
+Python\pythoncore-3.14-
+64\python.exe: No 
+module named pytest
+At line:1 char:1
++ python -m pytest -q 
+--tb=short > 
+test_out.txt 2>&1; 
+python -m ruff ch ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (C:\Users\Vima   
+ la...le named pyte    
+st:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 

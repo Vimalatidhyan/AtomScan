@@ -436,9 +436,9 @@ if ASNMAP_BIN="$(resolve_tool_path asnmap)"; then
         ASN_AUTH_FLAGS="-auth=false"
     fi
 
-    ASN_CMD="'$ASNMAP_BIN' -d '$TARGET' -silent $ASN_AUTH_FLAGS < /dev/null"
+    ASN_CMD="echo '$TARGET' | '$ASNMAP_BIN' -silent $ASN_AUTH_FLAGS"
     if tool_supports_flag "asnmap" "-json"; then
-        ASN_CMD="'$ASNMAP_BIN' -d '$TARGET' -silent -json $ASN_AUTH_FLAGS < /dev/null"
+        ASN_CMD="echo '$TARGET' | '$ASNMAP_BIN' -silent -json $ASN_AUTH_FLAGS"
     fi
     ASN_CMD="$ASN_CMD > '$ASN_CIDRS_FILE'"
     run_timeout "$ASNMAP_TIMEOUT" bash -c "$ASN_CMD" 2>"$ASN_DIR/asnmap.err" || log_warn "asnmap failed or timed out"

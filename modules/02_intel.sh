@@ -59,10 +59,20 @@ RUSTSCAN_BATCH="${TECHNIEUM_RUSTSCAN_BATCH:-1000}"
 RUSTSCAN_TIMEOUT="${TECHNIEUM_RUSTSCAN_TIMEOUT:-3000}"
 SUBJACK_THREADS="${TECHNIEUM_SUBJACK_THREADS:-100}"
 NMAP_MAX_HOSTS="${TECHNIEUM_NMAP_MAX_HOSTS:-50}"
-# Default host timeout reduced to 120s (was 600s). CDN/cloud hosts (Cloudflare,
-# CloudFront, AWS GA) only expose HTTP/HTTPS so a 600s timeout per host caused
-# 20+ minute stalls with -p- scanning all 65535 ports.
-NMAP_HOST_TIMEOUT="${TECHNIEUM_NMAP_HOST_TIMEOUT:-120}"
+# Host timeout: 600s (10 min) gives nmap enough time for -sV/-sC probes.
+# 120s was too short — all CDN/cloud hosts (Cloudflare, CloudFront, AWS GA)
+# consistently timed out before service detection could finish.
+NMAP_HOST_TIMEOUT="${TECHNIEUM_NMAP_HOST_TIMEOUT:-600}"
+# Per-script timeout (individually). Prevents one slow NSE script from
+# eating the entire host-timeout budget.
+NMAP_SCRIPT_TIMEOUT="${TECHNIEUM_NMAP_SCRIPT_TIMEOUT:-30}"
+# Max retries per port probe (default 10 is overkill for CDN hosts).
+NMAP_MAX_RETRIES="${TECHNIEUM_NMAP_MAX_RETRIES:-2}"
+# Maximum RTT timeout (ms). Cap high-latency retransmission delays.
+NMAP_MAX_RTT="${TECHNIEUM_NMAP_MAX_RTT:-2000}"
+# Timing template: T3 (normal) is more reliable against CDN/cloud hosts
+# than T4 (aggressive), which caused cascading timeouts.
+NMAP_TIMING="${TECHNIEUM_NMAP_TIMING:-T3}"
 # Total nmap timeout (default calculated from host timeout, can be overridden)
 # This ensures nmap doesn't run indefinitely
 NMAP_TIMEOUT="${TECHNIEUM_NMAP_TIMEOUT:-0}"
@@ -71,6 +81,8 @@ NMAP_MAX_FILE_MB="${TECHNIEUM_NMAP_MAX_FILE_MB:-500}"
 # Common ports used as nmap fallback when RustScan is not installed.
 # These are the ports that actually matter for web/cloud targets.
 _NMAP_COMMON_PORTS="21,22,23,25,53,80,110,135,143,443,445,587,993,995,1433,1521,3306,3389,5432,5900,6379,8080,8443,8000,8008,8888,9200,27017"
+# Two-pass scanning: quick SYN probe first, deep scan only responsive hosts.
+NMAP_TWO_PASS="${TECHNIEUM_NMAP_TWO_PASS:-1}"
 MIN_DISK_MB="${TECHNIEUM_MIN_DISK_MB:-1024}"
 
 
@@ -298,25 +310,81 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
                 if [ "$NMAP_PORT_FLAG" = "-p-" ]; then
                     [ "$_NMAP_TIMEOUT" -lt 7200 ] && _NMAP_TIMEOUT=7200
                 else
-                    [ "$_NMAP_TIMEOUT" -lt 1800 ] && _NMAP_TIMEOUT=1800
+                    [ "$_NMAP_TIMEOUT" -lt 3600 ] && _NMAP_TIMEOUT=3600
                 fi
             fi
-            log_info "Nmap scanning $NMAP_TARGET_COUNT targets via -iL (timeout=${_NMAP_TIMEOUT}s, port-flag=${NMAP_PORT_FLAG})..."
-            run_timeout "$_NMAP_TIMEOUT" \
-                nmap -sV -sC -T4 -Pn $NMAP_PORT_FLAG \
-                --host-timeout "${NMAP_HOST_TIMEOUT}s" \
-                --min-parallelism 10 \
-                -iL "$NMAP_TARGETS" \
-                -oX "$PORTS_DIR/nmap_all.xml" \
-                -oN "$PORTS_DIR/nmap_all.txt" \
-                2>/dev/null || log_warn "Nmap failed or timed out"
+
+            # === TWO-PASS NMAP STRATEGY ===
+            # Pass 1: Quick SYN scan (no -sV/-sC) to find responsive hosts.
+            # Pass 2: Deep scan (-sV -sC) only on hosts that had open ports.
+            # This avoids wasting the host-timeout budget on unresponsive CDN hosts.
+            if [ "$NMAP_TWO_PASS" = "1" ]; then
+                log_info "[Pass 1/2] Quick SYN discovery on $NMAP_TARGET_COUNT targets (timeout=${_NMAP_TIMEOUT}s, ports=${NMAP_PORT_FLAG})..."
+                run_timeout "$_NMAP_TIMEOUT" \
+                    nmap -sS -"$NMAP_TIMING" -Pn $NMAP_PORT_FLAG \
+                    --host-timeout "${NMAP_HOST_TIMEOUT}s" \
+                    --max-retries "$NMAP_MAX_RETRIES" \
+                    --max-rtt-timeout "${NMAP_MAX_RTT}ms" \
+                    --min-parallelism 5 \
+                    -iL "$NMAP_TARGETS" \
+                    -oX "$PORTS_DIR/nmap_syn.xml" \
+                    -oN "$PORTS_DIR/nmap_syn.txt" \
+                    2>/dev/null || log_warn "Nmap SYN pass failed or timed out"
+
+                # Extract hosts that had at least one open port
+                RESPONSIVE_HOSTS="$PORTS_DIR/nmap_responsive_hosts.txt"
+                if [ -f "$PORTS_DIR/nmap_syn.xml" ]; then
+                    grep -B2 'state="open"' "$PORTS_DIR/nmap_syn.xml" 2>/dev/null \
+                        | grep -oP 'addr="\K[^"]+' | sort -u > "$RESPONSIVE_HOSTS" 2>/dev/null || true
+                fi
+
+                RESPONSIVE_COUNT=0
+                [ -f "$RESPONSIVE_HOSTS" ] && RESPONSIVE_COUNT=$(wc -l < "$RESPONSIVE_HOSTS" 2>/dev/null | tr -d ' ')
+
+                if [ "$RESPONSIVE_COUNT" -gt 0 ]; then
+                    log_info "[Pass 2/2] Deep service scan on $RESPONSIVE_COUNT responsive hosts..."
+                    run_timeout "$_NMAP_TIMEOUT" \
+                        nmap -sV -sC -"$NMAP_TIMING" -Pn $NMAP_PORT_FLAG \
+                        --host-timeout "${NMAP_HOST_TIMEOUT}s" \
+                        --script-timeout "${NMAP_SCRIPT_TIMEOUT}s" \
+                        --max-retries "$NMAP_MAX_RETRIES" \
+                        --max-rtt-timeout "${NMAP_MAX_RTT}ms" \
+                        --min-parallelism 5 \
+                        -iL "$RESPONSIVE_HOSTS" \
+                        -oX "$PORTS_DIR/nmap_all.xml" \
+                        -oN "$PORTS_DIR/nmap_all.txt" \
+                        2>/dev/null || log_warn "Nmap deep scan failed or timed out"
+                else
+                    log_warn "No responsive hosts found in SYN pass; using SYN results as final output"
+                    [ -f "$PORTS_DIR/nmap_syn.xml" ] && cp "$PORTS_DIR/nmap_syn.xml" "$PORTS_DIR/nmap_all.xml"
+                    [ -f "$PORTS_DIR/nmap_syn.txt" ] && cp "$PORTS_DIR/nmap_syn.txt" "$PORTS_DIR/nmap_all.txt"
+                fi
+            else
+                # Single-pass mode (legacy): full scan on all targets at once
+                log_info "Nmap scanning $NMAP_TARGET_COUNT targets via -iL (timeout=${_NMAP_TIMEOUT}s, port-flag=${NMAP_PORT_FLAG})..."
+                run_timeout "$_NMAP_TIMEOUT" \
+                    nmap -sV -sC -"$NMAP_TIMING" -Pn $NMAP_PORT_FLAG \
+                    --host-timeout "${NMAP_HOST_TIMEOUT}s" \
+                    --script-timeout "${NMAP_SCRIPT_TIMEOUT}s" \
+                    --max-retries "$NMAP_MAX_RETRIES" \
+                    --max-rtt-timeout "${NMAP_MAX_RTT}ms" \
+                    --min-parallelism 5 \
+                    -iL "$NMAP_TARGETS" \
+                    -oX "$PORTS_DIR/nmap_all.xml" \
+                    -oN "$PORTS_DIR/nmap_all.txt" \
+                    2>/dev/null || log_warn "Nmap failed or timed out"
+            fi
+
             # Retry with common ports if full scan timed out and produced no usable output.
             if [ "$NMAP_PORT_FLAG" = "-p-" ] && { [ ! -s "$PORTS_DIR/nmap_all.xml" ] && [ ! -s "$PORTS_DIR/nmap_all.txt" ]; }; then
                 log_warn "Nmap full-port scan produced no output, retrying with common ports for completeness"
                 run_timeout "$NMAP_RETRY_TIMEOUT" \
-                    nmap -sV -sC -T4 -Pn -p "${_NMAP_COMMON_PORTS}" \
+                    nmap -sV -sC -"$NMAP_TIMING" -Pn -p "${_NMAP_COMMON_PORTS}" \
                     --host-timeout "${NMAP_HOST_TIMEOUT}s" \
-                    --min-parallelism 10 \
+                    --script-timeout "${NMAP_SCRIPT_TIMEOUT}s" \
+                    --max-retries "$NMAP_MAX_RETRIES" \
+                    --max-rtt-timeout "${NMAP_MAX_RTT}ms" \
+                    --min-parallelism 5 \
                     -iL "$NMAP_TARGETS" \
                     -oX "$PORTS_DIR/nmap_all.xml" \
                     -oN "$PORTS_DIR/nmap_all.txt" \
@@ -325,7 +393,7 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
             # Also copy to root for easier discovery
             if [ -f "$PORTS_DIR/nmap_all.xml" ]; then
                 cp "$PORTS_DIR/nmap_all.xml" "$OUTPUT_DIR/nmap.xml"
-                cp "$PORTS_DIR/nmap_all.txt" "$OUTPUT_DIR/nmap.txt"
+                cp "$PORTS_DIR/nmap_all.txt" "$OUTPUT_DIR/nmap.txt" 2>/dev/null || true
             fi
         fi
     fi

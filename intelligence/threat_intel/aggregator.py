@@ -38,6 +38,13 @@ def _collect_dir(phase_dir: Path, subdir: str) -> List[Dict[str, Any]]:
                 if isinstance(data, list):
                     entries.extend(data)
                 elif isinstance(data, dict):
+                    # Ignore API error outputs from free tools that return 4xx but 200 JSON
+                    if "error" in data and "Unauthorized" in str(data.get("error")):
+                        continue
+                    if data.get("query_status") in ("no_results", "illegal_search_term"):
+                        continue
+                    if "message" in data and "API key" in str(data.get("message")):
+                        continue
                     entries.append(data)
                 else:
                     entries.append({"raw": data})

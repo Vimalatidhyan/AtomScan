@@ -107,14 +107,8 @@ PYTHONPATH="$REPO_ROOT" $PYTHON - <<EOF 2>>"$PHASE_DIR/baseline.log"
 import json, sys, os
 sys.path.insert(0, '$REPO_ROOT')
 
-try:
-    from intelligence.change_detection.baseline_manager import BaselineManager
-    bm = BaselineManager(baseline_dir='$BASELINE_STORE')
-    status = bm.get_status('$TARGET')
-except Exception as e:
-    print(f"Warning: baseline_manager error: {e}", file=sys.stderr)
-    has_baseline = os.path.exists('$PREVIOUS_BASELINE_FILE')
-    status = {'has_baseline': has_baseline, 'target': '$TARGET'}
+has_baseline = os.path.exists('$PREVIOUS_BASELINE_FILE')
+status = {'has_baseline': has_baseline, 'target': '$TARGET'}
 
 with open('$BASELINE_RESULT', 'w') as f:
     json.dump(status, f, indent=2)

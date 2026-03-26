@@ -142,6 +142,7 @@ if command -v nuclei &> /dev/null && [ "$SCAN_COUNT" -gt 0 ]; then
         for _tmpl_candidate in \
             "$HOME/nuclei-templates" \
             "$HOME/.local/nuclei-templates" \
+            "$HOME/tools/nuclei-templates" \
             "/opt/nuclei-templates" \
             "/usr/share/nuclei-templates" \
             "$HOME/.config/nuclei/templates"; do
@@ -160,6 +161,7 @@ if command -v nuclei &> /dev/null && [ "$SCAN_COUNT" -gt 0 ]; then
         for _tmpl_candidate in \
             "$HOME/nuclei-templates" \
             "$HOME/.local/nuclei-templates" \
+            "$HOME/tools/nuclei-templates" \
             "$HOME/.config/nuclei/templates"; do
             if [ -d "$_tmpl_candidate" ]; then
                 _nuclei_tmpl_dir="$_tmpl_candidate"
@@ -971,26 +973,23 @@ log_info "=== SSL/TLS SECURITY SCANNING ==="
 SSL_DIR="$PHASE_DIR/ssl"
 mkdir -p "$SSL_DIR"
 
-# testssl.sh
-if command -v testssl.sh &> /dev/null || [ -f "/opt/testssl.sh/testssl.sh" ]; then
-    log_info "Running testssl.sh..."
+# testssl.sh (also check for 'testssl' without .sh — Kali installs it that way)
+if command -v testssl.sh &>/dev/null || command -v testssl &>/dev/null || [ -f "/opt/testssl.sh/testssl.sh" ]; then
+    TESTSSL_BIN=$(command -v testssl.sh || command -v testssl || echo "/opt/testssl.sh/testssl.sh")
+    log_info "Running testssl ($TESTSSL_BIN)..."
 
     head -n 10 "$ALIVE_HOSTS" | awk 'NF' > "$SSL_DIR/testssl_targets.txt"
 
-    export SSL_DIR
+    export SSL_DIR TESTSSL_BIN
     run_parallel_from_file "$SSL_DIR/testssl_targets.txt" "$THREADS" '
         host="$1"
-        log_info "testssl.sh: $host"
-        if [ -f "/opt/testssl.sh/testssl.sh" ]; then
-            /opt/testssl.sh/testssl.sh --jsonfile "$SSL_DIR/testssl_${host//[^a-zA-Z0-9]/_}.json" "$host" 2>/dev/null || true
-        else
-            testssl.sh --jsonfile "$SSL_DIR/testssl_${host//[^a-zA-Z0-9]/_}.json" "$host" 2>/dev/null || true
-        fi
+        log_info "testssl: $host"
+        $TESTSSL_BIN --jsonfile "$SSL_DIR/testssl_${host//[^a-zA-Z0-9]/_}.json" "$host" 2>/dev/null || true
     '
 
     cat "$SSL_DIR"/testssl_*.json 2>/dev/null > "$SSL_DIR/testssl_all.json" || touch "$SSL_DIR/testssl_all.json"
 else
-    log_warn "testssl.sh not found"
+    log_warn "testssl.sh / testssl not found"
 fi
 
 # SSLyze (alternative)

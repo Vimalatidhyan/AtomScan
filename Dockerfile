@@ -105,7 +105,10 @@ RUN chmod +x scripts/*.sh 2>/dev/null || true && \
 # Set up environment
 ENV TECHNIEUM_DB_PATH=${TECHNIEUM_DATA}/technieum.db \
     TECHNIEUM_OUTPUT_DIR=${TECHNIEUM_DATA}/output \
-    TECHNIEUM_LOGS_DIR=${TECHNIEUM_DATA}/logs
+    TECHNIEUM_LOGS_DIR=${TECHNIEUM_DATA}/logs \
+    TECHNIEUM_NMAP_TIMEOUT=3600 \
+    TECHNIEUM_NMAP_HOST_TIMEOUT=120 \
+    TECHNIEUM_NMAP_MAX_HOSTS=50
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \

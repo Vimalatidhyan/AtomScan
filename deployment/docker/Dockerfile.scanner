@@ -141,6 +141,10 @@ RUN chmod +x ./lib/*.sh ./modules/*.sh 2>/dev/null || true && \
 ENV PYTHONUNBUFFERED=1
 ENV DATABASE_URL=sqlite:////app/data/technieum.db
 ENV LOG_LEVEL=INFO
+ENV TECHNIEUM_OUTPUT_DIR=/app/output
+ENV TECHNIEUM_NMAP_TIMEOUT=3600
+ENV TECHNIEUM_NMAP_HOST_TIMEOUT=120
+ENV TECHNIEUM_NMAP_MAX_HOSTS=50
 
 # Default: show help. Override with e.g. -t example.com
 ENTRYPOINT ["python3", "technieum.py"]

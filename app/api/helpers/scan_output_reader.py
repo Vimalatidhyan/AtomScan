@@ -12,8 +12,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-# Base output directory relative to project root
-OUTPUT_DIR = Path(__file__).resolve().parents[3] / "output"
+# Base output directory - use env var if set, else default to project root
+OUTPUT_DIR = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", Path(__file__).resolve().parents[3] / "output"))
 
 
 def _sanitize_domain(domain: str) -> str:
@@ -68,7 +68,9 @@ def parse_nmap_xml(scan_dir: Path) -> List[Dict[str, Any]]:
     Returns list of {ip, hostname, port, protocol, service, version, state}."""
     candidates = [
         scan_dir / "nmap.xml",
+        scan_dir / "nmap_all.xml",
         scan_dir / "phase2_intel" / "ports" / "nmap_all.xml",
+        scan_dir / "phase2_intel" / "ports" / "nmap.xml",
     ]
     results = []
     for xml_path in candidates:

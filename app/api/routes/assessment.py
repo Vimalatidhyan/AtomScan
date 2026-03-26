@@ -30,6 +30,7 @@ from app.api.helpers.output_ui_binder import (
     extract_attack_graph,
     extract_change_detection,
     extract_whois,
+    extract_tool_errors,
 )
 
 router = APIRouter()
@@ -216,4 +217,12 @@ def get_change_detection(scan_id: int, db: Session = Depends(get_db)):
     scan = _get_scan(scan_id, db)
     scan_dir = _require_dir(scan, scan_id)
     data = extract_change_detection(scan_dir)
+    return {"status": "ok", "scan_id": scan_id, "domain": scan.domain, **data}
+
+
+@router.get("/{scan_id}/tool-errors")
+def get_tool_errors(scan_id: int, db: Session = Depends(get_db)):
+    scan = _get_scan(scan_id, db)
+    scan_dir = _require_dir(scan, scan_id)
+    data = extract_tool_errors(scan_dir)
     return {"status": "ok", "scan_id": scan_id, "domain": scan.domain, **data}

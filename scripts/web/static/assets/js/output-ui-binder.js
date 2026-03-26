@@ -42,6 +42,7 @@
     { key:'compliance',      id:'obCompPanel',        icon:svgPath('M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'), title:'Compliance', badgeId:'obCompBadge' },
     { key:'attackgraph',     id:'obAttackPanel',      icon:svgPath('M13 10V3L4 14h7v7l9-11h-7z'),                                                        title:'Attack Graph',         badgeId:'obAttackBadge'     },
     { key:'change-detection',id:'obChangePanel',      icon:svgPath('M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'), title:'Change Detection', badgeId:'obChangeBadge' },
+    { key:'tool-errors',    id:'obErrorsPanel',       icon:svgPath('M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'),                                          title:'Tool Errors & Timeouts',badgeId:'obErrorsBadge'    },
   ];
 
   /* --- Utilities ---------------------------------------------- */
@@ -245,6 +246,24 @@
     setBody(bodyId, html);
   }
 
+  function renderToolErrors(d, bodyId, badgeId) {
+    var errors=d.errors||[], timeouts=d.timeouts||[];
+    var total=d.total||0, timeoutCount=d.timeout_count||0;
+    setBadge(badgeId, total);
+    if(!total){ setBody(bodyId,'<div class="tm-empty">No tool errors or timeouts</div>'); return; }
+    var html='';
+    if(timeoutCount>0) html+='<div style="padding:.5rem .75rem;background:#fef3c7;border-bottom:1px solid #f59e0b;font-size:.75rem;font-weight:700;color:#92400e">Timeouts: '+timeoutCount+'</div>';
+    var rows=errors.map(function(e){ return {Tool:e.tool||'',File:e.file||'',Type:e.is_timeout?'<span style="color:#dc2626">TIMEOUT</span>':'Error',Lines:e.line_count||0}; });
+    html+=mkTable(['Tool','File','Type','Lines'],rows.slice(0,50),'No errors');
+    errors.forEach(function(e){
+      if(e.has_content&&e.lines.length){
+        html+='<div style="font-size:.7rem;font-weight:700;padding:.35rem .75rem;background:var(--bg-body,#f8f9fa);border-bottom:1px solid var(--border)">'+esc(e.tool)+' ('+e.lines.length+' lines)</div>';
+        html+='<pre style="margin:0;padding:.5rem;font-size:.7rem;overflow-x:auto;background:#1f2937;color:#e5e7eb">'+esc(e.lines.join("\n"))+'</pre>';
+      }
+    });
+    setBody(bodyId, html);
+  }
+
   /* --- Existing panel enrichers (don't replace if already populated) --- */
   function enrichLiveHosts(d) {
     var hosts=d.hosts||[], count=d.total||hosts.length;
@@ -329,6 +348,7 @@
       apiFetch(url('compliance')),     // 15
       apiFetch(url('attackgraph')),    // 16
       apiFetch(url('change-detection')),// 17
+      apiFetch(url('tool-errors')),    // 18
     ]);
 
     function cfg(key){ return PANELS.find(function(p){ return p.key===key; })||{}; }
@@ -351,6 +371,7 @@
     if (results[15]) { var c=cfg('compliance');      renderCompliance(results[15],     c.id+'Body', c.badgeId); }
     if (results[16]) { var c=cfg('attackgraph');     renderAttackGraph(results[16],    c.id+'Body', c.badgeId); }
     if (results[17]) { var c=cfg('change-detection');renderChangeDetection(results[17],c.id+'Body', c.badgeId); }
+    if (results[18]) { var c=cfg('tool-errors');renderToolErrors(results[18],c.id+'Body', c.badgeId); }
   }
 
   /* --- Public API --------------------------------------------- */

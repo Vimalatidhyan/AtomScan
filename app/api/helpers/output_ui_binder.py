@@ -50,6 +50,8 @@ MODULE_PATTERNS: Dict[str, List[str]] = {
         r"^assetfinder\.txt$",
         r"^crtsh\.txt$",
         r"^phase1_summary\.json$",
+        r"^amass\.txt$",
+        r"^findomain\.txt$",
     ],
     "dns": [
         r"^dnsx_resolved\.json$",
@@ -172,6 +174,9 @@ MODULE_PATTERNS: Dict[str, List[str]] = {
         r"^attack_paths\.json$",
         r"^all_assets\.json$",
         r"^risk_summary\.json$",
+    ],
+    "tool_errors": [
+        r"\.err$",
     ],
 }
 
@@ -483,9 +488,11 @@ def extract_subdomains(scan_dir: Path) -> Dict[str, Any]:
     seen: set = set()
     subs: List[str] = []
     for fn in ["all_subdomains.txt", "passive_subdomains.txt", "active_subdomains.txt",
-               "subdomains.txt", "subfinder.txt", "assetfinder.txt", "crtsh.txt"]:
+               "subdomains.txt", "subfinder.txt", "assetfinder.txt", "crtsh.txt",
+               "amass.txt", "findomain.txt"]:
         for f in [scan_dir / fn, scan_dir / "phase1_discovery" / fn,
-                  scan_dir / "phase1_discovery" / "temp_subdomains" / fn]:
+                  scan_dir / "phase1_discovery" / "temp_subdomains" / fn,
+                  scan_dir / "phase1_discovery" / "subdomains" / fn]:
             if f.is_file():
                 for ln in _parse_txt(_read_safe(f))["lines"]:
                     ln = ln.strip()
@@ -670,17 +677,18 @@ def extract_secrets(scan_dir: Path) -> Dict[str, Any]:
 
 def extract_ports(scan_dir: Path) -> Dict[str, Any]:
     hosts: List[Dict[str, Any]] = []
-    for f in list(scan_dir.rglob("nmap_all.xml")) + list(scan_dir.rglob("nmap.xml")):
+    for f in list(scan_dir.rglob("nmap_all.xml")) + list(scan_dir.rglob("nmap.xml")) + list(scan_dir.rglob("nmap.xml")):
         parsed = _parse_xml(_read_safe(f))
         if parsed.get("type") == "nmap_xml":
             hosts.extend(parsed.get("hosts", []))
         if hosts:
             break
-    # TXT fallback
+    # TXT fallback - parse open ports from text output
     if not hosts:
-        for f in scan_dir.rglob("nmap_all.txt"):
+        for f in list(scan_dir.rglob("nmap_all.txt")) + list(scan_dir.rglob("nmap.txt")):
             lines = _parse_txt(_read_safe(f))["lines"]
-            return {"raw_lines": lines[:500], "total_lines": len(lines), "hosts": []}
+            if lines:
+                return {"raw_lines": lines[:500], "total_lines": len(lines), "hosts": []}
     open_ports = sum(
         len([p for p in h.get("ports", []) if p.get("state") == "open"])
         for h in hosts
@@ -933,6 +941,33 @@ def extract_whois(scan_dir: Path) -> Dict[str, Any]:
                 if k and v and k.lower() not in ("http", "https"):
                     kv[k] = v
     return {"raw": raw, "fields": kv, "risk_profile": risk}
+
+
+def extract_tool_errors(scan_dir: Path) -> Dict[str, Any]:
+    """Extract tool error and timeout messages from .err files."""
+    errors: List[Dict[str, Any]] = []
+    for f in scan_dir.rglob("*.err"):
+        if not f.is_file():
+            continue
+        content = _read_safe(f)
+        lines = content.strip().splitlines() if content.strip() else []
+        tool_name = f.stem.replace(".err", "")
+        is_timeout = any("timeout" in ln.lower() for ln in lines)
+        errors.append({
+            "tool": tool_name,
+            "file": str(f.relative_to(scan_dir)),
+            "is_timeout": is_timeout,
+            "lines": lines[:50],
+            "line_count": len(lines),
+            "has_content": bool(content.strip()),
+        })
+    timeouts = [e for e in errors if e.get("is_timeout")]
+    return {
+        "errors": errors,
+        "total": len(errors),
+        "timeouts": timeouts,
+        "timeout_count": len(timeouts),
+    }
 
 
 # ---------------------------------------------------------------------------

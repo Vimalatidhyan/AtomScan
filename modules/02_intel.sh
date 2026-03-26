@@ -63,6 +63,9 @@ NMAP_MAX_HOSTS="${TECHNIEUM_NMAP_MAX_HOSTS:-50}"
 # CloudFront, AWS GA) only expose HTTP/HTTPS so a 600s timeout per host caused
 # 20+ minute stalls with -p- scanning all 65535 ports.
 NMAP_HOST_TIMEOUT="${TECHNIEUM_NMAP_HOST_TIMEOUT:-120}"
+# Total nmap timeout (default calculated from host timeout, can be overridden)
+# This ensures nmap doesn't run indefinitely
+NMAP_TIMEOUT="${TECHNIEUM_NMAP_TIMEOUT:-0}"
 NMAP_MAX_FILE_MB="${TECHNIEUM_NMAP_MAX_FILE_MB:-500}"
 # Common ports used as nmap fallback when RustScan is not installed.
 # These are the ports that actually matter for web/cloud targets.
@@ -288,8 +291,13 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
             # Cap total nmap time to 3600s regardless of host count.
             # With parallelism=10: 10 hosts run in parallel, so effective
             # wall time ≈ ceil(hosts/10) × host_timeout ≤ 3600s.
-            _NMAP_TIMEOUT=$(( NMAP_HOST_TIMEOUT * (NMAP_MAX_HOSTS / 10 + 1) ))
-            [ "$_NMAP_TIMEOUT" -gt 3600 ] && _NMAP_TIMEOUT=3600
+            # Allow override via TECHNIEUM_NMAP_TIMEOUT env var (set in seconds)
+            if [ "$NMAP_TIMEOUT" -gt 0 ] 2>/dev/null; then
+                _NMAP_TIMEOUT="$NMAP_TIMEOUT"
+            else
+                _NMAP_TIMEOUT=$(( NMAP_HOST_TIMEOUT * (NMAP_MAX_HOSTS / 10 + 1) ))
+                [ "$_NMAP_TIMEOUT" -gt 3600 ] && _NMAP_TIMEOUT=3600
+            fi
             log_info "Nmap scanning $NMAP_TARGET_COUNT targets via -iL (timeout=${_NMAP_TIMEOUT}s, port-flag=${NMAP_PORT_FLAG})..."
             run_timeout "$_NMAP_TIMEOUT" \
                 nmap -sV -sC -T4 -Pn $NMAP_PORT_FLAG \
@@ -299,6 +307,11 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
                 -oX "$PORTS_DIR/nmap_all.xml" \
                 -oN "$PORTS_DIR/nmap_all.txt" \
                 2>/dev/null || log_warn "Nmap failed or timed out"
+            # Also copy to root for easier discovery
+            if [ -f "$PORTS_DIR/nmap_all.xml" ]; then
+                cp "$PORTS_DIR/nmap_all.xml" "$OUTPUT_DIR/nmap.xml"
+                cp "$PORTS_DIR/nmap_all.txt" "$OUTPUT_DIR/nmap.txt"
+            fi
         fi
     fi
 else

@@ -1,6 +1,8 @@
 """GreyNoise Community API client."""
 from typing import Dict, Optional
-import logging, urllib.request, json
+import logging
+import urllib.request
+import json
 
 logger = logging.getLogger(__name__)
 GREYNOISE_URL = "https://api.greynoise.io/v3/community/{ip}"

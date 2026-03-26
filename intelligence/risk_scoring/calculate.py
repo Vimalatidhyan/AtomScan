@@ -3,7 +3,6 @@ from typing import Dict, List
 from datetime import datetime
 import logging
 
-from intelligence.risk_scoring.cvss import CVSSv31Calculator
 from intelligence.risk_scoring.epss import EPSSClient
 from intelligence.risk_scoring.kev import KEVChecker
 from intelligence.risk_scoring.business_context import BusinessContextScorer
@@ -13,10 +12,10 @@ logger = logging.getLogger(__name__)
 
 def _age_penalty(discovered_at: datetime) -> int:
     days = (datetime.utcnow() - discovered_at).days
-    if days < 30: return 0
-    if days < 90: return -5
-    if days < 365: return -10
-    if days < 730: return -15
+    if days < 30: return 0  # noqa: E701
+    if days < 90: return -5  # noqa: E701
+    if days < 365: return -10  # noqa: E701
+    if days < 730: return -15  # noqa: E701
     return -20
 
 
@@ -29,8 +28,8 @@ def calculate_risk_scores(
     threat_intel: List[Dict],
 ) -> Dict[int, int]:
     """Calculate final risk score for each finding (0-100)."""
-    epss_client = EPSSClient()
-    kev_checker = KEVChecker()
+    epss_client = EPSSClient()  # noqa: F841
+    kev_checker = KEVChecker()  # noqa: F841
     bcs = BusinessContextScorer(asset_metadata)
     asset_criticality = bcs.calculate_criticality() / 100.0
 

@@ -13,7 +13,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.api.helpers.output_ui_binder import (
+from app.api.helpers.output_ui_binder import (  # noqa: E402
     ScanOutputScanner,
     UIModuleRouter,
     UniversalFileParser,
@@ -125,7 +125,7 @@ def test_module_binding():
         print("❌ Failed to get output data")
         return False
     
-    print(f"\n✅ Successfully loaded output data")
+    print("\n✅ Successfully loaded output data")
     print(f"  • Total files: {output.get('total_files')}")
     print(f"  • Modules with data: {output.get('module_count')}")
     
@@ -173,7 +173,7 @@ def test_specific_modules():
     # Test DNS module
     if "dns_resolution" in modules:
         dns = modules["dns_resolution"]
-        print(f"✅ DNS Resolution:")
+        print("✅ DNS Resolution:")
         print(f"  • Records: {dns.get('record_count', 0)}")
         print(f"  • Unique hosts: {dns.get('unique_hostnames', 0)}")
         print(f"  • Unique IPs: {dns.get('unique_ips', 0)}")
@@ -183,7 +183,7 @@ def test_specific_modules():
     # Test ASN module
     if "asn_ip" in modules:
         asn = modules["asn_ip"]
-        print(f"✅ ASN & IP:")
+        print("✅ ASN & IP:")
         print(f"  • IPs: {asn.get('ip_count', 0)}")
         print(f"  • CIDRs: {asn.get('cidr_count', 0)}")
     else:
@@ -192,7 +192,7 @@ def test_specific_modules():
     # Test Certificate module
     if "certificate_transparency" in modules:
         cert = modules["certificate_transparency"]
-        print(f"✅ Certificate Transparency:")
+        print("✅ Certificate Transparency:")
         print(f"  • Certificates: {cert.get('certificate_count', 0)}")
     else:
         print("   Certificate Transparency: No data")
@@ -200,7 +200,7 @@ def test_specific_modules():
     # Test Cloud module
     if "cloud_exposure" in modules:
         cloud = modules["cloud_exposure"]
-        print(f"✅ Cloud Exposure:")
+        print("✅ Cloud Exposure:")
         print(f"  • Assets: {cloud.get('asset_count', 0)}")
     else:
         print("   Cloud Exposure: No data")
@@ -208,7 +208,7 @@ def test_specific_modules():
     # Test Domain Intelligence module
     if "domain_intelligence" in modules:
         domain_intel = modules["domain_intelligence"]
-        print(f"✅ Domain Intelligence:")
+        print("✅ Domain Intelligence:")
         print(f"  • Has WHOIS: {domain_intel.get('has_whois', False)}")
         print(f"  • Has Risk Profile: {domain_intel.get('has_risk_profile', False)}")
     else:
@@ -241,7 +241,7 @@ def test_api_endpoint():
     print(f"  'domain': '{output.get('domain')}',")
     print(f"  'total_files': {output.get('total_files')},")
     print(f"  'module_count': {output.get('module_count')},")
-    print(f"  'modules': {{")
+    print("  'modules': {")
     
     for i, module_name in enumerate(output.get("modules", {}).keys()):
         module = output["modules"][module_name]
@@ -249,9 +249,9 @@ def test_api_endpoint():
         print(f"      'file_count': {module.get('file_count')},")
         print(f"      'status': '{module.get('status')}',")
         print(f"      'should_show_placeholder': {module.get('should_show_placeholder')}")
-        print(f"    }}" + ("," if i < len(output["modules"]) - 1 else ""))
+        print("    }" + ("," if i < len(output["modules"]) - 1 else ""))
     
-    print(f"  }}")
+    print("  }")
     print("}")
     
     return True

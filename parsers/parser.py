@@ -6,7 +6,6 @@ Parses output from various reconnaissance tools into structured data
 
 import json
 import re
-from pathlib import Path
 from typing import List, Dict, Any, Optional, Iterator
 import xml.etree.ElementTree as ET
 

@@ -1,5 +1,6 @@
 """Show remaining error/warning scan events in technieum.db."""
-import sqlite3, os
+import sqlite3
+import os
 
 DB = os.path.join(os.path.dirname(__file__), '..', 'technieum.db')
 DB = os.path.abspath(DB)

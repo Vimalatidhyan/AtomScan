@@ -11,14 +11,14 @@ try:
     response = urllib.request.urlopen(url)
     data = json.loads(response.read())
     
-    print(f"\n✓ ASN Records Endpoint")
+    print("\n✓ ASN Records Endpoint")
     print(f"  Scan ID: {data.get('scan_id')}")
     print(f"  Target: {data.get('target')}")
     print(f"  Total Count: {data.get('count', 0)}")
     
     records = data.get('asn_records', [])
     if records:
-        print(f"\n  Sample Records (first 5):")
+        print("\n  Sample Records (first 5):")
         for r in records[:5]:
             print(f"    {r['ip']:20} | {(r.get('asn') or 'unknown'):15} | {(r.get('organization') or 'unknown')[:40]}")
     else:

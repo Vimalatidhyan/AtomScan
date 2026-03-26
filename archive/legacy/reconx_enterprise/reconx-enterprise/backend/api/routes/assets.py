@@ -5,7 +5,6 @@ from typing import Optional
 from backend.db.database import get_db
 from backend.db.models import Subdomain
 from backend.api.models.asset import AssetListResponse, AssetResponse
-from backend.api.models.common import StatusResponse
 
 router = APIRouter()
 
@@ -65,7 +64,7 @@ def high_risk_assets(
         Subdomain.id == vuln_counts.c.subdomain_id,
     ).filter(
         vuln_counts.c.vuln_count >= min_vulns,
-        Subdomain.is_alive == True,
+        Subdomain.is_alive == True,  # noqa: E712
     )
     if scan_run_id:
         q = q.filter(Subdomain.scan_run_id == scan_run_id)

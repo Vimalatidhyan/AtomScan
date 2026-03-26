@@ -77,7 +77,7 @@ def parse_nmap_xml(scan_dir: Path) -> List[Dict[str, Any]]:
         if not xml_path.exists():
             continue
         try:
-            tree = ET.parse(str(xml_path))
+            tree = ET.parse(str(xml_path))  # nosec B314
             root = tree.getroot()
             for host in root.findall("host"):
                 addr = host.find("address")

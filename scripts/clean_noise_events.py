@@ -1,5 +1,7 @@
 """Clean old tool-noise scan events from technieum.db so the notification bell starts fresh."""
-import sqlite3, sys, os
+import sqlite3
+import sys
+import os
 
 DB = os.path.join(os.path.dirname(__file__), '..', 'technieum.db')
 DB = os.path.abspath(DB)

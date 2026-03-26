@@ -1,5 +1,5 @@
 """Scan Pydantic schemas with enhanced validation."""
-from pydantic import BaseModel, Field, validator, field_validator
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional, List
 import re
@@ -21,29 +21,29 @@ class ScanCreateRequest(BaseModel):
         default=None,
         description="Custom phase selection (0-4)"
     )
-    
+
     @field_validator('domain')
     @classmethod
     def validate_domain(cls, v: str) -> str:
         """Validate domain format and remove dangerous characters."""
         v = v.lower().strip()
-        
+
         # Reject IP addresses (should use IP scanning endpoint)
         ip_pattern = r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$'
         if re.match(ip_pattern, v):
             raise ValueError('Use IP scanning endpoint for IP addresses')
-        
+
         # Reject localhost and internal domains
-        if v in ['localhost', '127.0.0.1', '0.0.0.0'] or v.endswith('.local'):
+        if v in ['localhost', '127.0.0.1', '0.0.0.0'] or v.endswith('.local'):  # nosec B104
             raise ValueError('Cannot scan localhost or internal domains')
-        
+
         # Basic domain validation
         domain_pattern = r'^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$'
         if not re.match(domain_pattern, v):
             raise ValueError('Invalid domain format')
-        
+
         return v
-    
+
     @field_validator('custom_phases')
     @classmethod
     def validate_custom_phases(cls, v: Optional[List[int]]) -> Optional[List[int]]:
@@ -57,7 +57,7 @@ class ScanCreateRequest(BaseModel):
                 raise ValueError('Duplicate phases not allowed')
             return sorted(v)
         return v
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {

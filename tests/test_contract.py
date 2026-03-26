@@ -4,9 +4,7 @@ Verifies that all UI-used endpoints exist, return correct shapes,
 and that documented request/response contracts are honoured.
 """
 import hashlib
-import json
 from datetime import datetime, timezone
-from unittest.mock import patch, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,17 +16,17 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./test_contract.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-import app.db.database as _db_module
+import app.db.database as _db_module  # noqa: E402
 _db_module.SessionLocal = Session
 
-import app.workers.worker as _worker
+import app.workers.worker as _worker  # noqa: E402
 _worker._engine = engine
 _worker._Session = Session
 
-from app.api.server import app
-from app.db.database import get_db
-from app.db.base import Base
-from app.db.models import APIKey, ScanRun, ScanProgress
+from app.api.server import app  # noqa: E402
+from app.db.database import get_db  # noqa: E402
+from app.db.base import Base  # noqa: E402
+from app.db.models import APIKey, ScanRun, ScanProgress  # noqa: E402
 
 VALID_KEY = "b" * 32
 

@@ -1,6 +1,8 @@
 """Baseline snapshot manager for change detection."""
-from typing import Dict, List, Optional
-import json, hashlib, logging
+from typing import Dict
+import json
+import hashlib
+import logging
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -18,7 +20,7 @@ class BaselineManager:
     def create_baseline(self, scan_data: Dict) -> Dict:
         """Create a new baseline snapshot from scan data."""
         serialized = self._serialize_scan(scan_data)
-        md5 = hashlib.md5(serialized.encode()).hexdigest()
+        md5 = hashlib.md5(serialized.encode()).hexdigest()  # nosec B324
         snapshot = {
             "scan_run_id": self.scan_run_id,
             "snapshot_date": datetime.utcnow().isoformat(),

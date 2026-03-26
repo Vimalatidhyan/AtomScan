@@ -9,9 +9,7 @@ Tests:
 """
 import hashlib
 import hmac
-import json
 import threading
-import time
 from datetime import datetime, timezone
 from unittest.mock import patch, MagicMock
 
@@ -278,8 +276,8 @@ class TestAtomicClaim:
 
         t1 = threading.Thread(target=try_claim)
         t2 = threading.Thread(target=try_claim)
-        t1.start(); t2.start()
-        t1.join(); t2.join()
+        t1.start(); t2.start()  # noqa: E702
+        t1.join(); t2.join()  # noqa: E702
 
         assert not errors, f"Claim errors: {errors}"
         assert len(claimed_jobs) <= 1, \

@@ -191,7 +191,6 @@ def _claim_job(db: Session) -> Optional[object]:
 
 
 def _finish_job(db: Session, job, success: bool, error: str = "") -> None:
-    from app.db.models import ScanJob  # noqa: F811
     job.status = "done" if success else "failed"
     job.finished_at = datetime.now(timezone.utc)
     job.error = error or None
@@ -222,7 +221,7 @@ def _parse_nmap_xml(nmap_xml: Path, scan_run_id: int, sub_map: dict,
     """Parse nmap XML output and insert PortScan rows. Returns count inserted."""
     from app.db.models import PortScan
     inserted = 0
-    tree = ET.parse(str(nmap_xml))
+    tree = ET.parse(str(nmap_xml))  # nosec B314
     root = tree.getroot()
     for host in root.findall("host"):
         hostnames = host.find("hostnames")

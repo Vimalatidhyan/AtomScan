@@ -1,6 +1,9 @@
 """Abuse.ch API clients (URLhaus, MalwareBazaar, ThreatFox)."""
-from typing import Dict, List, Optional
-import logging, urllib.request, json, urllib.parse
+from typing import Dict
+import logging
+import urllib.request
+import json
+import urllib.parse
 
 logger = logging.getLogger(__name__)
 

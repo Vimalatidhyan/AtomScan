@@ -37,7 +37,7 @@ def get_metrics(db: Session = Depends(get_db)):
             "scans_by_status": scan_counts,
             "vulnerabilities_total": db.query(Vulnerability).count(),
             "asset_snapshots_total": db.query(AssetSnapshot).count(),
-            "api_keys_active": db.query(APIKey).filter(APIKey.is_active == True).count(),
+            "api_keys_active": db.query(APIKey).filter(APIKey.is_active).count(),
         },
         "auth_cache": {
             "entries": len(_key_cache),

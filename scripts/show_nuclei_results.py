@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import json, sys, os
+import json
+import os
 
 files = [
     ("/tmp/nuclei_test_tech.json", "Tech Detection"),
@@ -13,16 +14,16 @@ for path, label in files:
         print("  NO FILE")
         continue
     with open(path) as f:
-        lines = [l.strip() for l in f if l.strip()]
+        lines = [l.strip() for l in f if l.strip()]  # noqa: E741
     print(f"  Findings: {len(lines)}")
-    for l in lines:
+    for l in lines:  # noqa: E741
         try:
             d = json.loads(l)
             name = d.get("info", {}).get("name", "?")
             sev = d.get("info", {}).get("severity", "?")
             matched = d.get("matched-at", "?")
             print(f"  - [{sev.upper()}] {name} @ {matched}")
-        except:
-            print(f"  - (parse error)")
+        except:  # noqa: E722
+            print("  - (parse error)")
 
 print("\n=== NUCLEI FIX VERIFIED ===")

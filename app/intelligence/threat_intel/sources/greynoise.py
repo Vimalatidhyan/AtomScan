@@ -1,6 +1,8 @@
 """GreyNoise Community API client."""
 from typing import Dict, Optional
-import logging, urllib.request, json
+import logging
+import urllib.request
+import json
 
 logger = logging.getLogger(__name__)
 GREYNOISE_URL = "https://api.greynoise.io/v3/community/{ip}"
@@ -16,7 +18,7 @@ class GreyNoiseClient:
                 GREYNOISE_URL.format(ip=ip),
                 headers={"key": self.api_key} if self.api_key else {},
             )
-            with urllib.request.urlopen(req, timeout=5) as resp:
+            with urllib.request.urlopen(req, timeout=5) as resp:  # nosec B310
                 return json.loads(resp.read())
         except Exception as e:
             logger.debug(f"GreyNoise lookup failed for {ip}: {e}")

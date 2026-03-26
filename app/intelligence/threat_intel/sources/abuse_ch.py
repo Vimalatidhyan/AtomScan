@@ -1,6 +1,9 @@
 """Abuse.ch API clients (URLhaus, MalwareBazaar, ThreatFox)."""
-from typing import Dict, List, Optional
-import logging, urllib.request, json, urllib.parse
+from typing import Dict
+import logging
+import urllib.request
+import json
+import urllib.parse
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +16,7 @@ class AbuseChClient:
         try:
             data = urllib.parse.urlencode({"url": url}).encode()
             req = urllib.request.Request(self.URLHAUS + "url/", data=data, method="POST")
-            with urllib.request.urlopen(req, timeout=5) as resp:
+            with urllib.request.urlopen(req, timeout=5) as resp:  # nosec B310
                 return json.loads(resp.read())
         except Exception as e:
             return {"url": url, "query_status": "error", "error": str(e)}
@@ -23,7 +26,7 @@ class AbuseChClient:
         try:
             payload = json.dumps({"query": "search_ioc", "search_term": ioc}).encode()
             req = urllib.request.Request(self.THREATFOX, data=payload, method="POST", headers={"Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=5) as resp:
+            with urllib.request.urlopen(req, timeout=5) as resp:  # nosec B310
                 return json.loads(resp.read())
         except Exception as e:
             return {"ioc": ioc, "query_status": "error", "error": str(e)}

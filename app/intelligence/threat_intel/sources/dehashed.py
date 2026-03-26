@@ -1,6 +1,10 @@
 """DeHashed API client for leaked credential lookup."""
 from typing import Dict, Optional
-import logging, urllib.request, urllib.parse, json, base64
+import logging
+import urllib.request
+import urllib.parse
+import json
+import base64
 
 logger = logging.getLogger(__name__)
 DEHASHED_URL = "https://api.dehashed.com/search"
@@ -19,7 +23,7 @@ class DeHashedClient:
         try:
             url = f"{DEHASHED_URL}?query={urllib.parse.quote(query)}&size={size}"
             req = urllib.request.Request(url, headers={"Authorization": f"Basic {self._auth()}", "Accept": "application/json"})
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310
                 return json.loads(resp.read())
         except Exception as e:
             return {"query": query, "total": 0, "entries": [], "error": str(e)}

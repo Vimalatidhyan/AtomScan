@@ -1,5 +1,5 @@
 """Threat intelligence API routes."""
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from pydantic import BaseModel
@@ -79,7 +79,7 @@ def data_leaks(page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=10
         q = q.filter(DataLeak.scan_run_id == scan_run_id)
     total = q.count()
     items = q.offset((page-1)*per_page).limit(per_page).all()
-    
+
     # Redact PII: show only first 3 chars + *** + domain
     redacted_items = []
     for d in items:
@@ -90,13 +90,13 @@ def data_leaks(page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=10
             redacted_email = f"{username[:3]}***@{domain}" if len(username) > 3 else f"***@{domain}"
         else:
             redacted_email = "***"
-        
+
         redacted_items.append(DataLeakItem(
             id=d.id,
             email=redacted_email,
             breach=d.breach_name
         ))
-    
+
     return DataLeaksResponse(total=total, items=redacted_items)
 
 @router.get("/malware/{ioc}", response_model=MalwareLookupResponse, summary="Malware indicator lookup")
@@ -105,7 +105,7 @@ def malware_lookup(ioc: str, db: Session = Depends(get_db)):
     indicators = db.query(MalwareIndicator).filter(MalwareIndicator.indicator_value.contains(ioc)).limit(10).all()
     if not indicators:
         return MalwareLookupResponse(ioc=ioc, found=False, indicators=[])
-    
+
     indicator_items = [
         MalwareIndicatorItem(
             type=i.indicator_type,

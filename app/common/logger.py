@@ -1,5 +1,6 @@
 """Structured logging setup."""
-import logging, sys
+import logging
+import sys
 def setup_logging(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
     if not logger.handlers:

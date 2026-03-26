@@ -1,5 +1,5 @@
 """CVSS v3.1 vector parser and scorer."""
-from typing import Dict, Optional
+from typing import Dict
 
 METRIC_VALUES = {
     "AV": {"N": 0.85, "A": 0.62, "L": 0.55, "P": 0.2},
@@ -40,17 +40,17 @@ class CVSSv31Calculator:
         try:
             AV = METRIC_VALUES["AV"].get(m.get("AV", "N"), 0.85)
             AC = METRIC_VALUES["AC"].get(m.get("AC", "L"), 0.77)
-            
+
             # Fix: Use scope-dependent PR values
             scope = m.get("S", "U")
             scope_changed = (scope == "C")
             scope_key = "C" if scope_changed else "U"
             pr_value = m.get("PR", "N")
             PR = METRIC_VALUES["PR"][scope_key].get(pr_value, 0.85)
-            
+
             UI = METRIC_VALUES["UI"].get(m.get("UI", "N"), 0.85)
             C = METRIC_VALUES["C"].get(m.get("C", "N"), 0.0)
-            I = METRIC_VALUES["I"].get(m.get("I", "N"), 0.0)
+            I = METRIC_VALUES["I"].get(m.get("I", "N"), 0.0)  # noqa: E741
             A = METRIC_VALUES["A"].get(m.get("A", "N"), 0.0)
             ISCBase = 1 - (1 - C) * (1 - I) * (1 - A)
             if scope_changed:

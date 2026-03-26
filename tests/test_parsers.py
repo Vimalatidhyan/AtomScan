@@ -5,7 +5,6 @@ All tests are self-contained: mock files are written to a temp directory so
 no external tools need to be installed.
 """
 
-import json
 import os
 import sys
 import tempfile

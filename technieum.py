@@ -11,7 +11,6 @@ import argparse
 import os
 import sys
 import subprocess
-import json
 import time
 import threading
 import logging
@@ -25,14 +24,14 @@ from urllib.parse import urlparse
 from dotenv import load_dotenv
 load_dotenv()
 
-import yaml
-from tqdm import tqdm
+import yaml  # noqa: E402
+from tqdm import tqdm  # noqa: E402
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from db.database import DatabaseManager
-from parsers.parser import (
+from app.db.database import DatabaseManager  # noqa: E402
+from app.parsers.parser import (  # noqa: E402
     SubdomainParser, HttpParser, DnsParser, PortParser,
     UrlParser, DirectoryParser, VulnerabilityParser,
     LeakParser, TakeoverParser, URL_TOOL_PARSERS

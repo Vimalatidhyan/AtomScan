@@ -2,7 +2,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
-from datetime import datetime, timezone
 from backend.db.database import get_db
 from backend.db.models import ScanRun, ScanProgress
 from backend.api.models.scan import ScanCreateRequest, ScanUpdateRequest, ScanResponse, ScanListResponse

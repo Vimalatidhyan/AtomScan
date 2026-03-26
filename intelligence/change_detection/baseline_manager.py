@@ -1,6 +1,8 @@
 """Baseline snapshot manager for change detection."""
-from typing import Dict, List, Optional
-import json, hashlib, logging
+from typing import Dict
+import json
+import hashlib
+import logging
 from datetime import datetime
 
 logger = logging.getLogger(__name__)

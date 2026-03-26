@@ -1,6 +1,7 @@
 """Graph visualization utilities."""
 from typing import Any
-import json, logging
+import json
+import logging
 
 logger = logging.getLogger(__name__)
 

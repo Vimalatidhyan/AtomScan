@@ -1,5 +1,5 @@
 """CVSS v3.1 vector parser and scorer."""
-from typing import Dict, Optional
+from typing import Dict
 
 METRIC_VALUES = {
     "AV": {"N": 0.85, "A": 0.62, "L": 0.55, "P": 0.2},
@@ -50,7 +50,7 @@ class CVSSv31Calculator:
             
             UI = METRIC_VALUES["UI"].get(m.get("UI", "N"), 0.85)
             C = METRIC_VALUES["C"].get(m.get("C", "N"), 0.0)
-            I = METRIC_VALUES["I"].get(m.get("I", "N"), 0.0)
+            I = METRIC_VALUES["I"].get(m.get("I", "N"), 0.0)  # noqa: E741
             A = METRIC_VALUES["A"].get(m.get("A", "N"), 0.0)
             ISCBase = 1 - (1 - C) * (1 - I) * (1 - A)
             if scope_changed:

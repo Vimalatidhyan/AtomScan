@@ -1,7 +1,7 @@
 """Asset Pydantic schemas."""
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
+from typing import List
 
 
 class AssetResponse(BaseModel):

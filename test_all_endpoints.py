@@ -14,7 +14,7 @@ try:
     print(f"  Total Records: {data.get('count', 0)}")
     records = data.get('records', [])
     if records:
-        print(f"  Samples:")
+        print("  Samples:")
         for r in records[:3]:
             print(f"    {r['subdomain']:30} → {r['ip']:18}")
 except Exception as e:
@@ -29,7 +29,7 @@ try:
     print(f"  Total Records: {data.get('count', 0)}")
     records = data.get('asn_records', [])
     if records:
-        print(f"  Samples:")
+        print("  Samples:")
         for r in records[:3]:
             print(f"    {r['ip']:20} | ASN: {(r.get('asn') or 'unknown'):10} | Org: {(r.get('organization') or 'unknown')[:35]}")
 except Exception as e:

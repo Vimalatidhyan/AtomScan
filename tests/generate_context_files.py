@@ -10,8 +10,6 @@ Generate consolidated context files for AI agents:
 Usage:
   python tests/generate_context_files.py
 """
-import os
-import sys
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parents[1]

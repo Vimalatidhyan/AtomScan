@@ -1,6 +1,8 @@
 """AlienVault OTX API client."""
 from typing import Dict, Optional
-import logging, urllib.request, json
+import logging
+import urllib.request
+import json
 
 logger = logging.getLogger(__name__)
 OTX_BASE = "https://otx.alienvault.com/api/v1"
@@ -12,7 +14,7 @@ class AlienVaultOTXClient:
     def _get(self, path: str) -> Dict:
         try:
             req = urllib.request.Request(f"{OTX_BASE}{path}", headers={"X-OTX-API-KEY": self.api_key})
-            with urllib.request.urlopen(req, timeout=8) as resp:
+            with urllib.request.urlopen(req, timeout=8) as resp:  # nosec B310
                 return json.loads(resp.read())
         except Exception as e:
             return {"error": str(e)}

@@ -108,10 +108,10 @@ app.add_middleware(LoggingMiddleware)
 app.add_middleware(AuthMiddleware)
 
 # Import and register routers
-from app.api.routes import scans, assets, findings, intel, reports, stream, webhooks
-from app.api.routes import metrics as metrics_router
-from app.api.routes import subdomain_lookup
-from app.api.routes import assessment as assessment_router
+from app.api.routes import scans, assets, findings, intel, reports, stream, webhooks  # noqa: E402
+from app.api.routes import metrics as metrics_router  # noqa: E402
+from app.api.routes import subdomain_lookup  # noqa: E402
+from app.api.routes import assessment as assessment_router  # noqa: E402
 
 app.include_router(scans.router, prefix="/api/v1/scans", tags=["scans"])
 app.include_router(assets.router, prefix="/api/v1/assets", tags=["assets"])
@@ -151,9 +151,9 @@ async def version():
 # These are registered here so that `uvicorn app.api.server:app` works fully.
 # The api/server.py shim also registers these (via re-export) for backward
 # compatibility with the original launch command.
-from pathlib import Path as _Path
-from fastapi.staticfiles import StaticFiles as _StaticFiles
-from fastapi.responses import FileResponse as _FileResponse
+from pathlib import Path as _Path  # noqa: E402
+from fastapi.staticfiles import StaticFiles as _StaticFiles  # noqa: E402
+from fastapi.responses import FileResponse as _FileResponse  # noqa: E402
 
 _ROOT = _Path(__file__).resolve().parents[2]
 # UI files live in scripts/web/static/ (the canonical location in this repo)
@@ -242,4 +242,4 @@ if _ASSETS_DIR.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")  # nosec B104

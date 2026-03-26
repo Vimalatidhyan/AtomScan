@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Quick DB status check: show row counts and recent scan data."""
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import sqlite3

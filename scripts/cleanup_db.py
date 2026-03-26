@@ -1,5 +1,6 @@
 """One-shot DB noise cleanup — run once then delete this file."""
-import sqlite3, os
+import sqlite3
+import os
 
 DB = os.path.join(os.path.dirname(__file__), '..', 'technieum.db')
 DB = os.path.abspath(DB)

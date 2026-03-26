@@ -31,8 +31,8 @@ class BusinessContextScorer:
     def get_criticality_level(self) -> str:
         """Map score to text level."""
         score = self.calculate_criticality()
-        if score >= 80: return "CRITICAL"
-        if score >= 60: return "HIGH"
-        if score >= 40: return "MEDIUM"
-        if score >= 20: return "LOW"
+        if score >= 80: return "CRITICAL"  # noqa: E701
+        if score >= 60: return "HIGH"  # noqa: E701
+        if score >= 40: return "MEDIUM"  # noqa: E701
+        if score >= 20: return "LOW"  # noqa: E701
         return "MINIMAL"

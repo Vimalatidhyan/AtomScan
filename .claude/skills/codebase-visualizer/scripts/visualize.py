@@ -12,7 +12,7 @@ def scan(path: Path, stats: dict) -> dict:
     result = {"name": path.name, "children": [], "size": 0}
     try:
         for item in sorted(path.iterdir()):
-            if item.name in IGNORE or item.name.startswith('.'): continue
+            if item.name in IGNORE or item.name.startswith('.'): continue  # noqa: E701
             if item.is_file():
                 size = item.stat().st_size
                 ext = item.suffix.lower() or '(no ext)'
@@ -42,8 +42,8 @@ def generate_html(data: dict, stats: dict, output: Path) -> None:
         '.mdx': '#083fa1', '.tsx': '#3178c6', '.jsx': '#61dafb', '.sh': '#4eaa25',
     }
     def fmt(b):
-        if b < 1024: return f"{b} B"
-        if b < 1048576: return f"{b/1024:.1f} KB"
+        if b < 1024: return f"{b} B"  # noqa: E701
+        if b < 1048576: return f"{b/1024:.1f} KB"  # noqa: E701
         return f"{b/1048576:.1f} MB"
     lang_bars = "".join(
         f'<div class="bar-row"><span class="bar-label">{ext}</span>'

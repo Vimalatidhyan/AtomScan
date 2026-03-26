@@ -12,8 +12,8 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from db.database import DatabaseManager
-from tests.mock_data import MOCK_SUBDOMAINS, MOCK_PORTS, MOCK_VULNS, MOCK_LEAKS, MOCK_URLS
+from app.db.database import DatabaseManager
+from tests.mock_data import MOCK_SUBDOMAINS, MOCK_VULNS
 
 
 TARGET = "example.com"

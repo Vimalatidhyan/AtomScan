@@ -1,6 +1,8 @@
 """CrowdSec CTI API client."""
 from typing import Dict, Optional
-import logging, urllib.request, json
+import logging
+import urllib.request
+import json
 
 logger = logging.getLogger(__name__)
 CROWDSEC_URL = "https://cti.api.crowdsec.net/v2/smoke/{ip}"

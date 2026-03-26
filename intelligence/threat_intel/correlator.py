@@ -1,5 +1,5 @@
 """Correlator for linking assets, vulnerabilities, and threat data."""
-from typing import Dict, List, Optional
+from typing import Dict
 from sqlalchemy.orm import Session
 import logging
 

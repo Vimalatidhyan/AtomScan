@@ -113,10 +113,8 @@ def test_scan_run_created(client, scan_id, api_key):
 def test_scan_run_row_in_db(scan_id):
     """Verify ScanRun row exists in the DB directly."""
     from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    from app.db.models import ScanRun
 
-    engine = create_engine(
+    engine = create_engine(  # noqa: F841
         os.environ.get("DATABASE_URL", "sqlite:///:memory:"),
         connect_args={"check_same_thread": False},
     )

@@ -1,6 +1,10 @@
 """DeHashed API client for leaked credential lookup."""
 from typing import Dict, Optional
-import logging, urllib.request, urllib.parse, json, base64
+import logging
+import urllib.request
+import urllib.parse
+import json
+import base64
 
 logger = logging.getLogger(__name__)
 DEHASHED_URL = "https://api.dehashed.com/search"

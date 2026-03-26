@@ -1,7 +1,8 @@
 """CISA Known Exploited Vulnerabilities (KEV) checker."""
 from typing import Dict, List, Optional
 from pathlib import Path
-import json, logging
+import json
+import logging
 
 logger = logging.getLogger(__name__)
 KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
@@ -42,7 +43,7 @@ class KEVChecker:
         """Download and cache CISA KEV feed. Returns count of entries."""
         try:
             import urllib.request
-            with urllib.request.urlopen(KEV_URL, timeout=15) as resp:
+            with urllib.request.urlopen(KEV_URL, timeout=15) as resp:  # nosec B310
                 data = json.loads(resp.read())
             KEV_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
             KEV_CACHE_PATH.write_text(json.dumps(data, indent=2))

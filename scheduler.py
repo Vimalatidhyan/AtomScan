@@ -1,6 +1,8 @@
 """Scan scheduler using APScheduler (or simple threading fallback)."""
-from typing import Callable, Dict, Optional
-import logging, threading, time
+from typing import Callable, Dict
+import logging
+import threading
+import time
 from datetime import datetime
 
 logger = logging.getLogger(__name__)

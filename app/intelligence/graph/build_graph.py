@@ -10,11 +10,11 @@ except ImportError:
 
 def build_graph(relationships: List[Dict], return_format: str = "networkx") -> Union["nx.DiGraph", Dict[str, Any]]:  # type: ignore[name-defined]
     """Build directed attack surface graph.
-    
+
     Args:
         relationships: List of edge dictionaries with source, target, etc.
         return_format: "networkx" (default) or "dict" for serializable format
-        
+
     Returns:
         NetworkX DiGraph or dict with nodes/edges structure
     """
@@ -32,5 +32,5 @@ def build_graph(relationships: List[Dict], return_format: str = "networkx") -> U
 
     if return_format == "dict":
         return nx.node_link_data(G)
-    
+
     return G

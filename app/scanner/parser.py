@@ -6,7 +6,6 @@ Parses output from various reconnaissance tools into structured data
 
 import json
 import re
-from pathlib import Path
 from typing import List, Dict, Any, Optional, Iterator
 import xml.etree.ElementTree as ET
 
@@ -213,7 +212,7 @@ class PortParser(OutputParser):
         """Parse Nmap XML output"""
         results = []
         try:
-            tree = ET.parse(file_path)
+            tree = ET.parse(file_path)  # nosec B314
             root = tree.getroot()
 
             for host in root.findall('.//host'):

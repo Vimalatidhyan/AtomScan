@@ -23,7 +23,7 @@ class AlertGenerator:
     def generate_alerts(self) -> List[Dict]:
         """Generate alerts based on configured thresholds."""
         alerts = []
-        
+
         # Alert type 1: New critical/high vulnerabilities
         for vuln in self.delta.get("new_vulnerabilities", []):
             if (vuln.get("severity") or 0) >= self.thresholds["critical_severity"]:
@@ -33,7 +33,7 @@ class AlertGenerator:
                     "title": f"New critical vulnerability: {vuln.get('title', 'Unknown')}",
                     "data": vuln
                 })
-        
+
         # Alert type 2: Service down
         for service in self.delta.get("changed_services", []):
             if service.get("status_before") == "up" and service.get("status_after") == "down":
@@ -43,7 +43,7 @@ class AlertGenerator:
                     "title": f"Service down: {service.get('service_name', 'Unknown')}",
                     "data": service
                 })
-        
+
         # Alert type 3: Mass asset churn
         summary = self.delta.get("summary", {})
         if summary.get("assets_added", 0) + summary.get("assets_removed", 0) >= self.thresholds["mass_churn"]:
@@ -53,7 +53,7 @@ class AlertGenerator:
                 "title": f"Mass asset change: {summary.get('assets_added', 0)} added, {summary.get('assets_removed', 0)} removed",
                 "data": summary
             })
-        
+
         # Alert type 4: Configuration drift
         if self.delta.get("technology_changes", []):
             for tech_change in self.delta.get("technology_changes", []):
@@ -63,7 +63,7 @@ class AlertGenerator:
                     "title": f"Technology changed: {tech_change.get('name', 'Unknown')}",
                     "data": tech_change
                 })
-        
+
         # Alert type 5: Compliance degradation
         compliance_impact = self.delta.get("compliance_impact", {})
         if compliance_impact.get("newly_affected_controls", 0) > 0:

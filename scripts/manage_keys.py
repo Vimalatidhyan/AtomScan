@@ -58,7 +58,7 @@ def cmd_create(args):
     db.add(api_key)
     db.commit()
     db.refresh(api_key)
-    print(f"API Key created:")
+    print("API Key created:")
     print(f"  ID:         {api_key.id}")
     print(f"  Name:       {api_key.name}")
     print(f"  Key:        {raw_key}")

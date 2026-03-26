@@ -1,8 +1,9 @@
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from app.api.routes.subdomain_lookup import (
-    CertMonitorResponse, CertRecord, _cert_status, _query_crtsh_full
+    _cert_status
 )
 
 status_tests = [

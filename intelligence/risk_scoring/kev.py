@@ -1,7 +1,8 @@
 """CISA Known Exploited Vulnerabilities (KEV) checker."""
 from typing import Dict, List, Optional
 from pathlib import Path
-import json, logging
+import json
+import logging
 
 logger = logging.getLogger(__name__)
 KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"

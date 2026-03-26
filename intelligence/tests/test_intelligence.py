@@ -3,9 +3,9 @@ Tests for Technieum Enterprise intelligence modules.
 Covers risk scoring, threat correlation, change detection, and graph analysis.
 """
 import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from backend.db.models import (
-    Vulnerability, ScanRun, Subdomain, ThreatIntelData, RiskScore
+    Vulnerability, ScanRun
 )
 from intelligence.risk_scoring.cvss import CVSSv31Calculator
 from intelligence.threat_intel.correlator import correlate_findings

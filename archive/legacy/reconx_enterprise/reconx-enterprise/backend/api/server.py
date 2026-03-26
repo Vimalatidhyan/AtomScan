@@ -49,7 +49,7 @@ app.add_middleware(LoggingMiddleware)
 app.add_middleware(AuthMiddleware)
 
 # Register routers
-from backend.api.routes import scans, assets, findings, intel, reports, stream, webhooks
+from backend.api.routes import scans, assets, findings, intel, reports, stream, webhooks  # noqa: E402
 
 app.include_router(scans.router, prefix="/api/v1/scans", tags=["scans"])
 app.include_router(assets.router, prefix="/api/v1/assets", tags=["assets"])

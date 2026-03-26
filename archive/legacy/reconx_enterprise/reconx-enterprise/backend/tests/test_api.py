@@ -9,7 +9,6 @@ NOTE: conftest.py patches backend.db.database.SessionLocal to use test_api.db
 import pytest
 import hashlib
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timezone, timedelta
 
 # conftest.py already patched database.SessionLocal before this import

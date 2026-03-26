@@ -1,7 +1,8 @@
 """Scan state management for Technieum Enterprise."""
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from datetime import datetime
-import json, logging
+import json
+import logging
 from pathlib import Path
 
 logger = logging.getLogger(__name__)

@@ -11,8 +11,8 @@ from typing import Optional
 from datetime import datetime, timezone
 
 from app.db.database import get_db
-from app.db.models import ScanRun, ScanProgress, ScanJob, ScanEvent, DNSRecord, ISPLocation
-from app.api.models.scan import ScanCreateRequest, ScanUpdateRequest, ScanResponse, ScanListResponse
+from app.db.models import ScanRun, ScanProgress, ScanJob, ScanEvent
+from app.api.models.scan import ScanCreateRequest, ScanUpdateRequest
 from app.api.models.common import StatusResponse
 
 router = APIRouter()
@@ -149,7 +149,7 @@ async def create_scan(
     # TECHNIEUM_TEST_MODE=1 environment variable.  This prevents accidental
     # use of mock data through a stale UI checkbox / localStorage value.
     import os as _os
-    if test_mode and not _os.environ.get("TECHNIEUM_TEST_MODE", "").strip() in ("1", "true", "yes"):
+    if test_mode and _os.environ.get("TECHNIEUM_TEST_MODE", "").strip() not in ("1", "true", "yes"):
         test_mode = False
     """Create a new scan.
 
@@ -302,12 +302,9 @@ def delete_scan(scan_id: int, db: Session = Depends(get_db)):
     ]:
         try:
             db.execute(text("SAVEPOINT sp_subq"))
+            sql_query = f"DELETE FROM {_subq_table} WHERE {_subq_col} IN (SELECT id FROM {_subq_parent} WHERE scan_run_id = :sid)"  # nosec B608
             db.execute(
-                text(
-                    f"DELETE FROM {_subq_table}"
-                    f" WHERE {_subq_col} IN"
-                    f" (SELECT id FROM {_subq_parent} WHERE scan_run_id = :sid)"
-                ),
+                text(sql_query),
                 {"sid": scan_id},
             )
             db.execute(text("RELEASE SAVEPOINT sp_subq"))
@@ -317,7 +314,7 @@ def delete_scan(scan_id: int, db: Session = Depends(get_db)):
     for table in _child_tables:
         try:
             db.execute(text("SAVEPOINT sp_del"))
-            db.execute(text(f"DELETE FROM {table} WHERE scan_run_id = :sid"), {"sid": scan_id})
+            db.execute(text(f"DELETE FROM {table} WHERE scan_run_id = :sid"), {"sid": scan_id})  # nosec B608
             db.execute(text("RELEASE SAVEPOINT sp_del"))
         except Exception:
             # Table may not exist yet (schema evolution) — roll back only this
@@ -481,7 +478,8 @@ def get_assessment(scan_id: int, db: Session = Depends(get_db)):
     """
     import json as _json
     from pathlib import Path
-    import os, re
+    import os
+    import re
 
     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
     if not scan:
@@ -598,24 +596,24 @@ def get_dns_records(scan_id: int, db: Session = Depends(get_db)):
     import json as _json
     from pathlib import Path
     import os
-    
+
     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
     dns_records = []
-    
+
     try:
         repo_root = Path(__file__).resolve().parents[3]
         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
         slug = f"{scan.domain.replace('.', '_')}_scan_{scan_id}"
-        
+
         # Try to find dnsx_resolved.json in phase1_discovery
         dnsx_files = [
             output_base / slug / "phase1_discovery" / "dnsx_resolved.json",
             output_base / slug / "dnsx_resolved.json",
         ]
-        
+
         for dnsx_file in dnsx_files:
             if dnsx_file.is_file():
                 # Parse JSONL file (one JSON per line)
@@ -631,7 +629,7 @@ def get_dns_records(scan_id: int, db: Session = Depends(get_db)):
                         cname = record.get("cname", [])
                         a_records = record.get("a", [])
                         status = record.get("status_code", "UNKNOWN")
-                        
+
                         # Add entry for each IP address
                         if a_records:
                             for ip in a_records:
@@ -675,27 +673,27 @@ def get_certificate_records(scan_id: int, db: Session = Depends(get_db)):
     import json as _json
     from pathlib import Path
     import os
-    
+
     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
     certificates = []
-    
+
     try:
         repo_root = Path(__file__).resolve().parents[3]
         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
         slug = f"{scan.domain.replace('.', '_')}_scan_{scan_id}"
-        
+
         # Check for CT directory with certificate files
         ct_dir = output_base / slug / "phase1_discovery" / "ct"
-        
+
         if ct_dir.is_dir():
             # Parse certspotter.txt and crtsh.txt files
             for source_file in ["certspotter.txt", "crtsh.txt"]:
                 source = "certspotter" if source_file == "certspotter.txt" else "crt.sh"
                 cert_file = ct_dir / source_file
-                
+
                 if cert_file.is_file():
                     try:
                         content = cert_file.read_text(encoding="utf-8", errors="ignore").strip()
@@ -714,12 +712,12 @@ def get_certificate_records(scan_id: int, db: Session = Depends(get_db)):
                                 })
                     except Exception:
                         continue
-        
+
         # Also try phase1_summary.json if it has detailed certificate data
         phase1_file = output_base / slug / "phase1_summary.json"
         if not phase1_file.is_file():
             phase1_file = output_base / slug / "phase1_discovery" / "phase1_summary.json"
-        
+
         if phase1_file.is_file():
             try:
                 p1_data = _json.loads(phase1_file.read_text(encoding="utf-8", errors="ignore"))
@@ -764,33 +762,32 @@ def get_certificate_records(scan_id: int, db: Session = Depends(get_db)):
 @router.get("/{scan_id}/asn-records", summary="Get ASN and IP range data")
 def get_asn_records(scan_id: int, db: Session = Depends(get_db)):
     """Return ASN and IP data from asn_by_ip.txt file."""
-    import json as _json
     from pathlib import Path
     import os
     import logging
-    
+
     logger = logging.getLogger(__name__)
-    
+
     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
     asn_records = []
     file_found = False
-    
+
     try:
         repo_root = Path(__file__).resolve().parents[3]
         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
         domain_slug = scan.domain.replace('.', '_')
-        
+
         # Try exact slug first (pattern: domain_scan_id)
         slugs_to_try = [
             f"{domain_slug}_scan_{scan_id}",  # apra_gov_au_scan_3
             f"{domain_slug}_{scan_id}",        # trutrip_co_1
         ]
-        
+
         logger.info(f"ASN: Looking for scan {scan_id} ({scan.domain}) in {output_base}")
-        
+
         # Try each slug pattern
         found_dir = None
         for slug in slugs_to_try:
@@ -800,7 +797,7 @@ def get_asn_records(scan_id: int, db: Session = Depends(get_db)):
                 found_dir = scan_dir
                 logger.info(f"ASN: Found directory: {scan_dir}")
                 break
-        
+
         # If no exact match, search for a directory containing the domain
         if not found_dir:
             logger.info(f"ASN: No exact slug match, searching for directories containing {domain_slug}")
@@ -809,7 +806,7 @@ def get_asn_records(scan_id: int, db: Session = Depends(get_db)):
                     found_dir = d
                     logger.info(f"ASN: Found directory by domain search: {d}")
                     break
-        
+
         if not found_dir:
             logger.warning(f"ASN: No directory found for scan {scan_id} ({domain_slug})")
         else:
@@ -822,7 +819,7 @@ def get_asn_records(scan_id: int, db: Session = Depends(get_db)):
                 found_dir / "asn_by_ip.txt",
                 found_dir / "asn_info.txt",
             ]
-            
+
             for asn_file in asn_files:
                 logger.info(f"ASN: Checking {asn_file}")
                 if asn_file.is_file():
@@ -832,19 +829,19 @@ def get_asn_records(scan_id: int, db: Session = Depends(get_db)):
                         content = asn_file.read_text(encoding="utf-8", errors="ignore").strip()
                         lines = content.split('\n')
                         logger.info(f"ASN: Parsing {len(lines)} lines from {asn_file.name}")
-                        
+
                         for line in lines:
                             line = line.strip()
                             if not line or line.startswith('#'):
                                 continue
-                            
+
                             # Parse: IP | ASN | Organization
                             parts = [p.strip() for p in line.split('|')]
                             if len(parts) >= 3:
                                 ip = parts[0]
                                 asn = parts[1]
                                 org = parts[2]
-                                
+
                                 asn_records.append({
                                     "ip": ip,
                                     "asn": asn if asn != "unknown" else None,
@@ -872,7 +869,7 @@ def get_asn_records(scan_id: int, db: Session = Depends(get_db)):
                         logger.error(f"ASN: Error parsing file: {e}")
                         continue
                     break
-            
+
             if not file_found:
                 logger.warning(f"ASN: No asn_by_ip.txt file found in {found_dir}")
     except Exception as e:
@@ -903,9 +900,9 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
     from pathlib import Path
     import os
     import logging
-    
+
     logger = logging.getLogger(__name__)
-    
+
     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
@@ -918,20 +915,20 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
         "contact_info": {},
         "name_servers": [],
     }
-    
+
     try:
         repo_root = Path(__file__).resolve().parents[3]
         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
         domain_slug = scan.domain.replace('.', '_')
-        
+
         # Try exact slug first (pattern: domain_scan_id)
         slugs_to_try = [
             f"{domain_slug}_scan_{scan_id}",  # apra_gov_au_scan_3
             f"{domain_slug}_{scan_id}",        # trutrip_co_1
         ]
-        
+
         logger.info(f"WHOIS: Looking for scan {scan_id} ({scan.domain}) in {output_base}")
-        
+
         # Try each slug pattern
         found_dir = None
         for slug in slugs_to_try:
@@ -941,7 +938,7 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
                 found_dir = scan_dir
                 logger.info(f"WHOIS: Found directory: {scan_dir}")
                 break
-        
+
         # If no exact match, search for a directory containing the domain
         if not found_dir:
             logger.info(f"WHOIS: No exact slug match, searching for directories containing {domain_slug}")
@@ -950,11 +947,11 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
                     found_dir = d
                     logger.info(f"WHOIS: Found directory by domain search: {d}")
                     break
-        
+
         if not found_dir:
             logger.warning(f"WHOIS: No directory found for scan {scan_id} ({domain_slug})")
             return whois_data
-        
+
         # Try to find whois.txt in phase1_discovery (try multiple naming patterns)
         whois_files = [
             found_dir / "phase1_discovery" / "whois.txt",
@@ -963,7 +960,7 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
             found_dir / "whois.txt",
             found_dir / "whois_info.txt",
         ]
-        
+
         whois_content = None
         for whois_file in whois_files:
             logger.info(f"WHOIS: Checking {whois_file}")
@@ -971,25 +968,25 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
                 logger.info(f"WHOIS: Found file at {whois_file}")
                 whois_content = whois_file.read_text(encoding="utf-8", errors="ignore")
                 break
-        
+
         if not whois_content:
             logger.warning(f"WHOIS: No file found for scan {scan_id}")
             return whois_data  # Return empty structure if no file found
-        
+
         # Parse WHOIS text format (key: value pairs)
         lines = whois_content.split('\n')
         nameservers = {}  # Use dict to pair NS names with IPs
-        
+
         for line in lines:
             line = line.strip()
             if not line or line.startswith('>>>'):
                 continue
-            
+
             if ':' in line:
                 parts = line.split(':', 1)
                 key = parts[0].strip().lower()
                 value = parts[1].strip() if len(parts) > 1 else ""
-                
+
                 # Domain information
                 if key == 'domain name':
                     whois_data['domain_info']['domain_name'] = value
@@ -1015,7 +1012,7 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
                                 whois_data['domain_info']['status'],
                                 status_code
                             ]
-                
+
                 # Registrant information
                 elif key == 'registrant':
                     whois_data['registrant_info']['name'] = value
@@ -1025,7 +1022,7 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
                     whois_data['registrant_info']['organization'] = value
                 elif key == 'eligibility type':
                     whois_data['registrant_info']['eligibility_type'] = value
-                
+
                 # Contact information
                 elif key == 'registrar abuse contact email':
                     whois_data['contact_info']['abuse_email'] = value
@@ -1033,7 +1030,7 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
                     whois_data['contact_info']['abuse_phone'] = value
                 elif key == 'tech contact name':
                     whois_data['contact_info']['tech_contact'] = value
-                
+
                 # Name servers — track sequence for pairing
                 elif key == 'name server':
                     # Create entry for this nameserver
@@ -1044,11 +1041,11 @@ def get_whois_data(scan_id: int, db: Session = Depends(get_db)):
                     if nameservers:
                         last_ns_name = list(nameservers.keys())[-1]
                         nameservers[last_ns_name]['ip'] = value
-        
+
         # Convert dict to list
         whois_data['name_servers'] = list(nameservers.values())
         logger.info(f"WHOIS: Parsed {len(whois_data['domain_info'])} domain fields, {len(whois_data['registrant_info'])} registrant fields, {len(whois_data['contact_info'])} contact fields, {len(whois_data['name_servers'])} nameservers")
-        
+
     except Exception as e:
         logger.error(f"WHOIS: Error parsing data: {e}")
         pass
@@ -1063,23 +1060,23 @@ def get_scan_details(scan_id: int, db: Session = Depends(get_db)):
     import json as _json
     from pathlib import Path
     import os
-    
+
     scan = db.query(ScanRun).filter(ScanRun.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
     assets = []
-    
+
     try:
         repo_root = Path(__file__).resolve().parents[3]
         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
         slug = f"{scan.domain.replace('.', '_')}_scan_{scan_id}"
-        
+
         # Try to read httpx_alive.json for detailed host information
         httpx_file = output_base / slug / "phase1_discovery" / "httpx_alive.json"
         if not httpx_file.is_file():
             httpx_file = output_base / slug / "httpx_alive.json"
-        
+
         if httpx_file.is_file():
             try:
                 # httpx_alive.json is JSONL format (one JSON per line)

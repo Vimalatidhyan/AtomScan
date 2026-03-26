@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Report generation CLI for Technieum Enterprise."""
-import argparse, sys, json, logging
+import argparse
+import sys
+import json
+import logging
 from datetime import datetime
 from pathlib import Path
 

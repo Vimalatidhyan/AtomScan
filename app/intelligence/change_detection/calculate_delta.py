@@ -1,5 +1,5 @@
 """Delta calculator for change detection between scan baselines."""
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 
 def calculate_delta(baseline: Dict[str, Any], current: Dict[str, Any]) -> Dict[str, Any]:

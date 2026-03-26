@@ -16,7 +16,7 @@ import os
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -315,7 +315,7 @@ def _parse_xml_nmap(root: ET.Element) -> Dict[str, Any]:
 def _parse_xml(content: str) -> Dict[str, Any]:
     """Generic XML → dict parser (nmap-aware)."""
     try:
-        root = ET.fromstring(content)
+        root = ET.fromstring(content)  # nosec B314
         if root.tag == "nmaprun":
             return _parse_xml_nmap(root)
         # Generic fallback: return as nested dict
@@ -911,7 +911,6 @@ def extract_cert_transparency(scan_dir: Path) -> Dict[str, Any]:
                      scan_dir / "phase1_discovery" / "temp_subdomains"]:
             f = base / fn
             if f.is_file():
-                source = "certspotter" if "certspotter" in fn else "crt.sh"
                 for ln in _parse_txt(_read_safe(f))["lines"]:
                     ln = ln.strip()
                     if ln and ln not in seen:

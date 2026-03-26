@@ -1,5 +1,7 @@
 """Fix phase and phases fields for completed scans that have empty phase data."""
-import sqlite3, json, os
+import sqlite3
+import json
+import os
 
 db = os.path.join(os.path.dirname(__file__), '..', 'technieum.db')
 conn = sqlite3.connect(db)

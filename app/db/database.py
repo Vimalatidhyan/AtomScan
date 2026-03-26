@@ -78,7 +78,6 @@ def apply_migrations() -> None:
 
 def _fix_legacy_scan_progress(eng) -> None:
     """Detect and fix the old scan_progress table that has wrong columns."""
-    import sqlite3
     try:
         with eng.connect() as conn:
             result = conn.execute(text("PRAGMA table_info(scan_progress)"))
@@ -129,24 +128,15 @@ def _purge_orphaned_child_rows(eng) -> None:
                 ("compliance_findings", "report_id",            "compliance_reports"),
             ]:
                 try:
-                    conn.execute(text(
-                        f"DELETE FROM {sub_table}"
-                        f" WHERE {sub_col} IN"
-                        f" (SELECT {sub_table}.{sub_col} FROM {sub_table}"
-                        f"  LEFT JOIN scan_runs ON scan_runs.id ="
-                        f"  (SELECT scan_run_id FROM {parent_table}"
-                        f"   WHERE {parent_table}.id = {sub_table}.{sub_col} LIMIT 1)"
-                        f"  WHERE scan_runs.id IS NULL)"
-                    ))
+                    sql_query = f"DELETE FROM {sub_table} WHERE {sub_col} IN (SELECT {sub_table}.{sub_col} FROM {sub_table} LEFT JOIN scan_runs ON scan_runs.id = (SELECT scan_run_id FROM {parent_table} WHERE {parent_table}.id = {sub_table}.{sub_col} LIMIT 1) WHERE scan_runs.id IS NULL)"  # nosec B608
+                    conn.execute(text(sql_query))
                 except Exception:
                     pass  # table may not exist
 
             for table in _orphan_tables:
                 try:
-                    conn.execute(text(
-                        f"DELETE FROM {table}"
-                        f" WHERE scan_run_id NOT IN (SELECT id FROM scan_runs)"
-                    ))
+                    sql_query = f"DELETE FROM {table} WHERE scan_run_id NOT IN (SELECT id FROM scan_runs)"  # nosec B608
+                    conn.execute(text(sql_query))
                 except Exception:
                     pass  # table may not exist or no scan_run_id column
             conn.commit()

@@ -18,7 +18,8 @@ class EPSSClient:
         if cve_id in self._cache:
             return self._cache[cve_id]
         try:
-            import urllib.request, json as j
+            import urllib.request
+            import json as j
             url = f"{self.BASE_URL}?cve={cve_id}"
             with urllib.request.urlopen(url, timeout=5) as resp:
                 data = j.loads(resp.read())
@@ -36,7 +37,7 @@ class EPSSClient:
 
     def score_to_severity(self, epss_score: float) -> str:
         """Convert EPSS score (0-1) to severity label."""
-        if epss_score >= 0.8: return "critical"
-        if epss_score >= 0.5: return "high"
-        if epss_score >= 0.2: return "medium"
+        if epss_score >= 0.8: return "critical"  # noqa: E701
+        if epss_score >= 0.5: return "high"  # noqa: E701
+        if epss_score >= 0.2: return "medium"  # noqa: E701
         return "low"

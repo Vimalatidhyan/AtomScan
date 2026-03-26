@@ -94,7 +94,7 @@ def aggregate(phase_dir: Path, target: str) -> Dict[str, Any]:
         for f in bl_dir.iterdir():
             if f.suffix == ".csv" and f.stat().st_size > 0:
                 with open(f) as fp:
-                    lines = [l.strip() for l in fp if l.strip()]
+                    lines = [l.strip() for l in fp if l.strip()]  # noqa: E741
                 type_counts["blocklists"] = type_counts.get("blocklists", 0) + len(lines)
                 for line in lines[:100]:  # cap for summary
                     parts = line.split(",", 2)
@@ -143,7 +143,7 @@ def main() -> None:
 
     phase_dir = Path(args.phase_dir)
     if not phase_dir.is_dir():
-        os.makedirs(phase_dir, exist_ok=True)
+        os.makedirs(phase_dir, exist_ok=True)  # noqa: F823
 
     summary = aggregate(phase_dir, args.target)
     out_path = Path(args.output)

@@ -24,4 +24,4 @@ class Database:
     def __init__(self): self.session = None
     def connect(self): self.session = SessionLocal()
     def close(self):
-        if self.session: self.session.close()
+        if self.session: self.session.close()  # noqa: E701

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Continuous monitoring CLI for Technieum Enterprise."""
-import argparse, sys, time, logging
-from pathlib import Path
+import argparse
+import sys
+import time
+import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)

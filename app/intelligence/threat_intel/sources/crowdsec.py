@@ -1,6 +1,8 @@
 """CrowdSec CTI API client."""
 from typing import Dict, Optional
-import logging, urllib.request, json
+import logging
+import urllib.request
+import json
 
 logger = logging.getLogger(__name__)
 CROWDSEC_URL = "https://cti.api.crowdsec.net/v2/smoke/{ip}"
@@ -16,7 +18,7 @@ class CrowdSecClient:
                 CROWDSEC_URL.format(ip=ip),
                 headers={"x-api-key": self.api_key},
             )
-            with urllib.request.urlopen(req, timeout=5) as resp:
+            with urllib.request.urlopen(req, timeout=5) as resp:  # nosec B310
                 return json.loads(resp.read())
         except Exception as e:
             return {"ip": ip, "error": str(e), "behaviors": []}

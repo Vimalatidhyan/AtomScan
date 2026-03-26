@@ -3,14 +3,11 @@
 Proves that a technieum.db created by the old db/database.py schema (legacy CLI)
 can be upgraded by migration 006 so the ORM-backed API works correctly.
 """
-import hashlib
 import os
 import sqlite3
 import tempfile
-from datetime import datetime, timezone
 
-import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 
@@ -200,7 +197,7 @@ class TestLegacyMigration:
 
     def test_new_orm_rows_can_be_written_after_migration(self):
         """After migration, new ORM-style rows must be writable alongside legacy data."""
-        from app.db.models import ScanRun, ScanProgress, ScanJob
+        from app.db.models import ScanRun, ScanProgress
         from app.db.base import Base
         # Ensure all ORM tables exist
         Base.metadata.create_all(bind=self.engine)

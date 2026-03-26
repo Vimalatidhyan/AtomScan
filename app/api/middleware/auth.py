@@ -5,8 +5,7 @@ AUTH_CACHE_TTL seconds so the database is not hit on every request.
 """
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse
-from datetime import datetime, timezone
+from datetime import datetime
 import hashlib
 import logging
 import os

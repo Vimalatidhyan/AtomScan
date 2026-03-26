@@ -11,11 +11,10 @@ from app.db.database import get_db
 from app.db.models import (
     Subdomain, ScanRun, Vulnerability, PortScan,
     DNSRecord, DomainTechnology, Technology, ThreatIntelData,
-    ISPLocation, ComplianceReport, ComplianceFinding, RiskScore,
+    ISPLocation, ComplianceReport, RiskScore,
     HTTPHeader, ScanEvent,
 )
 from app.api.models.asset import AssetListResponse, AssetResponse
-from app.api.models.common import StatusResponse
 
 router = APIRouter()
 
@@ -626,7 +625,7 @@ def high_risk_assets(
     q = (
         db.query(Subdomain)
         .join(vuln_counts, Subdomain.id == vuln_counts.c.subdomain_id)
-        .filter(vuln_counts.c.vuln_count >= min_vulns, Subdomain.is_alive == True)
+        .filter(vuln_counts.c.vuln_count >= min_vulns, Subdomain.is_alive)
     )
     if scan_run_id:
         q = q.filter(Subdomain.scan_run_id == scan_run_id)

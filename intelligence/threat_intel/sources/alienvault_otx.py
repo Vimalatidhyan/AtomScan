@@ -1,6 +1,8 @@
 """AlienVault OTX API client."""
 from typing import Dict, Optional
-import logging, urllib.request, json
+import logging
+import urllib.request
+import json
 
 logger = logging.getLogger(__name__)
 OTX_BASE = "https://otx.alienvault.com/api/v1"

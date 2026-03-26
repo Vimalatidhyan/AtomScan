@@ -2,7 +2,7 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from datetime import datetime, timezone, UTC
+from datetime import datetime
 import hashlib
 import logging
 
@@ -41,7 +41,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             try:
                 token_obj = session.query(APIToken).filter(
                     APIToken.token_hash == token_hash,
-                    APIToken.is_active == True,
+                    APIToken.is_active == True,  # noqa: E712
                 ).first()
 
                 if not token_obj:

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Admin CLI for Technieum Enterprise."""
-import argparse, sys, json, secrets, hashlib, logging
-from datetime import datetime
+import argparse
+import sys
+import secrets
+import hashlib
+import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)

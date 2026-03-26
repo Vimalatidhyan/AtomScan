@@ -35,7 +35,7 @@ class FindingUpdateRequest(BaseModel):
         pattern=r'^(open|confirmed|resolved|false_positive|wont_fix)$',
         description="Finding status"
     )
-    
+
     @field_validator('remediation')
     @classmethod
     def validate_remediation(cls, v: Optional[str]) -> Optional[str]:

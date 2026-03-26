@@ -17,10 +17,8 @@ Requirements:
 import argparse
 import contextlib
 import dataclasses
-import json
 import os
 import re
-import shutil
 import signal
 import subprocess
 import sys
@@ -296,7 +294,7 @@ def phase_2_api_coverage(ctx: Context) -> PhaseScore:
     ok, status, js, msg = get_json(f"{ctx.api_v1}/assets/targets", headers)
     ps.add(ok, f"/assets/targets {msg}")
     ok, status, js, msg = get_json(f"{ctx.api_v1}/assets/stats/testdomain.com", headers)
-    ps.add(ok or status in (200, 404), f"/assets/stats {{msg}}")
+    ps.add(ok or status in (200, 404), "/assets/stats {msg}")
     ok, status, js, msg = get_json(f"{ctx.api_v1}/assets/search?q=test", headers)
     ps.add(ok, f"/assets/search {msg}")
     ok, status, js, msg = get_json(f"{ctx.api_v1}/assets/by-domain/testdomain.com", headers)

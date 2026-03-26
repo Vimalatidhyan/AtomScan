@@ -1,7 +1,7 @@
 """Risk propagation — spread vulnerability risk scores across the asset graph."""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 import logging
 
@@ -47,7 +47,7 @@ def propagate_risk(
     # Convert NetworkX graph to dict if necessary
     if _NX_AVAILABLE and isinstance(graph, nx.DiGraph):
         graph = nx.node_link_data(graph)
-    
+
     nodes: List[Dict[str, Any]] = graph.get("nodes", [])
     edges: List[Dict[str, Any]] = graph.get("edges", graph.get("links", graph.get("relationships", [])))
 

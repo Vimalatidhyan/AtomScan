@@ -1,127 +1,59 @@
-# .dockerignore — Optimize Docker build context
-# Excludes unnecessary files from being sent to Docker daemon
-# Significantly reduces build time and image size
+# ==============================================================================
+# Technieum .dockerignore — Whitelist approach
+# Exclude everything, then include only what the container needs
+# ==============================================================================
 
-# Version control
-.git
-.gitignore
-.gitattributes
-.gitleaksignore
+# Exclude everything by default
+*
 
-# Development environment
-.venv
-venv
-env
-.env.local
-.env.*.local
-.pytype
-.mypy_cache
-.dmypy.json
-dmypy.json
-*.egg-info
-*.egg
-.eggs
-dist
-build
-
-# Python cache
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-
-# Testing & coverage
-.pytest_cache
-.coverage
-htmlcov
-.tox
-.hypothesis
-coverage.xml
-*.cover
-.testmon.db
-.testmondata
-
-# IDE & Editor
-.vscode
-.idea
-*.swp
-*.swo
-*~
-.DS_Store
-.sublime-project
-.sublime-workspace
-*.iml
-*.code-workspace
-.vimrc
-
-# CI/CD
-.github
-.gitlab-ci.yml
-.travis.yml
-.circleci
-.azure-pipelines
-Jenkinsfile
-
-# Documentation
-docs
-README.md
-CHANGELOG.md
-LICENSE
-*.md
-!requirements*.txt
-
-# Logs & temp files
-logs
-*.log
-*.pot
-*.pid
-temp
-tmp
-*.tmp
-
-# Data (will be mounted as volumes)
-data/
-output/
-scans/
-reports/
-
-# Docker files (don't include in build context)
-Dockerfile*
-docker-compose*.yml
-.dockerignore
-docker-entrypoint.sh
-
-# Archives
-*.tar.gz
-*.tar
-*.zip
-*.rar
-*.7z
-
-# OS specific
-.DS_Store
-Thumbs.db
-*.swp
-*.swo
-ehthumbs.db
-
-# Keep only necessary files
-!requirements.txt
-!requirements-api.txt
-!config/
-!modules/
-!lib/
-!parsers/
-!intelligence/
-!backend/
+# --------------- Application code directories ---------------
 !app/
 !api/
+!backend/
+!cli/
+!config/
+!intelligence/
+!lib/
+!modules/
+!parsers/
 !scripts/
+!bin/
+!db/
+!tests/
+
+# --------------- Python entry points & config ---------------
 !technieum.py
 !query.py
 !scheduler.py
+!event_emitter.py
+!state_manager.py
+!conftest.py
+!config.yaml
+!pytest.ini
+
+# --------------- Dependency files ---------------
+!requirements.txt
+!requirements-api.txt
+
+# --------------- Docker & startup scripts ---------------
 !docker-entrypoint.sh
 !start.sh
 !setup.sh
+!install.sh
+!install_tools.sh
+!kali_setup.sh
+
+# --------------- Re-exclude junk inside included dirs ---------------
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.git/
+**/node_modules/
+**/.env
+**/.env.*
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.whl
+**/*.log

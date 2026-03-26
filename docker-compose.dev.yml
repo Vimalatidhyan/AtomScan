@@ -1,23 +1,17 @@
-# Technieum Docker Compose Development Configuration
-# Enables live code synchronization via bind mounts and file watch
+# ==============================================================================
+# Technieum — Development Compose Override
 # Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-#
-# Two approaches for hot-reload:
-# 1. Bind mounts (volumes): Synchronize files immediately
-# 2. Develop watch: Auto-rebuild on file changes
-#
-# Both are configured below for maximum flexibility
+# Enables live code sync via bind mounts + file watch for hot-reload
+# ==============================================================================
 
 services:
   technieum:
     build:
       context: .
       dockerfile: Dockerfile
-      # Allow cache for faster rebuilds
-      no_cache: false
-    
+
     volumes:
-      # Bind mounts for live code synchronization
+      # Bind-mount source code for live editing
       - ./app:/opt/technieum/app
       - ./backend:/opt/technieum/backend
       - ./api:/opt/technieum/api
@@ -26,15 +20,13 @@ services:
       - ./parsers:/opt/technieum/parsers
       - ./intelligence:/opt/technieum/intelligence
       - ./scripts:/opt/technieum/scripts
-      
-      # Persistent volumes
-      - technieum-data:/data
-      - technieum-logs:/data/logs
-    
-    # File watch configuration for auto-rebuild and sync
+
+      # Persistent data
+      - ./data:/opt/technieum/data
+      - ./logs:/opt/technieum/data/logs
+
     develop:
       watch:
-        # Sync code changes immediately (no rebuild needed)
         - action: sync
           path: ./app
           target: /opt/technieum/app
@@ -59,22 +51,19 @@ services:
         - action: sync
           path: ./scripts
           target: /opt/technieum/scripts
-        
-        # Rebuild on dependency file changes
         - action: rebuild
           path: requirements.txt
         - action: rebuild
           path: requirements-api.txt
         - action: rebuild
           path: Dockerfile
-    
+
     environment:
       TECHNIEUM_ENV: development
       TECHNIEUM_DEBUG: "true"
       PYTHONUNBUFFERED: "1"
-      API_WORKERS: "1"  # Single worker for debugging
-    
-    # Development resource limits (lower than production)
+      API_WORKERS: "1"
+
     deploy:
       resources:
         limits:

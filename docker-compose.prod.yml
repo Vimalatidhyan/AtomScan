@@ -1,25 +1,27 @@
-# Technieum Docker Compose Production Configuration
-# Optimizations: nginx reverse proxy, PostgreSQL, Redis, enhanced monitoring
+# ==============================================================================
+# Technieum — Production Compose Override
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Adds: nginx reverse proxy, PostgreSQL, Redis, higher resource limits
+# ==============================================================================
 
 services:
   technieum:
     restart: always
-    
+
     environment:
       TECHNIEUM_ENV: production
       TECHNIEUM_DEBUG: "false"
       PYTHONUNBUFFERED: "1"
       PYTHONDONTWRITEBYTECODE: "1"
       API_WORKERS: "8"
-      DATABASE_URL: postgresql://technieum:${POSTGRES_PASSWORD}@postgres:5432/technieum
-    
+      DATABASE_URL: "postgresql://technieum:${POSTGRES_PASSWORD:-changeme}@postgres:5432/technieum"
+
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    
+
     deploy:
       resources:
         limits:
@@ -28,16 +30,15 @@ services:
         reservations:
           cpus: "4"
           memory: 8G
-    
+
     logging:
       driver: "json-file"
       options:
         max-size: "50m"
         max-file: "5"
-        labels: "service=technieum,env=production"
 
   # ============================================================================
-  # Reverse Proxy & Load Balancer
+  # Reverse Proxy
   # ============================================================================
   nginx:
     image: nginx:stable-alpine
@@ -65,10 +66,9 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
-        labels: "service=nginx,env=production"
 
   # ============================================================================
-  # PostgreSQL Database
+  # PostgreSQL
   # ============================================================================
   postgres:
     image: postgres:16-alpine
@@ -78,7 +78,7 @@ services:
       - technieum-net
     environment:
       POSTGRES_USER: technieum
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-changeme}"
       POSTGRES_DB: technieum
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
       PGDATA: /var/lib/postgresql/data/pgdata
@@ -95,10 +95,9 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
-        labels: "service=postgres,env=production"
 
   # ============================================================================
-  # Redis Cache & Job Queue
+  # Redis
   # ============================================================================
   redis:
     image: redis:7-alpine
@@ -106,7 +105,12 @@ services:
     restart: always
     networks:
       - technieum-net
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --maxmemory 2gb --maxmemory-policy allkeys-lru
+    command: >-
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-technieum-redis}
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
     healthcheck:
@@ -120,20 +124,7 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
-        labels: "service=redis,env=production"
-    sysctls:
-      - net.core.somaxconn=1024
 
 volumes:
   postgres-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /var/lib/technieum/postgres
   redis-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /var/lib/technieum/redis

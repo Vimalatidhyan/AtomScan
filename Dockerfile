@@ -1,9 +1,96 @@
 # ==============================================================================
-# Technieum — Multi-Stage Docker Build
-# Target Base: kalilinux/kali-rolling (Full scan tools & pipelines)
+# Technieum — Dockerfile
+# Base: kalilinux/kali-rolling (security tools + scan pipeline)
+# Build: 2-stage (Go tool compilation → final runtime)
 # ==============================================================================
 
-FROM kalilinux/kali-rolling AS base
+# ==============================================================================
+# STAGE 1 — Compile Go-based security tools
+# ==============================================================================
+FROM kalilinux/kali-rolling AS go-builder
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    GOPATH=/root/go \
+    GO111MODULE=on \
+    GOPROXY=https://proxy.golang.org,direct
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget ca-certificates git gcc g++ libc6-dev make \
+        libpcap-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN ARCH="$(dpkg --print-architecture)" && \
+    wget -q "https://go.dev/dl/go1.22.5.linux-${ARCH}.tar.gz" -O /tmp/go.tar.gz && \
+    tar -C /usr/local -xzf /tmp/go.tar.gz && \
+    rm -f /tmp/go.tar.gz
+
+ENV PATH="/usr/local/go/bin:${GOPATH}/bin:${PATH}"
+
+RUN mkdir -p /go-tools
+
+# ProjectDiscovery suite — core reconnaissance tools
+RUN for spec in \
+      "subfinder  github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest" \
+      "httpx      github.com/projectdiscovery/httpx/cmd/httpx@latest" \
+      "dnsx       github.com/projectdiscovery/dnsx/cmd/dnsx@latest" \
+      "nuclei     github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest" \
+      "asnmap     github.com/projectdiscovery/asnmap/cmd/asnmap@latest" \
+      "mapcidr    github.com/projectdiscovery/mapcidr/cmd/mapcidr@latest" \
+      "katana     github.com/projectdiscovery/katana/cmd/katana@latest" \
+    ; do \
+      name=$(echo $spec | awk '{print $1}'); \
+      pkg=$(echo $spec  | awk '{print $2}'); \
+      echo "==> Installing ${name} ..."; \
+      go install -v "${pkg}" 2>&1 \
+        && echo "[OK]   ${name}" \
+        || echo "[SKIP] ${name}"; \
+    done; \
+    cp -r ${GOPATH}/bin/* /go-tools/ 2>/dev/null; true
+
+# Community recon / fuzzing / crawling tools
+RUN for spec in \
+      "assetfinder  github.com/tomnomnom/assetfinder@latest" \
+      "waybackurls  github.com/tomnomnom/waybackurls@latest" \
+      "ffuf         github.com/ffuf/ffuf/v2@latest" \
+      "gau          github.com/lc/gau/v2/cmd/gau@latest" \
+      "hakrawler    github.com/hakluke/hakrawler@latest" \
+      "subjack      github.com/haccer/subjack@latest" \
+      "gospider     github.com/jaeles-project/gospider@latest" \
+      "dalfox       github.com/hahwul/dalfox/v2@latest" \
+      "cariddi      github.com/edoardottt/cariddi/cmd/cariddi@latest" \
+      "gitleaks     github.com/gitleaks/gitleaks/v8@latest" \
+    ; do \
+      name=$(echo $spec | awk '{print $1}'); \
+      pkg=$(echo $spec  | awk '{print $2}'); \
+      echo "==> Installing ${name} ..."; \
+      go install -v "${pkg}" 2>&1 \
+        && echo "[OK]   ${name}" \
+        || echo "[SKIP] ${name}"; \
+    done; \
+    cp -r ${GOPATH}/bin/* /go-tools/ 2>/dev/null; true
+
+# Optional / heavy tools — failures are completely non-fatal
+RUN for spec in \
+      "gowitness   github.com/sensepost/gowitness@latest" \
+      "mantra      github.com/Brosck/mantra@latest" \
+      "trufflehog  github.com/trufflesecurity/trufflehog/v3@latest" \
+    ; do \
+      name=$(echo $spec | awk '{print $1}'); \
+      pkg=$(echo $spec  | awk '{print $2}'); \
+      echo "==> Installing ${name} (optional) ..."; \
+      go install -v "${pkg}" 2>&1 \
+        && echo "[OK]   ${name}" \
+        || echo "[SKIP] ${name} — non-critical"; \
+    done; \
+    cp -r ${GOPATH}/bin/* /go-tools/ 2>/dev/null; true
+
+RUN echo "=== Compiled Go tools ===" && ls -1 /go-tools/
+
+# ==============================================================================
+# STAGE 2 — Final runtime image
+# ==============================================================================
+FROM kalilinux/kali-rolling AS runtime
 
 LABEL maintainer="Technieum Team" \
       description="Technieum - Attack Surface Management Framework" \
@@ -11,168 +98,88 @@ LABEL maintainer="Technieum Team" \
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TECHNIEUM_HOME=/opt/technieum \
-    TECHNIEUM_DATA=/data \
-    TECHNIEUM_WORKER=true \
+    TECHNIEUM_DATA=/opt/technieum/data \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PATH="/usr/local/go/bin:/root/go/bin:${PATH}" \
-    API_PORT=8000 \
-    GOPATH=/root/go \
-    GO111MODULE=on \
-    GOPROXY=https://proxy.golang.org,direct
+    VIRTUAL_ENV=/opt/venv \
+    API_PORT=8000
 
-# ==============================================================================
-# PHASE 1: System Packages (apt)
-# ==============================================================================
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends \
-    curl wget git jq unzip zip tar gzip bzip2 xz-utils bash zsh sudo \
-    openssh-client ca-certificates build-essential pkg-config \
-    python3 python3-pip python3-venv python3-dev python3-setuptools python3-wheel \
-    ruby ruby-dev \
-    nodejs npm default-jre \
-    libssl-dev libffi-dev libxml2-dev libxslt1-dev libpcap-dev \
-    dnsutils bind9-dnsutils bind9-host whois dnsmasq iputils-ping \
-    traceroute netcat-openbsd \
-    nmap masscan nikto sqlmap wapiti wpscan skipfish \
-    testssl.sh sslyze dirsearch feroxbuster \
-    gnupg apt-transport-https \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Ensure python/pip aliases exist
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
-    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
-
-# Create application directories
-RUN mkdir -p ${TECHNIEUM_HOME} ${TECHNIEUM_DATA} /opt/technieum-tools /opt/wordlists && \
-    chmod 755 ${TECHNIEUM_HOME} ${TECHNIEUM_DATA}
-
-FROM base AS builder
-
-# ==============================================================================
-# PHASE 2: Install Go and Go-based tools
-# ==============================================================================
-RUN ARCH="$(uname -m)"; \
-    case "$ARCH" in \
-        x86_64)  GO_ARCH="amd64" ;; \
-        aarch64) GO_ARCH="arm64" ;; \
-        *)       GO_ARCH="amd64" ;; \
-    esac; \
-    wget -q "https://go.dev/dl/go1.22.4.linux-${GO_ARCH}.tar.gz" -O /tmp/go.tar.gz && \
-    rm -rf /usr/local/go && \
-    tar -C /usr/local -xzf /tmp/go.tar.gz && \
-    rm -f /tmp/go.tar.gz
-
-# Install Go recon tools
-# Includes all Phase 1-4 ProjectDiscovery tools + others
-RUN --mount=type=cache,target=/root/go/pkg/mod,sharing=locked \
-    --mount=type=cache,target=/root/go/bin,sharing=locked \
-    mkdir -p /root/go/bin && \
-    export PATH=$PATH:/usr/local/go/bin && \
-    go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && \
-    go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest && \
-    go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest && \
-    go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
-    go install -v github.com/projectdiscovery/asnmap/cmd/asnmap@latest && \
-    go install -v github.com/projectdiscovery/mapcidr/cmd/mapcidr@latest && \
-    go install -v github.com/projectdiscovery/katana/cmd/katana@latest && \
-    go install -v github.com/tomnomnom/assetfinder@latest && \
-    go install -v github.com/tomnomnom/waybackurls@latest && \
-    go install -v github.com/ffuf/ffuf/v2@latest && \
-    go install -v github.com/lc/gau/v2/cmd/gau@latest && \
-    go install -v github.com/hakluke/hakrawler@latest && \
-    go install -v github.com/haccer/subjack@latest && \
-    go install -v github.com/jaeles-project/gospider@latest && \
-    go install -v github.com/hahwul/dalfox/v2@latest && \
-    go install -v github.com/edoardottt/cariddi/cmd/cariddi@latest && \
-    go install -v github.com/Brosck/mantra@latest && \
-    go install -v github.com/0xSojalSec/Subprober@latest && \
-    go install -v github.com/mrhenrike/dnsprober@latest && \
-    go install -v github.com/sensepost/gowitness@latest && \
-    go install -v github.com/gitleaks/gitleaks/v8@latest && \
-    go install -v github.com/trufflesecurity/trufflehog/v3@latest && \
-    cp -r /root/go/bin/* /usr/local/bin/ 2>/dev/null || true
-
-# ==============================================================================
-# PHASE 2B: Python Dependencies
-# ==============================================================================
-FROM base AS python-deps
-
-WORKDIR ${TECHNIEUM_HOME}
-ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
-COPY requirements.txt requirements-api.txt ./
+# ── System packages ──────────────────────────────────────────────────────────
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl wget git jq unzip bash sudo \
+        openssh-client ca-certificates \
+        python3 python3-pip python3-venv python3-dev \
+        python3-setuptools python3-wheel \
+        ruby ruby-dev \
+        nodejs npm \
+        build-essential pkg-config \
+        libssl-dev libffi-dev libxml2-dev libxslt1-dev libpcap-dev \
+        dnsutils bind9-dnsutils bind9-host whois \
+        iputils-ping traceroute netcat-openbsd \
+        nmap masscan nikto sqlmap wapiti wpscan skipfish \
+        testssl.sh sslyze dirsearch feroxbuster \
+        gnupg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# We use venv with --break-system-packages tools seamlessly inside Docker
-RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
-    python3 -m venv "${VIRTUAL_ENV}" && \
-    "${VIRTUAL_ENV}/bin/pip" install --upgrade pip setuptools wheel && \
-    "${VIRTUAL_ENV}/bin/pip" install -r requirements.txt && \
-    "${VIRTUAL_ENV}/bin/pip" install -r requirements-api.txt && \
-    "${VIRTUAL_ENV}/bin/pip" install arjun dirsearch sslyze censys shodan || true
+# ── Python / pip aliases ─────────────────────────────────────────────────────
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 2>/dev/null || true && \
+    update-alternatives --install /usr/bin/pip    pip    /usr/bin/pip3    1 2>/dev/null || true
 
-FROM python-deps AS runtime
+# ── Copy compiled Go tools from builder ──────────────────────────────────────
+COPY --from=go-builder /go-tools/ /usr/local/bin/
 
-ENV VIRTUAL_ENV=/opt/venv \
-    PATH="${VIRTUAL_ENV}/bin:${PATH}"
+# ── Create directory tree ────────────────────────────────────────────────────
+RUN mkdir -p \
+        ${TECHNIEUM_HOME} \
+        ${TECHNIEUM_DATA}/scans \
+        ${TECHNIEUM_DATA}/output \
+        ${TECHNIEUM_DATA}/logs \
+        /var/run/technieum \
+        /opt/wordlists && \
+    chmod 755 ${TECHNIEUM_HOME} ${TECHNIEUM_DATA}
 
 WORKDIR ${TECHNIEUM_HOME}
-RUN mkdir -p \
-    ${TECHNIEUM_DATA}/scans \
-    ${TECHNIEUM_DATA}/output \
-    ${TECHNIEUM_DATA}/logs \
-    /var/run/technieum && \
-    chmod 755 ${TECHNIEUM_DATA} ${TECHNIEUM_DATA}/* /var/run/technieum
 
-# Copy compiled Go tools from builder
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
+# ── Python virtual-env & pip dependencies (cached unless requirements change)
+COPY requirements.txt requirements-api.txt ./
 
-# Copy application code
-COPY --chown=root:root . .
+RUN python3 -m venv "${VIRTUAL_ENV}" && \
+    "${VIRTUAL_ENV}/bin/pip" install --no-cache-dir --upgrade pip setuptools wheel && \
+    "${VIRTUAL_ENV}/bin/pip" install --no-cache-dir -r requirements.txt && \
+    "${VIRTUAL_ENV}/bin/pip" install --no-cache-dir -r requirements-api.txt && \
+    "${VIRTUAL_ENV}/bin/pip" install --no-cache-dir \
+        arjun dirsearch sslyze censys shodan 2>/dev/null || true
 
-# Make scripts executable
-RUN chmod +x scripts/*.sh 2>/dev/null || true && \
-    chmod +x docker-entrypoint.sh install.sh setup.sh start.sh 2>/dev/null || true
+# ── Copy application code ────────────────────────────────────────────────────
+COPY . .
 
-# ==============================================================================
-# PHASE 3: Install Additional Tools (Git clones, gems, npm)
-# ==============================================================================
+# ── Make scripts executable ──────────────────────────────────────────────────
+RUN chmod +x docker-entrypoint.sh 2>/dev/null || true && \
+    chmod +x scripts/*.sh          2>/dev/null || true && \
+    chmod +x install.sh setup.sh start.sh 2>/dev/null || true
 
-# LinkFinder
-RUN if [ ! -d /opt/LinkFinder ]; then \
-        git clone --depth 1 https://github.com/GerbenJavado/LinkFinder.git /opt/LinkFinder; \
-    fi
+# ── Git-cloned tools ─────────────────────────────────────────────────────────
+RUN git clone --depth 1 https://github.com/GerbenJavado/LinkFinder.git /opt/LinkFinder 2>/dev/null || true
+RUN git clone --depth 1 https://github.com/m4ll0k/SecretFinder.git    /opt/SecretFinder 2>/dev/null || true
 
-# SecretFinder
-RUN if [ ! -d /opt/SecretFinder ]; then \
-        git clone --depth 1 https://github.com/m4ll0k/SecretFinder.git /opt/SecretFinder; \
-    fi
+# ── git-secrets ──────────────────────────────────────────────────────────────
+RUN cd /tmp && \
+    git clone --depth 1 https://github.com/awslabs/git-secrets.git && \
+    cd git-secrets && make install PREFIX=/usr/local && \
+    cd / && rm -rf /tmp/git-secrets \
+    || true
 
-# git-secrets
-RUN if ! command -v git-secrets &>/dev/null; then \
-        TMPDIR=$(mktemp -d) && \
-        git clone --depth 1 https://github.com/awslabs/git-secrets.git "$TMPDIR/git-secrets" && \
-        cd "$TMPDIR/git-secrets" && make install PREFIX=/usr/local && \
-        cd - >/dev/null && rm -rf "$TMPDIR"; \
-    fi
+# ── npm tools ────────────────────────────────────────────────────────────────
+RUN npm install -g newman retire 2>/dev/null || true
 
-# npm tools (newman, retire.js)
-RUN if command -v npm &>/dev/null; then \
-        npm install -g newman retire 2>/dev/null || true; \
-    fi
-
-# Nuclei templates - force download into root tools directory and standard config
+# ── Nuclei templates ─────────────────────────────────────────────────────────
 RUN nuclei -update-templates -silent 2>/dev/null || true
-RUN mkdir -p /root/tools/nuclei-templates && \
-    cp -R /root/.local/nuclei-templates/* /root/tools/nuclei-templates/ 2>/dev/null || true
 
-# ==============================================================================
-# PHASE 4: Environment & Entrypoint Configuration
-# ==============================================================================
-
-# Set up environment
+# ── Runtime environment variables ────────────────────────────────────────────
 ENV TECHNIEUM_DB_PATH=${TECHNIEUM_DATA}/technieum.db \
     TECHNIEUM_OUTPUT_DIR=${TECHNIEUM_DATA}/output \
     TECHNIEUM_LOGS_DIR=${TECHNIEUM_DATA}/logs \
@@ -181,11 +188,10 @@ ENV TECHNIEUM_DB_PATH=${TECHNIEUM_DATA}/technieum.db \
     TECHNIEUM_NMAP_MAX_HOSTS=50 \
     PYTHONPATH=${TECHNIEUM_HOME}
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=5 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=5 \
     CMD curl -sf http://localhost:${API_PORT:-8000}/health || exit 1
 
 EXPOSE 8000
 
 ENTRYPOINT ["/opt/technieum/docker-entrypoint.sh"]
-CMD ["server"]
+CMD ["combined"]

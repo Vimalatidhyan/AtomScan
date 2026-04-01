@@ -756,3 +756,4 @@ openssl rand -hex 32
 MIT — see [LICENSE](LICENSE) for details.
 
 This tool is intended for **authorised security assessments only**. Always obtain written permission before scanning any system you do not own.
+# Technieum-x

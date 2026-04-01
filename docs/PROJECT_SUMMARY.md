@@ -1,4 +1,4 @@
-# ReconX Project - Build Complete ✅
+# Technieum Project - Build Complete ✅
 
 ## 📊 Project Statistics
 
@@ -13,7 +13,7 @@
 
 ### 1. Core Python Framework ✓
 
-#### `reconx.py` (Main Orchestrator)
+#### `technieum.py` (Main Orchestrator)
 - **Lines**: ~650
 - **Features**:
   - Multi-threaded target scanning with ThreadPoolExecutor
@@ -386,7 +386,7 @@
 ## 📁 File Breakdown
 
 ### Python Files (3 files, ~1,400 lines)
-- `reconx.py` - Main orchestrator
+- `technieum.py` - Main orchestrator
 - `db/database.py` - Database manager
 - `parsers/parser.py` - Output parsers
 - `query.py` - Query tool
@@ -414,17 +414,17 @@
 
 ### Basic Scan
 ```bash
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 ```
 
 ### Phase-Specific
 ```bash
-python3 reconx.py -t example.com -p 1,2
+python3 technieum.py -t example.com -p 1,2
 ```
 
 ### Multiple Targets
 ```bash
-python3 reconx.py -f targets.txt -T 5
+python3 technieum.py -f targets.txt -T 5
 ```
 
 ### Query Results
@@ -436,7 +436,7 @@ python3 query.py -t example.com --export subdomains -o results.csv
 
 ### Direct Database
 ```bash
-sqlite3 reconx.db "SELECT * FROM vulnerabilities WHERE severity='critical'"
+sqlite3 technieum.db "SELECT * FROM vulnerabilities WHERE severity='critical'"
 ```
 
 ## ✅ Testing Recommendations
@@ -455,9 +455,9 @@ sqlite3 reconx.db "SELECT * FROM vulnerabilities WHERE severity='critical'"
 
 ### Manual Testing
 1. Run `bash setup.sh` - Verify setup
-2. Run `python3 reconx.py -t example.com -p 1` - Test Phase 1
+2. Run `python3 technieum.py -t example.com -p 1` - Test Phase 1
 3. Run `python3 query.py --list` - Test queries
-4. Verify database: `sqlite3 reconx.db ".tables"`
+4. Verify database: `sqlite3 technieum.db ".tables"`
 
 ## 📦 Deployment Checklist
 
@@ -483,7 +483,7 @@ sqlite3 reconx.db "SELECT * FROM vulnerabilities WHERE severity='critical'"
 
 1. **Setup**:
    ```bash
-   cd reconx
+   cd technieum
    bash setup.sh
    ```
 
@@ -501,12 +501,12 @@ sqlite3 reconx.db "SELECT * FROM vulnerabilities WHERE severity='critical'"
 
 4. **Test Installation**:
    ```bash
-   python3 reconx.py -h
+   python3 technieum.py -h
    ```
 
 5. **Run First Scan**:
    ```bash
-   python3 reconx.py -t example.com -p 1
+   python3 technieum.py -t example.com -p 1
    ```
 
 6. **Query Results**:
@@ -550,7 +550,7 @@ sqlite3 reconx.db "SELECT * FROM vulnerabilities WHERE severity='critical'"
 
 ## 🎉 Project Status: READY FOR PRODUCTION
 
-**ReconX** is a complete, production-ready Attack Surface Management framework with:
+**Technieum** is a complete, production-ready Attack Surface Management framework with:
 - Comprehensive tool coverage
 - Robust error handling
 - Thread-safe database operations
@@ -562,4 +562,4 @@ sqlite3 reconx.db "SELECT * FROM vulnerabilities WHERE severity='critical'"
 ---
 
 *Built with precision for maximum reconnaissance coverage*
-*ReconX v1.0 - 2024*
+*Technieum v1.0 - 2024*

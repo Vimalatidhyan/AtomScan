@@ -1,5 +1,5 @@
 """
-Tests for ReconX Enterprise intelligence modules.
+Tests for Technieum Enterprise intelligence modules.
 Covers risk scoring, threat correlation, change detection, and graph analysis.
 """
 import pytest

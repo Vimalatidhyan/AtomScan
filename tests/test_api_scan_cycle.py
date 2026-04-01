@@ -6,7 +6,7 @@ Validates that:
   3. GET  /api/v1/assets/targets lists the scanned domain.
 
 Uses an in-memory SQLite DB so no external tools or real network traffic
-are needed.  The embedded scan worker is disabled (RECONX_WORKER=false).
+are needed.  The embedded scan worker is disabled (TECHNIEUM_WORKER=false).
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ import os
 import pytest
 
 # Disable the embedded worker thread before importing the app
-os.environ.setdefault("RECONX_WORKER", "false")
+os.environ.setdefault("TECHNIEUM_WORKER", "false")
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 
 

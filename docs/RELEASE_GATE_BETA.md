@@ -13,7 +13,7 @@ All items in this checklist must be ✅ before tagging a BETA release.
 
 - [ ] Gitleaks scan clean (`gitleaks detect --no-git -v`)
 - [ ] No hardcoded secrets in `.env.*` example files
-- [ ] `RECONX_SECRET_KEY` is ≥ 32 chars and randomly generated
+- [ ] `TECHNIEUM_SECRET_KEY` is ≥ 32 chars and randomly generated
 - [ ] API keys in test fixtures are **not** reused in production
 - [ ] CORS allowed origins do not include `*` (wildcard)
 

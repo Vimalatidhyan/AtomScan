@@ -1,4 +1,4 @@
-"""Scan state management for ReconX Enterprise."""
+"""Scan state management for Technieum Enterprise."""
 from typing import Any, Dict, Optional
 from datetime import datetime
 import json, logging
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class StateManager:
     """Track scan state with optional file-backed persistence."""
 
-    def __init__(self, state_dir: str = ".reconx_state") -> None:
+    def __init__(self, state_dir: str = ".technieum_state") -> None:
         self._dir = Path(state_dir)
         self._dir.mkdir(exist_ok=True)
         self._state: Dict[str, Dict] = {}

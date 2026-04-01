@@ -61,7 +61,7 @@ First request after server start will be slower (auth cache miss → DB lookup ~
 
 ```bash
 # API smoke test (server must be running)
-RECONX_API_KEY=<your-key> ./scripts/perf_smoke_api.sh http://localhost:8000
+TECHNIEUM_API_KEY=<your-key> ./scripts/perf_smoke_api.sh http://localhost:8000
 
 # Queue throughput (no server needed)
 ./scripts/perf_scan_queue.sh 20

@@ -1,4 +1,4 @@
-# ReconX Enterprise ASM — Migration Plan
+# Technieum Enterprise ASM — Migration Plan
 
 **Safe rollout and rollback per subsystem**
 
@@ -43,8 +43,8 @@ This document defines how to roll out and roll back each subsystem so that the m
 
 | Aspect | Rollout | Rollback |
 |--------|---------|----------|
-| **What** | New package `intelligence/` with subpackages (risk_scoring, change_detection, compliance, graph, threat_intel). No changes to reconx.py or modules 01–04. | Remove or don’t deploy `intelligence/`; remove or don’t run new bash phases (05–09) and Phase 0. |
-| **Verification** | Unit tests for each module; bash can call `python3 -m intelligence.risk_scoring.calculate ...` with fixture JSON. | Phases 1–4 and reconx.py default behaviour unchanged; new phases simply not invoked. |
+| **What** | New package `intelligence/` with subpackages (risk_scoring, change_detection, compliance, graph, threat_intel). No changes to technieum.py or modules 01–04. | Remove or don’t deploy `intelligence/`; remove or don’t run new bash phases (05–09) and Phase 0. |
+| **Verification** | Unit tests for each module; bash can call `python3 -m intelligence.risk_scoring.calculate ...` with fixture JSON. | Phases 1–4 and technieum.py default behaviour unchanged; new phases simply not invoked. |
 | **Risk** | New code could import something from core (e.g. db); keep intelligence/ as independently testable. | None for existing flows. |
 
 ---
@@ -54,16 +54,16 @@ This document defines how to roll out and roll back each subsystem so that the m
 | Aspect | Rollout | Rollback |
 |--------|---------|----------|
 | **What** | Add new scripts under `modules/`. Orchestrator extended to support phases 0, 5–9 only when user passes e.g. `-p 0,1,2,3,4,5,6,7,8,9`. Default remains `-p 1,2,3,4`. | Do not pass new phase numbers; or remove new scripts and revert orchestrator phase dispatch. Existing 01–04 unchanged. |
-| **Verification** | `reconx.py -t example.com -p 1,2,3,4` and `reconx.py -t example.com -p 1,2,3,4 --test` behave as before. New phases run only when explicitly requested. | Same as rollout verification for default and 1–4 only. |
+| **Verification** | `technieum.py -t example.com -p 1,2,3,4` and `technieum.py -t example.com -p 1,2,3,4 --test` behave as before. New phases run only when explicitly requested. | Same as rollout verification for default and 1–4 only. |
 | **Risk** | New script could overwrite or conflict with phase1–4 output paths; design new phases to use distinct dirs (e.g. phase5_threat_intel/, phase7_change_detection/). | Low. |
 
 ---
 
-### 2.5 Orchestrator (`reconx.py`)
+### 2.5 Orchestrator (`technieum.py`)
 
 | Aspect | Rollout | Rollback |
 |--------|---------|----------|
-| **What** | Extend with: phase 0, 5–9 dispatch; parse_phase0_output … parse_phase9_output; new flags (e.g. --continuous, --api-server). Preserve all existing args and defaults. | Revert reconx.py to previous version; or keep code but don’t use new flags/phases. |
+| **What** | Extend with: phase 0, 5–9 dispatch; parse_phase0_output … parse_phase9_output; new flags (e.g. --continuous, --api-server). Preserve all existing args and defaults. | Revert technieum.py to previous version; or keep code but don’t use new flags/phases. |
 | **Verification** | Compatibility tests: same CLI invocations and (with --test) same outputs. New flags only affect behaviour when used. | Revert commit; compatibility tests pass again. |
 | **Risk** | Bug in new branch (e.g. phase 5) could affect only that phase if isolation is kept; ensure no shared state that breaks 1–4. | Low if changes are additive. |
 
@@ -73,7 +73,7 @@ This document defines how to roll out and roll back each subsystem so that the m
 
 | Aspect | Rollout | Rollback |
 |--------|---------|----------|
-| **What** | Add new parser classes (e.g. TechnologyParser, ThreatIntelParser). Existing parsers and URL_TOOL_PARSERS unchanged. New parse_phase*_output methods in reconx.py use new parsers only for new phase outputs. | Revert parser additions and corresponding parse_phase*_output wiring. |
+| **What** | Add new parser classes (e.g. TechnologyParser, ThreatIntelParser). Existing parsers and URL_TOOL_PARSERS unchanged. New parse_phase*_output methods in technieum.py use new parsers only for new phase outputs. | Revert parser additions and corresponding parse_phase*_output wiring. |
 | **Verification** | Existing parser tests and integration tests (phases 1–4) pass. New parser tests for new file formats. | Revert; all parser tests for 1–4 still pass. |
 | **Risk** | Accidentally changing an existing parser signature or output format. Mitigation: compatibility tests and unit tests for existing parsers. | Low. |
 
@@ -94,7 +94,7 @@ This document defines how to roll out and roll back each subsystem so that the m
 | Aspect | Rollout | Rollback |
 |--------|---------|----------|
 | **What** | Deploy FastAPI app as separate process (or optional in-process with --api-server). API reads/writes same DB. Not required for CLI. | Stop API process; do not start --api-server. CLI and DB unchanged. |
-| **Verification** | API health check; list scans, assets, findings via API. CLI-only usage still works without API. | API process stopped; no impact on reconx.py or query.py. |
+| **Verification** | API health check; list scans, assets, findings via API. CLI-only usage still works without API. | API process stopped; no impact on technieum.py or query.py. |
 | **Risk** | API could impose load on DB; use connection pooling and timeouts. Auth: ensure API keys not logged. | None for CLI users. |
 
 ---
@@ -144,7 +144,7 @@ This document defines how to roll out and roll back each subsystem so that the m
 1. **Foundation:** Migrations framework, compatibility tests, query.py at root (Phase A).
 2. **DB + Config:** Run migrations, extend config (Phase B).
 3. **Intelligence:** Deploy intelligence/ and tests (Phase C).
-4. **New phases + orchestrator:** New bash modules and reconx.py extensions (Phase D).
+4. **New phases + orchestrator:** New bash modules and technieum.py extensions (Phase D).
 5. **Parsers + wiring:** New parsers and parse_phase* wiring (Phase E).
 6. **API + Web:** Deploy API and static UI (Phase F).
 7. **Notifications, reporting, CLIs, deployment:** (Phase G).

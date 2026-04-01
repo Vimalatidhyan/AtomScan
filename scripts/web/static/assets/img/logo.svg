@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="tBarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFD84D"/>
+      <stop offset="50%" style="stop-color:#FF8C00"/>
+      <stop offset="100%" style="stop-color:#FF2D00"/>
+    </linearGradient>
+    <linearGradient id="tStemGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF8C00"/>
+      <stop offset="100%" style="stop-color:#FFD84D"/>
+    </linearGradient>
+  </defs>
+  <!-- T horizontal bar with rounded ends -->
+  <rect x="8" y="16" width="104" height="24" rx="12" fill="url(#tBarGrad)"/>
+  <!-- T vertical stem with rounded bottom -->
+  <rect x="42" y="28" width="24" height="76" rx="12" fill="url(#tStemGrad)"/>
+</svg>

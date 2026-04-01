@@ -1,4 +1,4 @@
-"""ReconX Enterprise v2.0 — SQLAlchemy ORM models.
+"""Technieum Enterprise v2.0 — SQLAlchemy ORM models.
 
 Contains all 25 database models for the ASM scanning platform,
 organized into five groups:
@@ -28,7 +28,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 
 from app.db.base import Base
 
@@ -1056,7 +1056,7 @@ class DataLeak(Base):
     exploit_date: Optional[datetime] = Column(DateTime, nullable=True)
 
     # Relationships
-    scan_run = relationship("ScanRun", backref="data_leaks")
+    scan_run = relationship("ScanRun", backref=backref("data_leaks", cascade="all, delete-orphan"))
 
     __table_args__ = (
         Index("idx_data_leaks_email_breach", "email", "breach_date"),
@@ -1130,7 +1130,7 @@ class MalwareIndicator(Base):
     analyzed_by: Optional[str] = Column(String(100), nullable=True)
 
     # Relationships
-    scan_run = relationship("ScanRun", backref="malware_indicators")
+    scan_run = relationship("ScanRun", backref=backref("malware_indicators", cascade="all, delete-orphan"))
 
     __table_args__ = (
         Index("idx_malware_type_value", "indicator_type", "indicator_value"),
@@ -1207,7 +1207,7 @@ class BaselineSnapshot(Base):
     md5_hash: Optional[str] = Column(String(32), nullable=True)
 
     # Relationships
-    scan_run = relationship("ScanRun", backref="baseline_snapshots")
+    scan_run = relationship("ScanRun", backref=backref("baseline_snapshots", cascade="all, delete-orphan"))
 
     __table_args__ = (
         Index("idx_baseline_scan_flag", "scan_run_id", "is_baseline"),
@@ -1247,7 +1247,7 @@ class ScanProgress(Base):
     duration_seconds: Optional[int] = Column(Integer, nullable=True)
 
     # Relationships
-    scan_run = relationship("ScanRun", backref="scan_progress")
+    scan_run = relationship("ScanRun", backref=backref("scan_progress", cascade="all, delete-orphan"))
 
     def __repr__(self) -> str:
         """Return string representation."""
@@ -1334,7 +1334,7 @@ class ScanJob(Base):
     finished_at: Optional[datetime] = Column(DateTime, nullable=True)
     error: Optional[str] = Column(Text, nullable=True)
 
-    scan_run = relationship("ScanRun", backref="scan_jobs")
+    scan_run = relationship("ScanRun", backref=backref("scan_jobs", cascade="all, delete-orphan"))
 
     __table_args__ = (
         Index("idx_scan_jobs_status_id", "status", "id"),
@@ -1368,7 +1368,7 @@ class ScanEvent(Base):
     phase: Optional[int] = Column(Integer, nullable=True)
     created_at: datetime = Column(DateTime, default=datetime.utcnow)
 
-    scan_run = relationship("ScanRun", backref="scan_events")
+    scan_run = relationship("ScanRun", backref=backref("scan_events", cascade="all, delete-orphan"))
 
     __table_args__ = (
         Index("idx_scan_events_run_id", "scan_run_id", "id"),

@@ -1,5 +1,5 @@
 """
-Comprehensive API endpoint tests for ReconX Enterprise.
+Comprehensive API endpoint tests for Technieum Enterprise.
 Tests all API routes with authentication, pagination, filtering, and error handling.
 """
 import pytest

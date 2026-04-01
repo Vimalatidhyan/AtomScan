@@ -1,4 +1,4 @@
-# ReconX Enterprise — API Key Configuration
+# Technieum Enterprise — API Key Configuration
 # NEVER commit real keys. Use environment variables or a secrets manager.
 # Each key below can also be set as the corresponding env var.
 
@@ -20,3 +20,7 @@ vulnerability:
 scanning:
   github_token: ""               # env: GITHUB_TOKEN — for GitHub dorking
   emailrep_api_key: ""           # env: EMAILREP_API_KEY
+
+subdomain_discovery:
+  c99_api_key: ""                # env: C99_API_KEY — SubdomainFinder (https://subdomainfinder.c99.nl/)
+  pdcp_api_key: "c4a746d8-4054-4f3f-b8e7-dea203735579"  # env: PDCP_API_KEY — ProjectDiscovery Cloud Platform key (asnmap/katana/subfinder)

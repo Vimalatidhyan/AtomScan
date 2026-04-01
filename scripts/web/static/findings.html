@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technieum - Findings</title>
+  <link rel="stylesheet" href="/assets/css/style.css?v=4.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="app-header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" width="32" height="32">
+        <defs><linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#FFD84D"/><stop offset="50%" style="stop-color:#FF8C00"/><stop offset="100%" style="stop-color:#FF2D00"/></linearGradient><linearGradient id="fgv" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#FF8C00"/><stop offset="100%" style="stop-color:#FFD84D"/></linearGradient></defs>
+        <rect x="8" y="16" width="104" height="24" rx="12" fill="url(#fg)"/><rect x="42" y="28" width="24" height="76" rx="12" fill="url(#fgv)"/>
+      </svg>
+      <h1 style="background:linear-gradient(135deg,#FFD84D,#FF8C00,#FF2D00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Technieum</h1>
+    </div>
+    <nav class="app-nav">
+      <a href="/">Dashboard</a>
+      <a href="/scan_viewer.html">Scan Viewer</a>
+      <a href="/findings.html" class="active">Findings</a>
+      <a href="/graph_viewer.html">Attack Graph</a>
+    </nav>
+  </header>
+
+  <main class="main">
+    <div class="card">
+      <h2>Select target</h2>
+      <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <select id="targetSelect" style="min-width: 220px;">
+          <option value="">— Select target —</option>
+        </select>
+        <select id="severityFilter" style="width: 140px;">
+          <option value="">All severities</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+          <option value="info">Info</option>
+        </select>
+        <button type="button" class="btn btn-primary" id="loadFindings">Load findings</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Summary</h2>
+      <div id="summaryLoading" class="empty-state">Select a target and load.</div>
+      <div id="summaryGrid" class="stats-grid hidden"></div>
+    </div>
+
+    <div class="card">
+      <h2>Findings</h2>
+      <div id="findingsLoading" class="empty-state hidden">Loading…</div>
+      <div id="findingsList" class="hidden">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Severity</th>
+                <th>Name</th>
+                <th>Host</th>
+                <th>Tool</th>
+                <th>CVE</th>
+                <th>Info</th>
+              </tr>
+            </thead>
+            <tbody id="findingsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="findingsEmpty" class="empty-state hidden">
+        <p>No findings for this target.</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="/assets/js/findings.js"></script>
+</body>
+</html>

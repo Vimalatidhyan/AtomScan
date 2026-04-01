@@ -1,10 +1,10 @@
-# ReconX Enterprise — Notification Configuration
+# Technieum Enterprise — Notification Configuration
 
 slack:
   enabled: false
   webhook_url: ""              # env: SLACK_WEBHOOK_URL
-  channel: "#reconx-alerts"
-  username: "ReconX"
+  channel: "#technieum-alerts"
+  username: "Technieum"
   icon_emoji: ":warning:"
 
 email:
@@ -14,7 +14,7 @@ email:
   smtp_tls: true
   username: ""                 # env: EMAIL_USERNAME
   password: ""                 # env: EMAIL_PASSWORD
-  from_address: "reconx@example.com"
+  from_address: "technieum@example.com"
   to_addresses:
     - "security@example.com"
 

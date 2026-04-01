@@ -1,6 +1,6 @@
-# ReconX Documentation Index
+# Technieum Documentation Index
 
-Welcome to the complete ReconX documentation. Start here to find what you need.
+Welcome to the complete Technieum documentation. Start here to find what you need.
 
 ---
 
@@ -8,7 +8,7 @@ Welcome to the complete ReconX documentation. Start here to find what you need.
 
 ### [README.md](README.md) - Start Here
 **Complete guide covering everything at a non-technical, understandable level**
-- What ReconX is and how it works
+- What Technieum is and how it works
 - The 4-phase approach explained
 - What's currently working
 - What's planned for the future
@@ -16,7 +16,7 @@ Welcome to the complete ReconX documentation. Start here to find what you need.
 - Quick command reference
 - ~500 lines, easy to read, no code
 
-**Read this if:** You're new to ReconX or want a complete overview
+**Read this if:** You're new to Technieum or want a complete overview
 
 ---
 
@@ -29,7 +29,7 @@ bash setup.sh
 pip3 install -r requirements.txt
 
 # Run your first scan
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 
 # Query results
 python3 query.py -t example.com --summary
@@ -149,22 +149,22 @@ Testing for security vulnerabilities
 
 ### Scan a Single Domain
 ```bash
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 ```
 
 ### Scan Multiple Domains
 ```bash
-python3 reconx.py -t example.com,other.com,third.com
+python3 technieum.py -t example.com,other.com,third.com
 ```
 
 ### Run Only Specific Phases
 ```bash
-python3 reconx.py -t example.com --phases 1,2
+python3 technieum.py -t example.com --phases 1,2
 ```
 
 ### Resume a Scan
 ```bash
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 ### Query Results
@@ -250,7 +250,7 @@ Follow tool installation guides for each of the 50+ tools
 
 ```
 /
-├── reconx.py              Main orchestrator
+├── technieum.py              Main orchestrator
 ├── query.py               Results interface
 ├── config.yaml            Configuration
 ├── requirements.txt       Python dependencies
@@ -287,7 +287,7 @@ Follow tool installation guides for each of the 50+ tools
 
 ## For Different Users
 
-### I'm New to ReconX
+### I'm New to Technieum
 1. Read [README.md](README.md) - Full overview
 2. Follow quick start commands above
 3. Run your first scan
@@ -373,8 +373,8 @@ docker-compose up
 ## Next Steps
 
 ### This Week
-- [ ] Install ReconX (`bash setup.sh`)
-- [ ] Run a test scan (`python3 reconx.py -t example.com`)
+- [ ] Install Technieum (`bash setup.sh`)
+- [ ] Run a test scan (`python3 technieum.py -t example.com`)
 - [ ] Query the results (`python3 query.py -t example.com --summary`)
 - [ ] Explore the database (`sqlite3 db/results.db`)
 
@@ -405,7 +405,7 @@ docker-compose up
 
 ## Version Information
 
-- **ReconX Version:** 1.0
+- **Technieum Version:** 1.0
 - **Status:** Production Ready (CLI)
 - **Phase:** A (REST API, Dashboard, Reports) planned for Q2 2026
 - **Last Updated:** February 2026

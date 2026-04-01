@@ -1,5 +1,5 @@
 """
-Mock data for ReconX unit and integration tests.
+Mock data for Technieum unit and integration tests.
 
 Each constant mirrors the real output format produced by the corresponding
 external tool so that parser tests can run without any tools installed.

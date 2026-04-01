@@ -9,7 +9,7 @@ class Config:
     """Application configuration from environment variables."""
     
     # Database
-    DATABASE_PATH = os.getenv("DATABASE_PATH", "./reconx.db")
+    DATABASE_PATH = os.getenv("DATABASE_PATH", "./technieum.db")
     
     # Security
     SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE_ME_IN_PRODUCTION")
@@ -31,6 +31,7 @@ class Config:
     DEHASHED_API_KEY = os.getenv("DEHASHED_API_KEY", "")
     SECURITYTRAILS_API_KEY = os.getenv("SECURITYTRAILS_API_KEY", "")
     ALIENVAULT_API_KEY = os.getenv("ALIENVAULT_API_KEY", "")
+    C99_API_KEY = os.getenv("C99_API_KEY", "")
     
     # External Scanners
     NMAP_PATH = os.getenv("NMAP_PATH", "/usr/bin/nmap")
@@ -48,7 +49,7 @@ class Config:
     
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-    LOG_FILE = os.getenv("LOG_FILE", "./logs/reconx.log")
+    LOG_FILE = os.getenv("LOG_FILE", "./logs/technieum.log")
     
     @classmethod
     def validate(cls):

@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# ReconX - Phase 9: Attack Surface Graph Construction
+# Technieum - Phase 9: Attack Surface Graph Construction
 # Builds a relationship graph of assets, vulnerabilities, and attack paths
 ################################################################################
 
@@ -26,7 +26,7 @@ source "$SCRIPT_DIR/../lib/common.sh"
 
 mkdir -p "$PHASE_DIR"/{graph,paths,visualizations,reports}
 
-PYTHON="${RECONX_PYTHON:-python3}"
+PYTHON="${TECHNIEUM_PYTHON:-python3}"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 log_info "=== Phase 9: Attack Surface Graph Construction for $TARGET ==="

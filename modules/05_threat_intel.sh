@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# ReconX - Phase 5: Threat Intelligence
+# Technieum - Phase 5: Threat Intelligence
 # Multi-source threat intel aggregation. Does not change phases 1-4.
 ################################################################################
 
@@ -22,7 +22,7 @@ source "$SCRIPT_DIR/../lib/common.sh"
 
 mkdir -p "$PHASE_DIR"/{data_leaks,malware,ip_reputation,domain_reputation,blocklists,breach_monitoring}
 
-TIMEOUT_HTTP="${RECONX_THREAT_INTEL_TIMEOUT:-60}"
+TIMEOUT_HTTP="${TECHNIEUM_THREAT_INTEL_TIMEOUT:-60}"
 
 echo "[*] Phase 5: Threat Intelligence for $TARGET"
 echo "[*] Output directory: $PHASE_DIR"
@@ -107,7 +107,7 @@ run_timeout "$TIMEOUT_HTTP" curl -s "https://psbdmp.ws/api/search/$TARGET" 2>/de
 log_info "=== Aggregating Phase 5 results ==="
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SUMMARY="$PHASE_DIR/phase5_threat_intel_summary.json"
-DB_PATH="${RECONX_DB_PATH:-reconx.db}"
+DB_PATH="${TECHNIEUM_DB_PATH:-technieum.db}"
 export PYTHONPATH="${REPO_ROOT}:${PYTHONPATH:-}"
 if PYTHONPATH="${REPO_ROOT}:${PYTHONPATH:-}" python3 -m intelligence.threat_intel.aggregator --target "$TARGET" --phase-dir "$PHASE_DIR" --output "$SUMMARY" --db "$DB_PATH" 2>/dev/null; then
     log_info "Phase 5 summary written to $SUMMARY"

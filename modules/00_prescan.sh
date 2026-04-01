@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# ReconX - Phase 0: Pre-Scan Intelligence
+# Technieum - Phase 0: Pre-Scan Intelligence
 # Risk profiling before scanning begins. Does not modify existing phases.
 ################################################################################
 
@@ -21,7 +21,7 @@ mkdir -p "$PHASE_DIR"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/common.sh"
 
-PRESCAN_TIMEOUT="${RECONX_PRESCAN_TIMEOUT:-120}"
+PRESCAN_TIMEOUT="${TECHNIEUM_PRESCAN_TIMEOUT:-120}"
 
 echo "[*] Phase 0: Pre-Scan Intelligence for $TARGET"
 echo "[*] Output directory: $PHASE_DIR"
@@ -47,8 +47,8 @@ fi
 
 # 3. Baseline: check for previous scan (query DB from Python later if needed; here we only note)
 LAST_SCAN_DATE=""
-if [ -n "$RECONX_DB_PATH" ] && [ -f "$RECONX_DB_PATH" ]; then
-    LAST_SCAN_DATE=$(sqlite3 "$RECONX_DB_PATH" "SELECT updated_at FROM scan_progress WHERE target='$TARGET' LIMIT 1;" 2>/dev/null || true)
+if [ -n "$TECHNIEUM_DB_PATH" ] && [ -f "$TECHNIEUM_DB_PATH" ]; then
+    LAST_SCAN_DATE=$(sqlite3 "$TECHNIEUM_DB_PATH" "SELECT updated_at FROM scan_progress WHERE target='$TARGET' LIMIT 1;" 2>/dev/null || true)
 fi
 
 # 4. Inherent risk (0-100): simple heuristic without external APIs

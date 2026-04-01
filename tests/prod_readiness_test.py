@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ReconX Production Readiness Test Runner
+Technieum Production Readiness Test Runner
 
 Runs a full audit in 8 phases, produces a final scoring table.
 Designed to be a single-file runner: no external test framework required.
@@ -9,7 +9,7 @@ Usage:
   python tests/prod_readiness_test.py --host 127.0.0.1 --port 8000 --base /Users/rejenthompson/Documents/technieum-/kali-linux-asm
 
 Optional:
-  Set RECONX_BASE env var to override --base
+  Set TECHNIEUM_BASE env var to override --base
 
 Requirements:
   - requests (pip install requests)
@@ -570,10 +570,10 @@ def print_report(scores: List[PhaseScore]):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ReconX Production Readiness Test Runner")
+    parser = argparse.ArgumentParser(description="Technieum Production Readiness Test Runner")
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
-    parser.add_argument("--base", default=os.environ.get("RECONX_BASE", "/Users/rejenthompson/Documents/technieum-/kali-linux-asm"))
+    parser.add_argument("--base", default=os.environ.get("TECHNIEUM_BASE", "/Users/rejenthompson/Documents/technieum-/kali-linux-asm"))
     args = parser.parse_args()
     base = Path(args.base).resolve()
     if not base.exists():

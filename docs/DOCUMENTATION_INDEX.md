@@ -1,4 +1,4 @@
-# ReconX Documentation - Quick Reference
+# Technieum Documentation - Quick Reference
 
 **⚠️ Full Documentation Has Been Updated**
 
@@ -8,7 +8,7 @@ Please refer to the comprehensive documentation: [DOCUMENTATION.md](DOCUMENTATIO
 
 ## Quick Links
 
-- **[Architecture Overview](DOCUMENTATION.md#architecture-overview)** - How ReconX works
+- **[Architecture Overview](DOCUMENTATION.md#architecture-overview)** - How Technieum works
 - **[Installation](DOCUMENTATION.md#installation--setup)** - Get started in 3 commands
 - **[Usage Guide](DOCUMENTATION.md#usage-guide)** - Running scans and querying results
 - **[4-Phase Engine Details](DOCUMENTATION.md#four-phase-reconnaissance-engine)** - What each phase does
@@ -24,7 +24,7 @@ Please refer to the comprehensive documentation: [DOCUMENTATION.md](DOCUMENTATIO
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **CLI Tool** | ✅ Production | `python3 reconx.py -t example.com` |
+| **CLI Tool** | ✅ Production | `python3 technieum.py -t example.com` |
 | **Database** | ✅ SQLite | WAL mode, 50+ indexed queries |
 | **4 Phases** | ✅ Working | Discovery, Intelligence, Content, Vulnerability Scanning |
 | **Parsers** | ✅95% | Most major tools parsed, some gaps |
@@ -98,10 +98,10 @@ Ask Claude for these 4 prompts in order:
 
 ```bash
 # Scan single target
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 
 # Scan multiple targets in parallel
-python3 reconx.py -f targets.txt -T 10
+python3 technieum.py -f targets.txt -T 10
 
 # Query results
 python3 query.py -t example.com --summary
@@ -112,7 +112,7 @@ python3 query.py -t example.com --export vulnerabilities -o vulns.csv
 
 ---
 
-## What Makes ReconX Unique
+## What Makes Technieum Unique
 
 1. **50+ Tools Orchestrated** - Maximum coverage through redundancy
 2. **4 Distinct Phases** - Modular workflow from discovery → vulnerability scanning
@@ -126,7 +126,7 @@ python3 query.py -t example.com --export vulnerabilities -o vulns.csv
 ## Next Steps
 
 1. **Read Full Documentation** → [DOCUMENTATION.md](DOCUMENTATION.md)
-2. **Try It Out** → `bash setup.sh && python3 reconx.py -t example.com`
+2. **Try It Out** → `bash setup.sh && python3 technieum.py -t example.com`
 3. **For Development** → See [REFACTOR_PROMPT.md](REFACTOR_PROMPT.md) for Claude prompts
 4. **Report Issues** → GitHub Issues / Email
 

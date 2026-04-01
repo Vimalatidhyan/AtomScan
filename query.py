@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-ReconX Database Query Tool
-Quick queries and reports from the ReconX database
+Technieum Database Query Tool
+Quick queries and reports from the Technieum database
 """
 
 import argparse
@@ -16,10 +16,10 @@ from db.database import DatabaseManager
 ALLOWED_TABLES = {'subdomains', 'vulnerabilities', 'leaks', 'ports', 'urls'}
 
 
-class ReconXQuery:
+class TechnieumQuery:
     """Database query interface"""
 
-    def __init__(self, db_path: str = "reconx.db"):
+    def __init__(self, db_path: str = "technieum.db"):
         self.db = DatabaseManager(db_path)
 
     def list_targets(self):
@@ -221,11 +221,11 @@ class ReconXQuery:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="ReconX Database Query Tool",
+        description="Technieum Database Query Tool",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument('-d', '--database', default='reconx.db', help='Database file path')
+    parser.add_argument('-d', '--database', default='technieum.db', help='Database file path')
     parser.add_argument('-t', '--target', help='Target domain')
 
     parser.add_argument('--list', action='store_true', help='List all targets')
@@ -243,7 +243,7 @@ def main():
 
     args = parser.parse_args()
 
-    query = ReconXQuery(args.database)
+    query = TechnieumQuery(args.database)
 
     try:
         if args.list:

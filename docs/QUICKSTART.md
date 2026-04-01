@@ -1,23 +1,23 @@
-# ReconX Quick Start Guide
+# Technieum Quick Start Guide
 
-**Goal:** Get ReconX running and understand the full project in under 30 minutes
+**Goal:** Get Technieum running and understand the full project in under 30 minutes
 
 ---
 
-## Part 1: Understand What ReconX Does (5 minutes)
+## Part 1: Understand What Technieum Does (5 minutes)
 
-ReconX is an **Attack Surface Management platform** that finds everything on your digital footprint:
+Technieum is an **Attack Surface Management platform** that finds everything on your digital footprint:
 
 ```
 Your Domain
     ↓
-ReconX Phase 1: Find subdomains (thousands)
+Technieum Phase 1: Find subdomains (thousands)
     ↓
-ReconX Phase 2: Scan ports, check for leaks
+Technieum Phase 2: Scan ports, check for leaks
     ↓
-ReconX Phase 3: Discover URLs, APIs, endpoints
+Technieum Phase 3: Discover URLs, APIs, endpoints
     ↓
-ReconX Phase 4: Test for vulnerabilities (XSS, SQLi, etc.)
+Technieum Phase 4: Test for vulnerabilities (XSS, SQLi, etc.)
     ↓
 Results Database
     ↓
@@ -26,7 +26,7 @@ Reports/API Access
 
 ---
 
-## Part 2: Install ReconX (5 minutes)
+## Part 2: Install Technieum (5 minutes)
 
 ```bash
 # 1. Navigate to project
@@ -44,7 +44,7 @@ sudo bash install.sh          # Takes 20-30 minutes
 
 **Check it works:**
 ```bash
-python3 reconx.py --help      # Should show help text
+python3 technieum.py --help      # Should show help text
 ```
 
 ---
@@ -53,7 +53,7 @@ python3 reconx.py --help      # Should show help text
 
 ```bash
 # Scan example.com
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 
 # Watch it run - you'll see:
 # [+] Phase 1: Discovery & Enumeration for example.com
@@ -70,7 +70,7 @@ python3 reconx.py -t example.com
 ls -la output/example_com/phase1_discovery/
 
 # Check database growing
-sqlite3 reconx.db "SELECT COUNT(*) FROM subdomains"
+sqlite3 technieum.db "SELECT COUNT(*) FROM subdomains"
 ```
 
 ---
@@ -135,7 +135,7 @@ echo "your-domain.com" > targets.txt
 echo "another-site.com" >> targets.txt
 
 # Scan all
-python3 reconx.py -f targets.txt -T 5
+python3 technieum.py -f targets.txt -T 5
 
 # Get report
 python3 query.py --list
@@ -156,17 +156,17 @@ python3 query.py -t your-domain.com --summary
 ### Option 3: Optimize for Your Environment
 Edit environment variables:
 ```bash
-export RECONX_PHASE_TIMEOUT=7200      # 2-hour phases
-export RECONX_THREADS=10              # Scan 10 targets in parallel
-export RECONX_DNSX_THREADS=200        # Fast DNS
-export RECONX_HTTPX_THREADS=200       # Fast HTTP probing
-python3 reconx.py -f targets.txt
+export TECHNIEUM_PHASE_TIMEOUT=7200      # 2-hour phases
+export TECHNIEUM_THREADS=10              # Scan 10 targets in parallel
+export TECHNIEUM_DNSX_THREADS=200        # Fast DNS
+export TECHNIEUM_HTTPX_THREADS=200       # Fast HTTP probing
+python3 technieum.py -f targets.txt
 ```
 
 ### Option 4: Review the Code
 Key files to understand:
 ```
-reconx.py                  # Main orchestrator
+technieum.py                  # Main orchestrator
 ├─ Phase execution logic
 ├─ Threading model
 ├─ Output parsing setup
@@ -193,10 +193,10 @@ parsers/parser.py         # Output parsing
 
 ```bash
 # SCANNING
-python3 reconx.py -t example.com              # Scan all phases
-python3 reconx.py -t example.com -p 1,2      # Only phases 1-2
-python3 reconx.py -f targets.txt -T 10       # Parallel scan
-python3 reconx.py -t example.com -o custom_dir  # Custom output
+python3 technieum.py -t example.com              # Scan all phases
+python3 technieum.py -t example.com -p 1,2      # Only phases 1-2
+python3 technieum.py -f targets.txt -T 10       # Parallel scan
+python3 technieum.py -t example.com -o custom_dir  # Custom output
 
 # QUERYING
 python3 query.py --list                       # List all targets
@@ -211,8 +211,8 @@ python3 query.py -t example.com --export vulnerabilities -o vulns.csv
 python3 query.py -t example.com --export all -o full.csv
 
 # DATABASE
-sqlite3 reconx.db "SELECT COUNT(*) FROM subdomains"  # Direct queries
-sqlite3 reconx.db "SELECT * FROM vulnerabilities WHERE severity='critical'"
+sqlite3 technieum.db "SELECT COUNT(*) FROM subdomains"  # Direct queries
+sqlite3 technieum.db "SELECT * FROM vulnerabilities WHERE severity='critical'"
 ```
 
 ---
@@ -255,7 +255,7 @@ project/
 ├── DOCUMENTATION_UPDATE.md      ← What's new
 ├── REFACTOR_PROMPT.md           ← Development prompts
 │
-├── reconx.py                    ← Main tool
+├── technieum.py                    ← Main tool
 ├── query.py                     ← Query/export tool
 ├── config.yaml                  ← Configuration (not used yet)
 ├── requirements.txt             ← Python packages
@@ -275,7 +275,7 @@ project/
 │       ├── phase3_content/
 │       └── phase4_vulnscan/
 │
-└── reconx.db                    ← SQLite database (auto-created)
+└── technieum.db                    ← SQLite database (auto-created)
 ```
 
 ---
@@ -340,7 +340,7 @@ A: CLI tool: YES. API/Dashboard: Not yet (coming Phase A ~April 2026).
 
 ## Key Takeaways
 
-1. **ReconX finds your attack surface** - all subdomains, URLs, ports, vulnerabilities
+1. **Technieum finds your attack surface** - all subdomains, URLs, ports, vulnerabilities
 2. **Currently a CLI tool** - powerful but requires command-line knowledge
 3. **Clear roadmap for improvement** - REST API, Web UI, scheduling, enterprise features planned
 4. **Orchestrates 50+ tools** - maximum coverage through tool redundancy
@@ -352,7 +352,7 @@ A: CLI tool: YES. API/Dashboard: Not yet (coming Phase A ~April 2026).
 
 ## Time Estimate to Learn
 
-- **5 min:** Understand what ReconX does
+- **5 min:** Understand what Technieum does
 - **5 min:** Install and run first scan
 - **10 min:** Query results and export
 - **10 min:** Read full documentation
@@ -360,7 +360,7 @@ A: CLI tool: YES. API/Dashboard: Not yet (coming Phase A ~April 2026).
 
 ---
 
-**Start with:** `python3 reconx.py -t example.com`  
+**Start with:** `python3 technieum.py -t example.com`  
 **Then read:** [DOCUMENTATION.md](DOCUMENTATION.md)  
 **For development:** [REFACTOR_PROMPT.md](REFACTOR_PROMPT.md)
 

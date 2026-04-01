@@ -1,5 +1,5 @@
 """
-ReconX API Server — entry-point shim.
+Technieum API Server — entry-point shim.
 
 The canonical server implementation lives in app/api/server.py.
 This shim re-exports that app so that the original launch command works:

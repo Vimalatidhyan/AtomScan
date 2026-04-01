@@ -1,6 +1,6 @@
 # Quick Reference: Commands & Syntax
 
-Fast lookup for common ReconX commands. For full details, see README.md.
+Fast lookup for common Technieum commands. For full details, see README.md.
 
 ---
 
@@ -8,26 +8,26 @@ Fast lookup for common ReconX commands. For full details, see README.md.
 
 ### Scan a Single Target
 ```bash
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 ```
 Runs all 4 phases automatically.
 
 ### Scan Multiple Targets
 ```bash
-python3 reconx.py -t example.com,other.com,third.com
-python3 reconx.py -t targets.txt  # One per line
+python3 technieum.py -t example.com,other.com,third.com
+python3 technieum.py -t targets.txt  # One per line
 ```
 
 ### Run Specific Phases Only
 ```bash
-python3 reconx.py -t example.com --phases 1
-python3 reconx.py -t example.com --phases 1,2
-python3 reconx.py -t example.com --phases 1-3
+python3 technieum.py -t example.com --phases 1
+python3 technieum.py -t example.com --phases 1,2
+python3 technieum.py -t example.com --phases 1-3
 ```
 
 ### Resume Interrupted Scan
 ```bash
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 ---
@@ -219,7 +219,7 @@ pip3 install -r requirements.txt
 nano config.yaml
 
 # 6. Test installation
-python3 reconx.py -t example.com --phases 1
+python3 technieum.py -t example.com --phases 1
 ```
 
 ---
@@ -229,14 +229,14 @@ python3 reconx.py -t example.com --phases 1
 ### Quick Assessment
 ```bash
 # Scan and get summary
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 python3 query.py -t example.com --summary --vulnerabilities --critical
 ```
 
 ### Detailed Report
 ```bash
 # Run full scan
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 
 # Export everything
 python3 query.py -t example.com --export all
@@ -254,7 +254,7 @@ other.com
 third.com
 
 # Scan all
-python3 reconx.py -t targets.txt
+python3 technieum.py -t targets.txt
 
 # Report on each
 for target in $(cat targets.txt); do
@@ -266,11 +266,11 @@ done
 ### Monitor for Changes
 ```bash
 # Run initial scan
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 python3 query.py -t example.com --export all > baseline.csv
 
 # Run again later
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 python3 query.py -t example.com --export all > current.csv
 
 # Compare
@@ -295,10 +295,10 @@ ls /usr/local/bin | grep -E "subfinder|nmap|nuclei"
 ### View Scan Progress
 ```bash
 # Watch log output
-tail -f logs/reconx.log
+tail -f logs/technieum.log
 
 # Check current phase
-ps aux | grep reconx.py
+ps aux | grep technieum.py
 ```
 
 ### Database Health Check
@@ -320,10 +320,10 @@ SELECT * FROM subdomains WHERE target='example.com';
 ### Debug Mode
 ```bash
 # Run with verbose output
-python3 reconx.py -t example.com --verbose
+python3 technieum.py -t example.com --verbose
 
 # Enable debug logging
-python3 reconx.py -t example.com --debug
+python3 technieum.py -t example.com --debug
 ```
 
 ---
@@ -335,7 +335,7 @@ Results:          output/{target}/{phase}*/
 Database:         db/results.db
 Configuration:    config.yaml
 Logs:             logs/
-Main script:      reconx.py
+Main script:      technieum.py
 Query script:     query.py
 Modules:          modules/
 Parsers:          parsers/
@@ -348,7 +348,7 @@ Documentation:    docs/
 
 | Question | Answer |
 |----------|--------|
-| How do I use ReconX? | See README.md |
+| How do I use Technieum? | See README.md |
 | What tools are included? | See TOOLS.md or `ls modules/` |
 | Something's broken | See TROUBLESHOOTING.md |
 | Common issues | See FAQ.md |
@@ -375,7 +375,7 @@ brew install (tool-name)      # macOS
 ```bash
 # Kill and resume
 Ctrl+C
-python3 reconx.py -t example.com --resume
+python3 technieum.py -t example.com --resume
 ```
 
 ### No results
@@ -387,7 +387,7 @@ sqlite3 db/results.db ".tables"
 ls -la output/example.com/
 
 # Run with verbose
-python3 reconx.py -t example.com --verbose
+python3 technieum.py -t example.com --verbose
 ```
 
 ### API key errors
@@ -409,7 +409,7 @@ export SHODAN_API_KEY="your-key"
 export HUNTER_API_KEY="your-key"
 
 # Run scan
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 ```
 
 ---

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 ###############################################################################
-# ReconX Enterprise ASM - Kali Linux Setup Script
-# This script installs all dependencies and tools needed for ReconX
+# Technieum Enterprise ASM - Kali Linux Setup Script
+# This script installs all dependencies and tools needed for Technieum
 # Usage: bash kali_setup.sh
 ###############################################################################
 
@@ -16,7 +16,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}================================================${NC}"
-echo -e "${BLUE}  ReconX Enterprise ASM - Kali Linux Setup${NC}"
+echo -e "${BLUE}  Technieum Enterprise ASM - Kali Linux Setup${NC}"
 echo -e "${BLUE}================================================${NC}\n"
 
 # Function to print section headers
@@ -209,7 +209,7 @@ cat > "$PROJECT_DIR/start_server.sh" << 'EOF'
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 source .venv/bin/activate
-echo "Starting ReconX Enterprise ASM Server..."
+echo "Starting Technieum Enterprise ASM Server..."
 echo "Server running at: http://localhost:8000"
 echo "Press Ctrl+C to stop"
 python -m uvicorn api.server:app --host 0.0.0.0 --port 8000
@@ -244,7 +244,7 @@ print_header "Step 13: Creating tmux start script..."
 cat > "$PROJECT_DIR/start_server_tmux.sh" << 'EOF'
 #!/bin/bash
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SESSION_NAME="reconx"
+SESSION_NAME="technieum"
 
 # Kill existing session if it exists
 tmux kill-session -t $SESSION_NAME 2>/dev/null || true
@@ -270,7 +270,7 @@ print_success "Tmux start script created: start_server_tmux.sh"
 print_header "Step 14: Creating status check script..."
 cat > "$PROJECT_DIR/check_status.sh" << 'EOF'
 #!/bin/bash
-echo "=== ReconX Enterprise ASM Status ==="
+echo "=== Technieum Enterprise ASM Status ==="
 echo ""
 echo "Port 8000 Status:"
 if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null ; then
@@ -303,7 +303,7 @@ print_success "Status check script created: check_status.sh"
 print_header "Step 15: Creating stop script..."
 cat > "$PROJECT_DIR/stop_server.sh" << 'EOF'
 #!/bin/bash
-echo "Stopping ReconX Enterprise ASM Server..."
+echo "Stopping Technieum Enterprise ASM Server..."
 
 # Stop from PID file if exists
 if [ -f "server.pid" ]; then
@@ -316,7 +316,7 @@ fi
 lsof -ti:8000 | xargs kill -9 2>/dev/null && echo "Killed process on port 8000" || echo "No process found on port 8000"
 
 # Stop tmux session if exists
-tmux kill-session -t reconx 2>/dev/null && echo "Killed tmux session: reconx" || true
+tmux kill-session -t technieum 2>/dev/null && echo "Killed tmux session: technieum" || true
 
 echo "Done"
 EOF
@@ -361,4 +361,4 @@ nmap --version 2>/dev/null | head -1
 nikto --version 2>/dev/null | head -1
 
 echo ""
-print_success "Ready to use ReconX Enterprise ASM!"
+print_success "Ready to use Technieum Enterprise ASM!"

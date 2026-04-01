@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subdomain Finder | Technieum Enterprise</title>
+  <link rel="stylesheet" href="/assets/css/style.css?v=4.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Page-specific styles ────────────────────────────────── */
+    .source-badges { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .source-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 10px; border-radius:var(--radius-md);
+      font-size:.75rem; font-weight:600;
+      border:1px solid var(--border);
+    }
+    .source-badge .dot {
+      width:8px; height:8px; border-radius:50%;
+    }
+    .source-badge.available .dot  { background:var(--success); }
+    .source-badge.unavailable .dot { background:var(--text-dim); }
+    .source-badge.available  { color:var(--success); border-color:var(--success); background:var(--success-bg); }
+    .source-badge.unavailable { color:var(--text-muted); }
+
+    .results-meta {
+      display:flex; gap:1.5rem; flex-wrap:wrap;
+      font-size:.8125rem; color:var(--text-secondary);
+      margin-bottom:1rem;
+    }
+    .results-meta strong { color:var(--text); }
+
+    .subdomain-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+      gap:.5rem;
+    }
+    .subdomain-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:8px 12px;
+      background:var(--bg-elevated);
+      border-radius:var(--radius-md);
+      font-family:var(--font-mono);
+      font-size:.8125rem;
+      border:1px solid var(--border);
+      transition:border-color var(--transition-fast);
+    }
+    .subdomain-row:hover { border-color:var(--primary); }
+    .subdomain-row .sub-name { color:var(--text); word-break:break-all; }
+    .subdomain-row .sub-source {
+      font-family:var(--font-sans);
+      font-size:.6875rem;
+      font-weight:600;
+      text-transform:uppercase;
+      padding:2px 8px;
+      border-radius:var(--radius-sm);
+      white-space:nowrap;
+      flex-shrink:0;
+      margin-left:12px;
+    }
+    .sub-source.crtsh   { color:#06B6D4; background:rgba(6,182,212,0.12); }
+    .sub-source.c99     { color:#FF2D00; background:rgba(255,45,0,0.12); }
+    .sub-source.iphthc  { color:#F59E0B; background:rgba(245,158,11,0.12); }
+    .sub-source.cname   { color:#EC4899; background:rgba(236,72,153,0.12); }
+    .sub-source.rdns    { color:#10B981; background:rgba(16,185,129,0.12); }
+
+    .filter-bar {
+      display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem;
+    }
+    .filter-bar .form-control { flex:1; min-width:200px; }
+    .filter-btn {
+      padding:6px 14px; border:1px solid var(--border); background:var(--bg-elevated);
+      color:var(--text-secondary); border-radius:var(--radius-md); cursor:pointer;
+      font-size:.75rem; font-weight:600; transition:all var(--transition-fast);
+    }
+    .filter-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .filter-btn.active { border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
+
+    .export-bar { display:flex; gap:.5rem; }
+
+    .empty-results {
+      text-align:center; padding:3rem 1rem; color:var(--text-muted);
+    }
+    .empty-results svg { margin-bottom:.75rem; opacity:0.4; }
+
+    .progress-bar-wrapper {
+      height:4px; background:var(--bg-elevated); border-radius:2px;
+      overflow:hidden; margin-top:.75rem; display:none;
+    }
+    .progress-bar-wrapper.active { display:block; }
+    .progress-bar-inner {
+      height:100%; background:linear-gradient(90deg, #FF8C00, #FF2D00);
+      border-radius:2px; animation:indeterminate 1.5s ease infinite;
+    }
+    @keyframes indeterminate {
+      0%   { width:0%; margin-left:0%; }
+      50%  { width:40%; margin-left:30%; }
+      100% { width:0%; margin-left:100%; }
+    }
+
+    /* ── Tab Navigation ───────────────────────────────────────── */
+    .page-tabs {
+      display:flex; gap:4px; padding:0 0 1rem 0;
+      border-bottom:1px solid var(--border); margin-bottom:1.5rem;
+    }
+    .page-tab {
+      padding:8px 20px; border-radius:var(--radius-md);
+      font-size:.8125rem; font-weight:600; cursor:pointer;
+      color:var(--text-secondary); background:transparent;
+      border:1px solid transparent; transition:all var(--transition-fast);
+    }
+    .page-tab:hover { color:var(--text); border-color:var(--border); }
+    .page-tab.active {
+      color:var(--primary); background:var(--primary-light);
+      border-color:var(--primary);
+    }
+
+    /* ── Certificate Table ────────────────────────────────────── */
+    .cert-table-wrap { overflow-x:auto; }
+    .cert-table {
+      width:100%; border-collapse:collapse; font-size:.8rem;
+    }
+    .cert-table th {
+      font-size:.6875rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:.04em; color:var(--text-dim);
+      padding:8px 12px; white-space:nowrap;
+      border-bottom:2px solid var(--border);
+      position:sticky; top:0; background:var(--card-bg);
+    }
+    .cert-table td {
+      padding:10px 12px; border-bottom:1px solid var(--border-subtle, rgba(255,255,255,.06));
+      vertical-align:top;
+    }
+    .cert-table tr:hover td { background:var(--bg-hover, rgba(255,255,255,.03)); }
+    .cert-id-link {
+      font-family:var(--font-mono); font-size:.75rem;
+      color:var(--accent-cyan,#06B6D4); text-decoration:none;
+    }
+    .cert-id-link:hover { text-decoration:underline; }
+    .cert-cn {
+      font-family:var(--font-mono); font-size:.8rem;
+      color:var(--text); font-weight:600;
+    }
+    .cert-san-list {
+      display:flex; flex-direction:column; gap:2px; max-height:80px;
+      overflow-y:auto;
+    }
+    .cert-san {
+      font-family:var(--font-mono); font-size:.7rem;
+      color:var(--text-secondary);
+    }
+    .cert-san.wildcard { color:#F59E0B; }
+    .cert-issuer {
+      font-size:.76rem; color:var(--text-muted); max-width:200px;
+    }
+    .cert-date { font-family:var(--font-mono); font-size:.75rem; white-space:nowrap; }
+    .cert-date.expired { color:var(--danger,#e74c3c); }
+    .cert-date.expiring { color:#F59E0B; }
+    .cert-date.valid { color:var(--text-secondary); }
+    .cert-badge {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:3px 10px; border-radius:999px;
+      font-size:.625rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+      white-space:nowrap;
+    }
+    .cert-badge.valid    { color:#10B981; background:rgba(16,185,129,.15); border:1px solid rgba(16,185,129,.3); }
+    .cert-badge.expiring { color:#F59E0B; background:rgba(245,158,11,.15);  border:1px solid rgba(245,158,11,.3); }
+    .cert-badge.expired  { color:#EF4444; background:rgba(239,68,68,.15);  border:1px solid rgba(239,68,68,.3); }
+    .serial-mono {
+      font-family:var(--font-mono); font-size:.65rem;
+      color:var(--text-dim); word-break:break-all; max-width:120px;
+    }
+    .cert-filter-bar { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; align-items:center; }
+    .cert-filter-btn {
+      padding:5px 14px; border:1px solid var(--border); background:var(--bg-elevated);
+      color:var(--text-secondary); border-radius:var(--radius-md); cursor:pointer;
+      font-size:.75rem; font-weight:600; transition:all var(--transition-fast);
+    }
+    .cert-filter-btn:hover  { border-color:var(--primary); color:var(--primary); }
+    .cert-filter-btn.active { border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
+    .cert-filter-btn.valid.active    { border-color:#10B981; background:rgba(16,185,129,.15); color:#10B981; }
+    .cert-filter-btn.expiring.active { border-color:#F59E0B; background:rgba(245,158,11,.15); color:#F59E0B; }
+    .cert-filter-btn.expired.active  { border-color:#EF4444; background:rgba(239,68,68,.15);  color:#EF4444; }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+            <defs>
+              <linearGradient id="tBarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#FFD84D"/>
+                <stop offset="50%" style="stop-color:#FF8C00"/>
+                <stop offset="100%" style="stop-color:#FF2D00"/>
+              </linearGradient>
+              <linearGradient id="tStemGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#FF8C00"/>
+                <stop offset="100%" style="stop-color:#FFD84D"/>
+              </linearGradient>
+            </defs>
+            <rect x="8" y="16" width="104" height="24" rx="12" fill="url(#tBarGrad)"/>
+            <rect x="42" y="28" width="24" height="76" rx="12" fill="url(#tStemGrad)"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand">
+          <span class="brand-name">TECHNIEUM</span>
+          <small>Enterprise ASM</small>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Main</div>
+          <a href="/" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            Dashboard
+          </a>
+          <a href="/attack-surface" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+            Attack Surface
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Security</div>
+          <a href="/assessments" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
+            Assessments
+          </a>
+          <a href="/vulnerabilities" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+            Vulnerabilities
+          </a>
+          <a href="/threat-intel" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="9"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="1" y1="12" x2="3" y2="12"/></svg></span>
+            Threat Intel
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Discovery</div>
+          <a href="/subdomain-finder" class="sidebar-item active">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></span>
+            Subdomain Finder
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Analysis</div>
+          <a href="/graph" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><line x1="8.6" y1="7.4" x2="15.4" y2="16.6"/><line x1="15.4" y1="7.4" x2="8.6" y2="16.6"/></svg></span>
+            Attack Graph
+          </a>
+          <a href="/reports" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+            Reports
+          </a>
+          <a href="/compliance" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+            Compliance
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">System</div>
+          <a href="/alerts" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+            Alerts
+          </a>
+          <a href="/settings" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+            Settings
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-avatar">AD</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">Admin</div>
+            <div class="sidebar-user-role">Security Analyst</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="topbar-title">Subdomain Finder</h1>
+        <span class="topbar-breadcrumb">Discovery &rsaquo; crt.sh + C99 + ip.thc.org (Subdomains / CNAME / rDNS)</span>
+        <div class="topbar-spacer"></div>
+        <div class="source-badges" id="sourceBadges">
+          <!-- populated by JS -->
+        </div>
+      </header>
+
+      <main class="content">
+
+        <!-- ── Tab Bar ───────────────────────────────────────────── -->
+        <div class="page-tabs">
+          <button class="page-tab active" id="tabSubdomain" onclick="switchTab('subdomain')">Subdomain Finder</button>
+          <button class="page-tab" id="tabCertMonitor" onclick="switchTab('certmonitor')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Certificate Monitor
+          </button>
+        </div>
+
+        <!-- ── Subdomain Finder tab ──────────────────────────────── -->
+        <div id="panelSubdomain">
+        <div class="stats-grid">
+          <div class="stat-card info">
+            <div class="stat-label">TOTAL SUBDOMAINS</div>
+            <div class="stat-value" id="totalCount">0</div>
+            <div class="stat-change">Discovered</div>
+          </div>
+          <div class="stat-card" style="--card-accent: #06B6D4;">
+            <div class="stat-label">FROM CRT.SH</div>
+            <div class="stat-value" id="crtshCount">0</div>
+            <div class="stat-change">Certificate Transparency</div>
+          </div>
+          <div class="stat-card" style="--card-accent: #FF2D00;">
+            <div class="stat-label">FROM C99</div>
+            <div class="stat-value" id="c99Count">0</div>
+            <div class="stat-change">SubdomainFinder</div>
+          </div>
+          <div class="stat-card" style="--card-accent: #F59E0B;">
+            <div class="stat-label">FROM IP.THC.ORG</div>
+            <div class="stat-value" id="iphthcCount">0</div>
+            <div class="stat-change">Subdomains</div>
+          </div>
+          <div class="stat-card" style="--card-accent: #EC4899;">
+            <div class="stat-label">CNAME RECORDS</div>
+            <div class="stat-value" id="cnameCount">0</div>
+            <div class="stat-change">Domains pointing here</div>
+          </div>
+          <div class="stat-card" style="--card-accent: #10B981;">
+            <div class="stat-label">rDNS / SHARED IP</div>
+            <div class="stat-value" id="rdnsCount">0</div>
+            <div class="stat-change">Co-hosted domains</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-label">QUERIES RUN</div>
+            <div class="stat-value" id="queryCount">0</div>
+            <div class="stat-change">This session</div>
+          </div>
+        </div>
+
+        <!-- Search Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:text-bottom; margin-right:6px;">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              Domain Lookup
+            </h2>
+          </div>
+          <div class="card-body">
+            <div style="display:flex; gap:.5rem; align-items:flex-end; flex-wrap:wrap;">
+              <div class="form-group" style="flex:2; min-width:240px; margin-bottom:0;">
+                <label>Target Domain</label>
+                <input type="text" id="domainInput" class="form-control" placeholder="example.com"
+                       style="font-family:var(--font-mono);">
+              </div>
+              <div class="form-group" style="min-width:160px; margin-bottom:0;">
+                <label>Source</label>
+                <select id="sourceSelect" class="form-control">
+                  <option value="both">All Sources</option>
+                  <option value="crtsh">crt.sh only</option>
+                  <option value="c99">C99 only</option>
+                  <option value="iphthc">ip.thc.org — Subdomains</option>
+                  <option value="iphthc-cname">ip.thc.org — CNAME lookup</option>
+                  <option value="iphthc-rdns">ip.thc.org — Reverse DNS</option>
+                </select>
+              </div>
+              <div style="margin-bottom:0;">
+                <button class="btn btn-primary" id="lookupBtn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  Discover Subdomains
+                </button>
+              </div>
+            </div>
+            <div class="progress-bar-wrapper" id="progressBar">
+              <div class="progress-bar-inner"></div>
+            </div>
+            <p class="text-muted mt-2" style="font-size:.75rem;">
+              <strong>crt.sh</strong> queries Certificate Transparency logs.
+              <strong>C99</strong> uses SubdomainFinder API (requires <code style="font-size:.7rem;">C99_API_KEY</code>).
+              <strong>ip.thc.org Subdomains</strong> — 5.4B+ domain database.
+              <strong>ip.thc.org CNAME</strong> — find domains whose CNAME points to the target.
+              <strong>ip.thc.org rDNS</strong> — find all domains sharing the same IP(s).
+            </p>
+          </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="card" id="resultsCard" style="display:none;">
+          <div class="card-header">
+            <h2 id="resultsTitle">Results</h2>
+            <div class="card-actions export-bar">
+              <button class="btn btn-ghost btn-sm" id="copyBtn" title="Copy all subdomains to clipboard">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copy
+              </button>
+              <button class="btn btn-ghost btn-sm" id="exportCsvBtn" title="Export as CSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                CSV
+              </button>
+              <button class="btn btn-ghost btn-sm" id="exportJsonBtn" title="Export as JSON">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                JSON
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- Filter bar -->
+            <div class="filter-bar">
+              <input type="text" id="filterInput" class="form-control" placeholder="Filter subdomains..."
+                     style="font-family:var(--font-mono); font-size:.8125rem;">
+              <button class="filter-btn active" data-source="all" id="filterAll">All</button>
+              <button class="filter-btn" data-source="crt.sh" id="filterCrtsh">crt.sh</button>
+              <button class="filter-btn" data-source="c99" id="filterC99">C99</button>
+              <button class="filter-btn" data-source="ip.thc.org" id="filterIpThc">Subdomains</button>
+              <button class="filter-btn" data-source="ip.thc.org (cname)" id="filterCname">CNAME</button>
+              <button class="filter-btn" data-source="ip.thc.org (rdns)" id="filterRdns">rDNS</button>
+            </div>
+            <div class="results-meta" id="resultsMeta"></div>
+            <div id="resultsContainer">
+              <!-- subdomain rows rendered here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- History Card -->
+        <div class="card" id="historyCard" style="display:none;">
+          <div class="card-header">
+            <h2>Lookup History</h2>
+            <div class="card-actions">
+              <button class="btn btn-ghost btn-sm" id="clearHistoryBtn">Clear</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Source</th>
+                  <th>Results</th>
+                  <th>Time</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="historyTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        </div><!-- /#panelSubdomain -->
+
+        <!-- ── Certificate Monitor tab ────────────────────────────── -->
+        <div id="panelCertMonitor" style="display:none;">
+
+          <!-- Cert Stats -->
+          <div class="stats-grid">
+            <div class="stat-card info">
+              <div class="stat-label">TOTAL CERTS</div>
+              <div class="stat-value" id="cmTotal">—</div>
+              <div class="stat-change">From crt.sh</div>
+            </div>
+            <div class="stat-card" style="--card-accent:#10B981;">
+              <div class="stat-label">VALID</div>
+              <div class="stat-value" id="cmValid" style="color:#10B981;">—</div>
+              <div class="stat-change">Active certificates</div>
+            </div>
+            <div class="stat-card" style="--card-accent:#F59E0B;">
+              <div class="stat-label">EXPIRING SOON</div>
+              <div class="stat-value" id="cmExpiring" style="color:#F59E0B;">—</div>
+              <div class="stat-change">Within 30 days</div>
+            </div>
+            <div class="stat-card" style="--card-accent:#EF4444;">
+              <div class="stat-label">EXPIRED</div>
+              <div class="stat-value" id="cmExpired" style="color:#EF4444;">—</div>
+              <div class="stat-change">Past expiry date</div>
+            </div>
+          </div>
+
+          <!-- Cert Search Card -->
+          <div class="card">
+            <div class="card-header">
+              <h2>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:text-bottom;margin-right:6px;">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                Certificate Transparency Lookup
+              </h2>
+            </div>
+            <div class="card-body">
+              <div style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap;">
+                <div class="form-group" style="flex:2;min-width:240px;margin-bottom:0;">
+                  <label>Target Domain</label>
+                  <input type="text" id="cmDomainInput" class="form-control"
+                    placeholder="example.com" style="font-family:var(--font-mono);">
+                </div>
+                <div style="margin-bottom:0;">
+                  <button class="btn btn-primary" id="cmLookupBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Load Certificates
+                  </button>
+                </div>
+              </div>
+              <div class="progress-bar-wrapper" id="cmProgressBar">
+                <div class="progress-bar-inner"></div>
+              </div>
+              <p class="text-muted mt-2" style="font-size:.75rem;">
+                Queries Certificate Transparency logs via <strong>crt.sh</strong>.
+                Shows every TLS certificate ever issued — including expired ones
+                which reveal historical subdomains and issuer history.
+              </p>
+            </div>
+          </div>
+
+          <!-- Cert Results -->
+          <div class="card" id="cmResultsCard" style="display:none;">
+            <div class="card-header">
+              <h2 id="cmResultsTitle">Certificate Records</h2>
+              <div class="card-actions">
+                <button class="btn btn-ghost btn-sm" id="cmExportCsvBtn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  CSV
+                </button>
+                <button class="btn btn-ghost btn-sm" id="cmExportJsonBtn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  JSON
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="cert-filter-bar">
+                <input type="text" id="cmFilterInput" class="form-control"
+                  placeholder="Filter by domain, CN, issuer…"
+                  style="flex:1;min-width:200px;font-size:.8125rem;">
+                <button class="cert-filter-btn active" data-cf="all">All</button>
+                <button class="cert-filter-btn valid"     data-cf="valid">
+                  <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10B981;margin-right:4px;"></span>Valid
+                </button>
+                <button class="cert-filter-btn expiring"  data-cf="expiring">
+                  <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#F59E0B;margin-right:4px;"></span>Expiring
+                </button>
+                <button class="cert-filter-btn expired"   data-cf="expired">
+                  <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#EF4444;margin-right:4px;"></span>Expired
+                </button>
+              </div>
+              <div class="cert-table-wrap">
+                <table class="cert-table">
+                  <thead>
+                    <tr>
+                      <th>crt.sh ID</th>
+                      <th>Common Name</th>
+                      <th>Matching Identities (SANs)</th>
+                      <th>Issuer</th>
+                      <th>Logged At</th>
+                      <th>Not Before</th>
+                      <th>Not After</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cmTableBody"></tbody>
+                </table>
+              </div>
+              <div id="cmEmptyState" style="display:none;" class="empty-results">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <p id="cmEmptyMsg">No certificates found.</p>
+              </div>
+              <div class="results-meta" id="cmMeta" style="margin-top:.75rem;"></div>
+            </div>
+          </div>
+
+        </div><!-- /#panelCertMonitor -->
+
+      </main>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script>
+  /* ═══════════════════════════════════════════════════════════════════════════
+     Technieum Enterprise — Subdomain Finder  (crt.sh + C99 + ip.thc.org)
+     ═══════════════════════════════════════════════════════════════════════════ */
+  const API = '/api/v1/subdomains';
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  let currentResults = [];   // SubdomainEntry[]
+  let queryCount = 0;
+  let history = [];          // {domain, source, total, timestamp}[]
+  let activeFilter = 'all';
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const el = id => document.getElementById(id);
+  function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+  function toast(msg, type) {
+    const c = el('toastContainer'); if (!c) return;
+    const t = document.createElement('div'); t.className = 'toast ' + (type || 'info'); t.textContent = msg;
+    c.appendChild(t); setTimeout(() => t.remove(), 4000);
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    initSidebar();
+    loadSourceStatus();
+    bindEvents();
+  });
+
+  function bindEvents() {
+    el('lookupBtn').addEventListener('click', runLookup);
+    el('domainInput').addEventListener('keydown', e => { if (e.key === 'Enter') runLookup(); });
+    el('filterInput').addEventListener('input', renderResults);
+    el('copyBtn').addEventListener('click', copyAll);
+    el('exportCsvBtn').addEventListener('click', exportCsv);
+    el('exportJsonBtn').addEventListener('click', exportJson);
+    el('clearHistoryBtn').addEventListener('click', clearHistory);
+
+    // Source filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.source;
+        renderResults();
+      });
+    });
+  }
+
+  // ── Source status check ────────────────────────────────────────────────────
+  async function loadSourceStatus() {
+    try {
+      const res = await fetch(API + '/sources');
+      if (!res.ok) throw new Error('status ' + res.status);
+      const data = await res.json();
+      const container = el('sourceBadges');
+      container.innerHTML = data.sources.map(s =>
+        `<span class="source-badge ${s.available ? 'available' : 'unavailable'}" title="${esc(s.message)}">
+           <span class="dot"></span>${esc(s.name)}
+         </span>`
+      ).join('');
+    } catch (err) {
+      console.error('Source status check failed:', err);
+    }
+  }
+
+  // ── Lookup ─────────────────────────────────────────────────────────────────
+  async function runLookup() {
+    const domain = (el('domainInput').value || '').trim().toLowerCase();
+    if (!domain || domain.length < 3) {
+      toast('Enter a valid domain (e.g. example.com)', 'warning');
+      return;
+    }
+
+    const source = el('sourceSelect').value;
+    let endpoint;
+    if (source === 'crtsh')        endpoint = '/crtsh';
+    else if (source === 'c99')     endpoint = '/c99';
+    else if (source === 'iphthc')  endpoint = '/iphthc';
+    else if (source === 'iphthc-cname') endpoint = '/iphthc-cname';
+    else if (source === 'iphthc-rdns')  endpoint = '/iphthc-rdns';
+    else endpoint = '/lookup';  // 'both' => all sources
+
+    // Show progress
+    el('progressBar').classList.add('active');
+    el('lookupBtn').disabled = true;
+    el('lookupBtn').innerHTML =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+      '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+      ' Searching&hellip; (may take up to ' + (source === 'both' ? '120' : '90') + 's)';
+
+    // For "All Sources" the backend aggregates 5 external APIs and can take
+    // up to 120 s.  Use an AbortController so we get a meaningful error
+    // instead of a silent "Failed to fetch" network drop.
+    const fetchTimeoutMs = source === 'both' ? 130_000 : 60_000;
+    const controller = new AbortController();
+    const fetchTimer = setTimeout(() => controller.abort(), fetchTimeoutMs);
+
+    try {
+      const res = await fetch(`${API}${endpoint}?domain=${encodeURIComponent(domain)}`, { signal: controller.signal });
+      clearTimeout(fetchTimer);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || `API returned ${res.status}`);
+      }
+      const data = await res.json();
+
+      currentResults = data.subdomains || [];
+      queryCount++;
+
+      // Update stats
+      const crtshCount  = currentResults.filter(e => e.source === 'crt.sh').length;
+      const c99Count    = currentResults.filter(e => e.source === 'c99').length;
+      const iphthcCount = currentResults.filter(e => e.source === 'ip.thc.org').length;
+      const cnameCount  = currentResults.filter(e => e.source === 'ip.thc.org (cname)').length;
+      const rdnsCount   = currentResults.filter(e => e.source === 'ip.thc.org (rdns)').length;
+      el('totalCount').textContent  = currentResults.length;
+      el('crtshCount').textContent  = crtshCount;
+      el('c99Count').textContent    = c99Count;
+      el('iphthcCount').textContent = iphthcCount;
+      el('cnameCount').textContent  = cnameCount;
+      el('rdnsCount').textContent   = rdnsCount;
+      el('queryCount').textContent  = queryCount;
+
+      // Show API messages (warnings about source availability)
+      const msgs = data.messages || [];
+      if (msgs.length > 0) msgs.forEach(m => toast(m, 'warning'));
+
+      const sourceLabel = source === 'both'         ? 'All Sources'
+                        : source === 'crtsh'         ? 'crt.sh'
+                        : source === 'c99'           ? 'C99'
+                        : source === 'iphthc'        ? 'ip.thc.org (Subdomains)'
+                        : source === 'iphthc-cname'  ? 'ip.thc.org (CNAME)'
+                        : 'ip.thc.org (rDNS)';
+
+      // Update history
+      history.unshift({
+        domain: data.domain,
+        source: sourceLabel,
+        total: currentResults.length,
+        timestamp: new Date().toLocaleTimeString(),
+      });
+      renderHistory();
+
+      // Show results
+      const displayDomain = data.domain;
+      el('resultsCard').style.display = '';
+      el('resultsTitle').textContent = `Results for ${displayDomain} (${currentResults.length})`;
+      activeFilter = 'all';
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      el('filterAll').classList.add('active');
+      el('filterInput').value = '';
+      renderResults();
+
+      if (currentResults.length === 0) {
+        toast(`No subdomains found for ${domain}`, 'warning');
+      } else {
+        toast(`Found ${currentResults.length} subdomains for ${domain}`, 'success');
+      }
+
+    } catch (err) {
+      clearTimeout(fetchTimer);
+      console.error('Lookup failed:', err);
+      const msg = err.name === 'AbortError'
+        ? 'Lookup timed out — external sources are slow. Try individual sources instead.'
+        : 'Lookup failed: ' + err.message;
+      toast(msg, 'error');
+    } finally {
+      el('progressBar').classList.remove('active');
+      el('lookupBtn').disabled = false;
+      el('lookupBtn').innerHTML =
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+        '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Discover Subdomains';
+    }
+  }
+
+  // ── ip.thc.org client-side fetch ──────────────────────────────────────────
+  // (no longer used directly — backend /iphthc endpoint handles the call)
+  // Kept for reference only.
+
+  // ── Deduplicate merged results ─────────────────────────────────────────────
+  function dedupeResults(results) {
+    const seen = new Set();
+    return results.filter(e => {
+      if (seen.has(e.subdomain)) return false;
+      seen.add(e.subdomain);
+      return true;
+    });
+  }
+
+  // ── Render results ─────────────────────────────────────────────────────────
+  function renderResults() {
+    const container = el('resultsContainer');
+    const meta = el('resultsMeta');
+    const filterText = (el('filterInput').value || '').trim().toLowerCase();
+
+    let filtered = currentResults;
+
+    // Source filter
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(e => e.source === activeFilter);
+    }
+
+    // Text filter
+    if (filterText) {
+      filtered = filtered.filter(e => e.subdomain.includes(filterText));
+    }
+
+    // Meta line
+    const crtshFiltered  = filtered.filter(e => e.source === 'crt.sh').length;
+    const c99Filtered    = filtered.filter(e => e.source === 'c99').length;
+    const iphthcFiltered = filtered.filter(e => e.source === 'ip.thc.org').length;
+    const cnameFiltered  = filtered.filter(e => e.source === 'ip.thc.org (cname)').length;
+    const rdnsFiltered   = filtered.filter(e => e.source === 'ip.thc.org (rdns)').length;
+    meta.innerHTML =
+      `<span>Showing <strong>${filtered.length}</strong> of ${currentResults.length}</span>` +
+      `<span style="color:#06B6D4;">crt.sh: <strong>${crtshFiltered}</strong></span>` +
+      `<span style="color:#FF2D00;">C99: <strong>${c99Filtered}</strong></span>` +
+      `<span style="color:#F59E0B;">Subdomains: <strong>${iphthcFiltered}</strong></span>` +
+      `<span style="color:#EC4899;">CNAME: <strong>${cnameFiltered}</strong></span>` +
+      `<span style="color:#10B981;">rDNS: <strong>${rdnsFiltered}</strong></span>`;
+
+    if (filtered.length === 0) {
+      // Different message depending on whether it's a filter issue or a source issue
+      const isFilterActive = filterText || activeFilter !== 'all';
+      const emptyMsg = isFilterActive
+        ? 'No subdomains match your filter.'
+        : currentResults.length === 0
+          ? '<strong>0 results returned.</strong><br>' +
+            '<span style="font-size:.8rem;color:var(--text-muted);">' +
+            'crt.sh is frequently overloaded and returns 502/503 errors.<br>' +
+            'The API retried automatically but the service may still be down.<br>' +
+            'Please <strong>try again in 1\u20132 minutes</strong> \u2014 it usually recovers quickly.</span>'
+          : 'No subdomains match your filter.';
+      container.innerHTML =
+        '<div class="empty-results">' +
+        '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
+        '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+        '<p>' + emptyMsg + '</p></div>';
+      return;
+    }
+
+    container.innerHTML = '<div class="subdomain-grid">' +
+      filtered.map(e => {
+        const srcClass = e.source === 'crt.sh'             ? 'crtsh'
+                       : e.source === 'c99'                ? 'c99'
+                       : e.source === 'ip.thc.org (cname)' ? 'cname'
+                       : e.source === 'ip.thc.org (rdns)'  ? 'rdns'
+                       : 'iphthc';
+        return `<div class="subdomain-row">
+           <span class="sub-name">${esc(e.subdomain)}</span>
+           <span class="sub-source ${srcClass}">${esc(e.source)}</span>
+         </div>`;
+      }).join('') + '</div>';
+  }
+
+  // ── History ────────────────────────────────────────────────────────────────
+  function renderHistory() {
+    const card = el('historyCard');
+    const tbody = el('historyTable');
+    if (history.length === 0) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    tbody.innerHTML = history.map((h, i) =>
+      `<tr>
+         <td class="font-mono" style="font-size:.8125rem;">${esc(h.domain)}</td>
+         <td class="text-muted">${esc(h.source)}</td>
+         <td><strong>${h.total}</strong></td>
+         <td class="text-muted">${esc(h.timestamp)}</td>
+         <td><button class="btn btn-ghost btn-sm" onclick="rerunLookup('${esc(h.domain)}')">Re-run</button></td>
+       </tr>`
+    ).join('');
+  }
+
+  function rerunLookup(domain) {
+    el('domainInput').value = domain;
+    runLookup();
+  }
+
+  function clearHistory() {
+    history = [];
+    renderHistory();
+  }
+
+  // ── Export ─────────────────────────────────────────────────────────────────
+  function copyAll() {
+    const text = currentResults.map(e => e.subdomain).join('\n');
+    navigator.clipboard.writeText(text).then(
+      () => toast('Copied ' + currentResults.length + ' subdomains to clipboard', 'success'),
+      () => toast('Copy failed — use CSV export instead', 'error')
+    );
+  }
+
+  function exportCsv() {
+    if (currentResults.length === 0) { toast('No results to export', 'warning'); return; }
+    const header = 'subdomain,source\n';
+    const rows = currentResults.map(e => `${e.subdomain},${e.source}`).join('\n');
+    downloadFile(header + rows, 'subdomains.csv', 'text/csv');
+  }
+
+  function exportJson() {
+    if (currentResults.length === 0) { toast('No results to export', 'warning'); return; }
+    const payload = JSON.stringify({ subdomains: currentResults }, null, 2);
+    downloadFile(payload, 'subdomains.json', 'application/json');
+  }
+
+  function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Downloaded ' + filename, 'success');
+  }
+
+  // ── Sidebar toggle (shared) ───────────────────────────────────────────────
+  function initSidebar() {
+    const toggle = el('sidebarToggle'), sidebar = el('sidebar'), overlay = el('sidebarOverlay');
+    if (toggle && sidebar) toggle.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay?.classList.toggle('open'); });
+    if (overlay) overlay.addEventListener('click', () => { sidebar?.classList.remove('open'); overlay.classList.remove('open'); });
+  }
+
+  // ── Tab Switching ─────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    el('panelSubdomain').style.display    = tab === 'subdomain'   ? '' : 'none';
+    el('panelCertMonitor').style.display  = tab === 'certmonitor' ? '' : 'none';
+    el('tabSubdomain').classList.toggle('active',    tab === 'subdomain');
+    el('tabCertMonitor').classList.toggle('active',  tab === 'certmonitor');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Certificate Monitor
+  // ═══════════════════════════════════════════════════════════════════════════
+  const CERT_API = '/api/v1/subdomains/crtsh-certs';
+  let cmCerts = [];          // CertRecord[]
+  let cmActiveFilter = 'all';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Cert monitor button bindings
+    el('cmLookupBtn').addEventListener('click', runCertLookup);
+    el('cmDomainInput').addEventListener('keydown', e => { if (e.key === 'Enter') runCertLookup(); });
+    el('cmFilterInput').addEventListener('input', renderCerts);
+    el('cmExportCsvBtn').addEventListener('click', cmExportCsv);
+    el('cmExportJsonBtn').addEventListener('click', cmExportJson);
+
+    document.querySelectorAll('.cert-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cert-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        cmActiveFilter = btn.dataset.cf;
+        renderCerts();
+      });
+    });
+  });
+
+  async function runCertLookup() {
+    const domain = (el('cmDomainInput').value || '').trim().toLowerCase();
+    if (!domain || domain.length < 3) { toast('Enter a valid domain', 'warning'); return; }
+
+    el('cmProgressBar').classList.add('active');
+    const btn = el('cmLookupBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:13px;height:13px;border-width:2px;"></span> Loading…';
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 100_000);
+
+    try {
+      const res = await fetch(`${CERT_API}?domain=${encodeURIComponent(domain)}`, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+
+      cmCerts = data.certs || [];
+
+      // Update stats
+      el('cmTotal').textContent    = data.total;
+      el('cmValid').textContent    = data.valid;
+      el('cmExpiring').textContent = data.expiring;
+      el('cmExpired').textContent  = data.expired;
+
+      // Show card
+      el('cmResultsCard').style.display = '';
+      el('cmResultsTitle').textContent  = `Certificate Records — ${data.domain} (${data.total})`;
+
+      // Reset filters
+      cmActiveFilter = 'all';
+      document.querySelectorAll('.cert-filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.cert-filter-btn[data-cf="all"]').classList.add('active');
+      el('cmFilterInput').value = '';
+
+      renderCerts();
+
+      const msg = data.messages || [];
+      msg.forEach(m => toast(m, 'warning'));
+
+      if (data.total === 0) toast('No certificates found — try again in a moment', 'warning');
+      else toast(`Loaded ${data.total} certificate records for ${domain}`, 'success');
+
+    } catch (err) {
+      clearTimeout(timer);
+      const msg = err.name === 'AbortError'
+        ? 'Request timed out. crt.sh is slow — please try again.'
+        : 'Lookup failed: ' + err.message;
+      toast(msg, 'error');
+    } finally {
+      el('cmProgressBar').classList.remove('active');
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Load Certificates';
+    }
+  }
+
+  function fmtDate(s) {
+    if (!s) return '—';
+    // "2026-05-09T00:00:00" → "2026-05-09"
+    return s.split('T')[0];
+  }
+
+  function renderCerts() {
+    const tbody   = el('cmTableBody');
+    const empty   = el('cmEmptyState');
+    const meta    = el('cmMeta');
+    const filterTxt = (el('cmFilterInput').value || '').trim().toLowerCase();
+
+    let filtered = cmCerts;
+    if (cmActiveFilter !== 'all') {
+      filtered = filtered.filter(c => c.status === cmActiveFilter);
+    }
+    if (filterTxt) {
+      filtered = filtered.filter(c =>
+        (c.common_name || '').toLowerCase().includes(filterTxt) ||
+        (c.issuer_name || '').toLowerCase().includes(filterTxt) ||
+        (c.matching_identities || []).some(i => i.toLowerCase().includes(filterTxt))
+      );
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = '';
+      el('cmEmptyMsg').textContent = cmCerts.length === 0
+        ? 'No certificates returned. crt.sh may be overloaded — try again in a moment.'
+        : 'No certificates match current filter.';
+      meta.textContent = '';
+      return;
+    }
+
+    empty.style.display = 'none';
+
+    tbody.innerHTML = filtered.map(c => {
+      const statusClass = c.status; // valid | expiring | expired
+      const badgeLabel  = c.status === 'expiring' ? 'Expiring Soon' : c.status.charAt(0).toUpperCase() + c.status.slice(1);
+      const dateClass   = c.status;
+
+      const sansHtml = (c.matching_identities || []).map(san => {
+        const cls = san.startsWith('*.') ? 'cert-san wildcard' : 'cert-san';
+        return `<span class="${cls}">${esc(san)}</span>`;
+      }).join('');
+
+      const issuerShort = (c.issuer_name || '—')
+        .replace(/C=[^,]+,\s*/g, '')   // strip C=US
+        .replace(/O=/, '')
+        .trim();
+
+      return `<tr>
+        <td>
+          <a class="cert-id-link" href="https://crt.sh/?id=${c.id}" target="_blank" rel="noopener">
+            ${c.id}
+          </a>
+        </td>
+        <td><span class="cert-cn">${esc(c.common_name || '—')}</span></td>
+        <td>
+          <div class="cert-san-list">${sansHtml || '<span class="cert-san">—</span>'}</div>
+        </td>
+        <td><div class="cert-issuer" title="${esc(c.issuer_name || '')}">${esc(issuerShort)}</div></td>
+        <td><span class="cert-date">${fmtDate(c.logged_at)}</span></td>
+        <td><span class="cert-date">${fmtDate(c.not_before)}</span></td>
+        <td><span class="cert-date ${dateClass}">${fmtDate(c.not_after)}</span></td>
+        <td><span class="cert-badge ${statusClass}">${badgeLabel}</span></td>
+      </tr>`;
+    }).join('');
+
+    const nValid    = filtered.filter(c => c.status === 'valid').length;
+    const nExpiring = filtered.filter(c => c.status === 'expiring').length;
+    const nExpired  = filtered.filter(c => c.status === 'expired').length;
+    meta.innerHTML =
+      `<span>Showing <strong>${filtered.length}</strong> of ${cmCerts.length}</span>` +
+      `&nbsp;&nbsp;<span style="color:#10B981;">Valid: <strong>${nValid}</strong></span>` +
+      `&nbsp;&nbsp;<span style="color:#F59E0B;">Expiring: <strong>${nExpiring}</strong></span>` +
+      `&nbsp;&nbsp;<span style="color:#EF4444;">Expired: <strong>${nExpired}</strong></span>`;
+  }
+
+  function cmExportCsv() {
+    if (!cmCerts.length) { toast('No certificates to export', 'warning'); return; }
+    const h = 'id,common_name,matching_identities,issuer_name,logged_at,not_before,not_after,status\n';
+    const rows = cmCerts.map(c =>
+      [c.id, c.common_name, (c.matching_identities||[]).join('|'),
+       c.issuer_name, fmtDate(c.logged_at), fmtDate(c.not_before),
+       fmtDate(c.not_after), c.status]
+      .map(v => '"' + String(v || '').replace(/"/g, '""') + '"').join(',')
+    ).join('\n');
+    downloadFile(h + rows, 'certificates.csv', 'text/csv');
+  }
+
+  function cmExportJson() {
+    if (!cmCerts.length) { toast('No certificates to export', 'warning'); return; }
+    downloadFile(JSON.stringify({ certs: cmCerts }, null, 2), 'certificates.json', 'application/json');
+  }
+  </script>
+</body>
+</html>

@@ -1,10 +1,10 @@
-# ReconX Enterprise ASM Platform — Implementation Roadmap
+# Technieum Enterprise ASM Platform — Implementation Roadmap
 
 **Document version:** 1.0  
 **Status:** Planning  
 **Audience:** Engineering, Security Platform, Product
 
-This roadmap evolves the existing ReconX codebase into an enterprise Attack Surface Management (ASM) platform using an **incremental, non-breaking migration approach**. It is aligned with the target architecture and compatibility constraints defined in [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md) and [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
+This roadmap evolves the existing Technieum codebase into an enterprise Attack Surface Management (ASM) platform using an **incremental, non-breaking migration approach**. It is aligned with the target architecture and compatibility constraints defined in [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md) and [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
 
 ---
 
@@ -14,12 +14,12 @@ This roadmap evolves the existing ReconX codebase into an enterprise Attack Surf
 
 | Path | Purpose | Reusability |
 |------|---------|-------------|
-| `reconx.py` | Main orchestrator; CLI entry; runs phases 1–4, parses outputs, updates DB | **Core** — extend with phases 0, 5–9 and flags |
+| `technieum.py` | Main orchestrator; CLI entry; runs phases 1–4, parses outputs, updates DB | **Core** — extend with phases 0, 5–9 and flags |
 | `db/database.py` | SQLite manager; WAL mode; schema init; bulk insert/query helpers | **Core** — extend schema via migrations only |
 | `db/__init__.py` | Package marker | Keep |
 | `parsers/parser.py` | Subdomain, HTTP, DNS, Port, URL, Directory, Vuln, Leak, Takeover parsers; `URL_TOOL_PARSERS` | **Core** — add new parser classes, do not break existing |
 | `parsers/__init__.py` | Package marker | Keep |
-| `modules/01_discovery.sh` – `04_vuln.sh` | Bash phase scripts; invoked by `reconx.py` with `(target, output_dir)` | **Must remain executable as-is**; optional enhancements |
+| `modules/01_discovery.sh` – `04_vuln.sh` | Bash phase scripts; invoked by `technieum.py` with `(target, output_dir)` | **Must remain executable as-is**; optional enhancements |
 | `lib/common.sh` | Shared bash utilities | Extend with new helpers (e.g. `call_python_module`, `send_notification`) |
 | `config.yaml` | General, phase1–4, logging, output, notifications | Extend with new sections; preserve existing keys |
 | `requirements.txt` | Python deps (pyyaml, dotenv, colorama, tqdm, tabulate, lxml) | Add new packages in optional/extras where possible |
@@ -32,7 +32,7 @@ This roadmap evolves the existing ReconX codebase into an enterprise Attack Surf
 - **Bash phases:** `modules/01_discovery.sh` through `04_vuln.sh` — keep same invocation contract `(target, output_dir)` and output layout (e.g. `phase1_discovery/`, `phase2_intel/`, etc.).
 - **Parser layer:** `parsers/parser.py` — all existing parsers and `URL_TOOL_PARSERS` remain; new parsers (Technology, ThreatIntel, Compliance, CVE, Cloud) added as new classes/functions.
 - **DB manager:** `db/database.py` — existing tables and APIs unchanged; new tables added only via `db/migrations/` and applied optionally or on startup with version check.
-- **CLI entry points:** `reconx.py` (existing flags/outputs preserved); `query.py` (all current flags and export formats preserved). New entry points: `monitor.py`, `report.py`, `admin.py` added alongside.
+- **CLI entry points:** `technieum.py` (existing flags/outputs preserved); `query.py` (all current flags and export formats preserved). New entry points: `monitor.py`, `report.py`, `admin.py` added alongside.
 
 ---
 
@@ -40,7 +40,7 @@ This roadmap evolves the existing ReconX codebase into an enterprise Attack Surf
 
 - **web/** — Static UI + lightweight server (e.g. FastAPI/Starlette static mount or separate small server).
 - **api/** — FastAPI layer (scans, assets, findings, intel, reports, stream, webhooks).
-- **Enhanced orchestrator** — `reconx.py` with Phase 0 (pre-scan), Phases 5–9 (threat intel, CVE/risk, change detection, compliance, graph), plus `--continuous`, `--api-server` (or separate API process).
+- **Enhanced orchestrator** — `technieum.py` with Phase 0 (pre-scan), Phases 5–9 (threat intel, CVE/risk, change detection, compliance, graph), plus `--continuous`, `--api-server` (or separate API process).
 - **intelligence/** — Python packages: scoring, correlation, delta, compliance, graph (invoked by bash or orchestrator).
 - **db/migrations/** — Schema evolution (additive only for compatibility).
 - **notifications/**, **reporting/**, **deployment/** — New subsystems with clear boundaries.
@@ -53,7 +53,7 @@ This roadmap evolves the existing ReconX codebase into an enterprise Attack Surf
 
 - **A.1** Document current behaviour: CLI flags, output paths, DB schema, parser contracts.
 - **A.2** Introduce `db/migrations/` and migration runner; add version table; keep existing schema creation in `database.py` for new installs, migrations for existing DBs.
-- **A.3** Add compatibility tests: existing CLI invocations (reconx.py, query.py) and module 01–04 runs produce same behaviour.
+- **A.3** Add compatibility tests: existing CLI invocations (technieum.py, query.py) and module 01–04 runs produce same behaviour.
 - **A.4** Move/copy `docs/query.py` to project root `query.py` (or symlink) so CLI usage matches docs; update docs to reference root `query.py`.
 
 **Deliverables:** Migration framework, compatibility test suite, query.py at root.
@@ -84,10 +84,10 @@ This roadmap evolves the existing ReconX codebase into an enterprise Attack Surf
 
 - **D.1** Add `modules/00_prescan.sh` (Phase 0); keep 01–04 unchanged.
 - **D.2** Add `modules/05_threat_intel.sh` through `09_attack_graph.sh`; each calls Python from `intelligence/` where needed.
-- **D.3** Extend `reconx.py`: add phase dispatch for 0, 5–9; add `--phases` to accept 0–9; add `--continuous` and `--api-server` (or doc that API runs as separate process); preserve all existing flags and default `-p 1,2,3,4`.
+- **D.3** Extend `technieum.py`: add phase dispatch for 0, 5–9; add `--phases` to accept 0–9; add `--continuous` and `--api-server` (or doc that API runs as separate process); preserve all existing flags and default `-p 1,2,3,4`.
 - **D.4** Extend `scan_progress` (via migration) for phase0_done … phase9_done; ensure existing scans (phase1–4 only) still work.
 
-**Deliverables:** New bash modules, extended reconx.py, phase 0–9 runnable with backward-compatible defaults.
+**Deliverables:** New bash modules, extended technieum.py, phase 0–9 runnable with backward-compatible defaults.
 
 ---
 
@@ -124,7 +124,7 @@ This roadmap evolves the existing ReconX codebase into an enterprise Attack Surf
 
 ## 4. Compatibility Constraints
 
-- **CLI:** Existing flags and outputs for `reconx.py` and `query.py` must continue to work. Default `-p 1,2,3,4`; new phases opt-in via `-p 0,1,2,3,4,5,6,7,8,9`.
+- **CLI:** Existing flags and outputs for `technieum.py` and `query.py` must continue to work. Default `-p 1,2,3,4`; new phases opt-in via `-p 0,1,2,3,4,5,6,7,8,9`.
 - **Modules:** Existing `01_discovery.sh` through `04_vuln.sh` remain executable as-is; enhancements must be backward-compatible (e.g. new optional tools, same output paths).
 - **SQLite:** Remains the default runtime DB; no mandatory external DB for core or API.
 - **Config:** All existing `config.yaml` keys and sections remain valid; new sections additive.
@@ -160,7 +160,7 @@ This roadmap evolves the existing ReconX codebase into an enterprise Attack Surf
 | M1 — Foundation | After Phase A | All existing CLI commands and phases 1–4 run unchanged; migration runner exists; query.py at root. |
 | M2 — Schema | After Phase B | New tables applied via migrations; existing DB opens and works; config backward-compatible. |
 | M3 — Intelligence | After Phase C | All `intelligence.*` modules runnable from bash with JSON in/out; unit tests pass. |
-| M4 — Phases 0,5–9 | After Phase D | `reconx.py -t example.com -p 0,1,2,3,4,5,6,7,8,9` runs without breaking 1–4; new bash modules exist. |
+| M4 — Phases 0,5–9 | After Phase D | `technieum.py -t example.com -p 0,1,2,3,4,5,6,7,8,9` runs without breaking 1–4; new bash modules exist. |
 | M5 — Parsers | After Phase E | New phase outputs parsed and stored; existing parser tests and integration tests pass. |
 | M6 — API/Web | After Phase F | API serves scans/assets/findings; web UI loads; CLI-only mode still default. |
 | M7 — Full platform | After Phase G | Notifications, reports, monitor/report/admin CLIs, deployment assets documented. |
@@ -187,7 +187,7 @@ This roadmap evolves the existing ReconX codebase into an enterprise Attack Surf
 |-----------|--------|--------|----------|
 | **Unit** | Parsers, DB methods, intelligence.* pure functions | tests/test_parsers.py, test_database.py, tests/test_risk_scoring.py, etc. | Every commit / PR |
 | **Integration** | Full phase 1–4 run (with mock or small target), new phases with fixtures | tests/test_integration.py, test_*_integration.py | PR, nightly |
-| **E2E** | CLI invocations (reconx.py, query.py) end-to-end | tests/e2e/ or scripted | Release gate |
+| **E2E** | CLI invocations (technieum.py, query.py) end-to-end | tests/e2e/ or scripted | Release gate |
 | **Perf** | Large target, phase timeouts, DB bulk inserts | tests/benchmark/ | Nightly / release |
 | **Security** | SQL injection (query export), secret handling, auth on API | tests/test_security.py, manual | PR, release |
 | **Compatibility** | Explicit “existing behaviour unchanged” tests | tests/test_compatibility.py | Every PR |

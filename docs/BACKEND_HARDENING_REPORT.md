@@ -77,4 +77,4 @@ Note: The global `-W error::DeprecationWarning` Python flag is incompatible with
 | Rate-limit middleware opened/closed connection per request | Thread-local persistent connections + WAL mode |
 | CSRF exempt paths used wrong prefix | Updated to `/api/v1/webhooks/`, `/api/v1/stream/` |
 | CSRF checked unnecessarily for API-key requests | Added bypass for `X-API-Key` / `Authorization: Bearer` headers |
-| Nuclei template update ran unconditionally on every scan | Gated on `RECONX_NUCLEI_UPDATE=true` env var |
+| Nuclei template update ran unconditionally on every scan | Gated on `TECHNIEUM_NUCLEI_UPDATE=true` env var |

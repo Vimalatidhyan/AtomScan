@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ReconX Output Parsers
+Technieum Output Parsers
 Parses output from various reconnaissance tools into structured data
 """
 
@@ -213,8 +213,15 @@ class PortParser(OutputParser):
         """Parse Nmap XML output"""
         results = []
         try:
-            tree = ET.parse(file_path)
-            root = tree.getroot()
+            try:
+                tree = ET.parse(file_path)
+                root = tree.getroot()
+            except ET.ParseError:
+                with open(file_path, encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                if "<nmaprun" in content and "</nmaprun>" not in content:
+                    content += "\n</nmaprun>"
+                root = ET.fromstring(content)
 
             for host in root.findall('.//host'):
                 # Get IP address

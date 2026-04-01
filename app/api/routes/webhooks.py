@@ -1,8 +1,8 @@
 """Webhook management routes.
 
 Delivery uses ``httpx`` for real HTTP POST with:
-  - JSON payload + ``X-ReconX-Event`` header
-  - Optional HMAC-SHA256 signature in ``X-ReconX-Signature``
+  - JSON payload + ``X-Technieum-Event`` header
+  - Optional HMAC-SHA256 signature in ``X-Technieum-Signature``
   - 10-second connect/read timeout
   - success_count / failure_count / last_triggered persisted on every attempt
 """
@@ -70,11 +70,11 @@ def _deliver(webhook: Webhook, event_type: str, payload: dict) -> tuple[bool, st
     body = json.dumps(payload, default=str).encode()
     headers = {
         "Content-Type": "application/json",
-        "X-ReconX-Event": event_type,
-        "User-Agent": "ReconX-Webhook/2.0",
+        "X-Technieum-Event": event_type,
+        "User-Agent": "Technieum-Webhook/2.0",
     }
     if webhook.secret:
-        headers["X-ReconX-Signature"] = _build_signature(webhook.secret, body)
+        headers["X-Technieum-Signature"] = _build_signature(webhook.secret, body)
 
     try:
         resp = httpx.post(
@@ -204,7 +204,7 @@ def test_webhook(webhook_id: int, db: Session = Depends(get_db)):
         "event": "webhook.test",
         "webhook_id": webhook.id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "message": "ReconX test delivery",
+        "message": "Technieum test delivery",
     }
 
     success, error = _deliver(webhook, "webhook.test", payload)

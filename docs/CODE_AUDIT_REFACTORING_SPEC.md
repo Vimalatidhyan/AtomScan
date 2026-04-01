@@ -1,6 +1,6 @@
 # Code Audit & Refactoring Specification
 
-**Project:** ReconX - Attack Surface Management Framework
+**Project:** Technieum - Attack Surface Management Framework
 **Auditor:** Automated Code Auditor (Claude Opus 4.6)
 **Date:** 2026-02-10
 **Codebase:** ~3,700 LOC (Python + Bash) across 10 core files
@@ -24,10 +24,10 @@
 
 | Location | Issue Type | Severity | Description |
 | :--- | :--- | :--- | :--- |
-| `reconx.py:133` `subprocess.run(capture_output=True)` | **Blocking I/O** | **Critical** | Each phase script runs 30-120 min. `capture_output=True` buffers ALL stdout/stderr in memory until the script exits. The user sees zero output until the entire phase completes. A 4-phase scan can appear frozen for hours. |
-| `reconx.py:456` `run(phases=[1,2,3,4])` | **Mutable Default Arg** | Medium | Default list arg `[1,2,3,4]` is shared across calls. Classic Python footgun. |
-| `reconx.py:68-76` Parser instantiation | **Wasted Allocation** | Low | All 9 parser objects are created in `__init__` even if only 1 phase runs. Trivial memory cost but signals missing lazy-init pattern. |
-| `reconx.py` (entire file) | **Dead Config** | Medium | `config.yaml` exists with 221 lines of settings but is **never loaded**. All config comes from env vars or hardcoded defaults. The YAML file is decorative. |
+| `technieum.py:133` `subprocess.run(capture_output=True)` | **Blocking I/O** | **Critical** | Each phase script runs 30-120 min. `capture_output=True` buffers ALL stdout/stderr in memory until the script exits. The user sees zero output until the entire phase completes. A 4-phase scan can appear frozen for hours. |
+| `technieum.py:456` `run(phases=[1,2,3,4])` | **Mutable Default Arg** | Medium | Default list arg `[1,2,3,4]` is shared across calls. Classic Python footgun. |
+| `technieum.py:68-76` Parser instantiation | **Wasted Allocation** | Low | All 9 parser objects are created in `__init__` even if only 1 phase runs. Trivial memory cost but signals missing lazy-init pattern. |
+| `technieum.py` (entire file) | **Dead Config** | Medium | `config.yaml` exists with 221 lines of settings but is **never loaded**. All config comes from env vars or hardcoded defaults. The YAML file is decorative. |
 | `parsers/parser.py:18-25` `read_lines()` | **Memory Bomb** | **High** | Reads entire file into a list. Phase 3 can produce `all_urls.txt` with 500K+ lines. For 10 targets in parallel, this is 5M+ strings in memory simultaneously. |
 | `parsers/parser.py:28-51` `read_json()` | **Double Memory** | **High** | Calls `f.read()` to load entire content as a string, then `json.loads()` to parse into a second in-memory object. Peak memory = 2x file size. Nuclei JSON can be 100MB+. |
 | `parsers/parser.py:298-310` `parse_ffuf()` | **Logic Bug** | **High** | `read_json()` returns a `List[Dict]`. The code then checks `if 'results' in data` which tests list membership, not dict key access. This always evaluates `False` for ffuf's JSON structure (`{"results": [...]}`). **FFUF results are silently dropped and never enter the database.** |
@@ -104,7 +104,7 @@
 
 | Aspect | Specification |
 | :--- | :--- |
-| **Activation** | CLI: `python3 reconx.py -t example.com --test` or Env: `TEST_MODE=true` |
+| **Activation** | CLI: `python3 technieum.py -t example.com --test` or Env: `TEST_MODE=true` |
 | **Behavior IF ON** | Skip all `subprocess` calls to bash modules. Instead, write pre-defined mock output files to the phase directories and run parsers against them. Use hardcoded data: `MOCK_SUBDOMAINS = ["test.example.com", "api.example.com", "dev.example.com"]`, `MOCK_URLS = ["https://test.example.com/api/v1", "https://api.example.com/login"]`, `MOCK_PORTS = [{"host": "test.example.com", "port": 443, "service": "https"}, {"host": "test.example.com", "port": 80, "service": "http"}]`, `MOCK_VULNS = [{"tool": "nuclei", "host": "test.example.com", "name": "Test XSS", "severity": "high"}]` |
 | **Behavior IF OFF** | Run full production workload (current behavior) |
 | **Mock Data Location** | New file: `tests/mock_data.py` containing all hardcoded datasets |
@@ -159,17 +159,17 @@ def insert_subdomains_bulk(self, target, subdomains):
 | **Singleton ignores db_path** | `db/database.py:22-28` | Remove Singleton pattern entirely. Use a simple class that accepts `db_path` and manages its own connection. The orchestrator already creates a single instance. |
 | **Bulk insert drops updates** | `db/database.py:379-382` | Change `INSERT OR IGNORE` to `INSERT ... ON CONFLICT DO UPDATE` matching the single-row method's behavior |
 | **SQL injection in export** | `query.py:200` | Whitelist table names: `if table not in ALLOWED_TABLES: raise ValueError(...)` |
-| **Mutable default arg** | `reconx.py:456` | Change to `phases: List[int] = None` with `if phases is None: phases = [1,2,3,4]` |
+| **Mutable default arg** | `technieum.py:456` | Change to `phases: List[int] = None` with `if phases is None: phases = [1,2,3,4]` |
 
 #### 3.3.5 Robustness
 
 | Requirement | Specification |
 | :--- | :--- |
 | **Progress Tracking** | Wrap each phase in a `tqdm` progress bar showing: current tool name, elapsed time, tools completed/total |
-| **Structured Logging** | Initialize Python `logging` with `RotatingFileHandler` at `logs/reconx.log` + `StreamHandler` for console. Replace all `print()` calls with `logger.info()` / `logger.error()` / `logger.warning()`. Load log level from `config.yaml`. |
-| **Config Loading** | Add a `load_config()` function that reads `config.yaml` with `pyyaml`, merges with env vars (env takes precedence), and returns a typed config dict. Pass this config to `ReconX.__init__`. |
+| **Structured Logging** | Initialize Python `logging` with `RotatingFileHandler` at `logs/technieum.log` + `StreamHandler` for console. Replace all `print()` calls with `logger.info()` / `logger.error()` / `logger.warning()`. Load log level from `config.yaml`. |
+| **Config Loading** | Add a `load_config()` function that reads `config.yaml` with `pyyaml`, merges with env vars (env takes precedence), and returns a typed config dict. Pass this config to `Technieum.__init__`. |
 | **Dotenv Loading** | Call `load_dotenv()` from `python-dotenv` at startup to load `.env` file. |
-| **Connection Cleanup** | Add `__del__` or context manager (`__enter__`/`__exit__`) to `DatabaseManager` to close connections. Call `db.close()` in `reconx.py` at shutdown. |
+| **Connection Cleanup** | Add `__del__` or context manager (`__enter__`/`__exit__`) to `DatabaseManager` to close connections. Call `db.close()` in `technieum.py` at shutdown. |
 | **Pre-Deduplication** | Add `deduplicate()` to parsers that returns a `set`-based unique list before DB insertion. |
 
 ---
@@ -182,13 +182,13 @@ def insert_subdomains_bulk(self, target, subdomains):
 
 2. **Create `lib/common.sh`** with shared bash utilities (`safe_cat`, `safe_grep`, `log_info`, `log_error`, `log_warn`, `run_tool`). Update all 4 modules to `source "$SCRIPT_DIR/../lib/common.sh"`.
 
-3. **Add `--test` flag to `argparse`** in `reconx.py:main()`. Pass it through to `ReconX.__init__` as `self.test_mode`.
+3. **Add `--test` flag to `argparse`** in `technieum.py:main()`. Pass it through to `Technieum.__init__` as `self.test_mode`.
 
-4. **Load config.yaml** - Add `_load_config()` method to `ReconX` that reads `config.yaml` with `yaml.safe_load()`, merges with env vars. Wire phase timeouts, thread counts, and tool enables to config values.
+4. **Load config.yaml** - Add `_load_config()` method to `Technieum` that reads `config.yaml` with `yaml.safe_load()`, merges with env vars. Wire phase timeouts, thread counts, and tool enables to config values.
 
-5. **Load `.env`** - Add `from dotenv import load_dotenv; load_dotenv()` at the top of `reconx.py`.
+5. **Load `.env`** - Add `from dotenv import load_dotenv; load_dotenv()` at the top of `technieum.py`.
 
-6. **Replace logging** - Import `logging`, create a module-level logger, replace all `self.log_info/error/warn` with `logger.info/error/warning`. Add `RotatingFileHandler` writing to `logs/reconx.log`.
+6. **Replace logging** - Import `logging`, create a module-level logger, replace all `self.log_info/error/warn` with `logger.info/error/warning`. Add `RotatingFileHandler` writing to `logs/technieum.log`.
 
 ### Phase B: Fix Critical Bugs
 
@@ -200,7 +200,7 @@ def insert_subdomains_bulk(self, target, subdomains):
 
 10. **Fix SQL injection in export** (`query.py:200`): Add `ALLOWED_TABLES = {'subdomains', 'vulnerabilities', 'leaks', 'ports', 'urls'}` and validate before query.
 
-11. **Fix mutable default** (`reconx.py:456`): Change `phases` default to `None`.
+11. **Fix mutable default** (`technieum.py:456`): Change `phases` default to `None`.
 
 12. **Fix bash `local` outside function** (`01_discovery.sh:372`): Remove the `local` keyword.
 
@@ -234,7 +234,7 @@ def insert_subdomains_bulk(self, target, subdomains):
 
 ### Phase E: TEST_MODE Implementation
 
-25. **Implement `scan_target_test_mode()`** in `reconx.py` that:
+25. **Implement `scan_target_test_mode()`** in `technieum.py` that:
     - Creates phase directories
     - Writes mock output files from `tests/mock_data.py`
     - Calls parsers against mock files
@@ -255,7 +255,7 @@ def insert_subdomains_bulk(self, target, subdomains):
 
 29. **Add `tqdm` progress bars** to the orchestrator phase loop and to the multi-target `ThreadPoolExecutor`.
 
-30. **Wire config.yaml to bash modules** - Have `reconx.py` export config values as env vars before calling `subprocess.Popen` for each module, so bash scripts read consistent values.
+30. **Wire config.yaml to bash modules** - Have `technieum.py` export config values as env vars before calling `subprocess.Popen` for each module, so bash scripts read consistent values.
 
 ---
 
@@ -283,7 +283,7 @@ def insert_subdomains_bulk(self, target, subdomains):
 
 > **Role:** Senior Python/Bash Developer specializing in security tooling and async I/O.
 >
-> **Context:** You are refactoring ReconX, a reconnaissance framework that orchestrates 50+ external tools via bash subprocess calls. The codebase has 4 Python files (`reconx.py`, `db/database.py`, `parsers/parser.py`, `query.py`) and 4 bash modules (`modules/01_discovery.sh` through `04_vuln.sh`).
+> **Context:** You are refactoring Technieum, a reconnaissance framework that orchestrates 50+ external tools via bash subprocess calls. The codebase has 4 Python files (`technieum.py`, `db/database.py`, `parsers/parser.py`, `query.py`) and 4 bash modules (`modules/01_discovery.sh` through `04_vuln.sh`).
 >
 > **Task:** Refactor the codebase according to the specification in `CODE_AUDIT_REFACTORING_SPEC.md`. Prioritize in this order:
 > 1. Fix the 5 critical bugs (FFUF parser, Singleton, bulk insert, SQL injection, mutable default)
@@ -303,7 +303,7 @@ def insert_subdomains_bulk(self, target, subdomains):
 > - Implement a `TEST_MODE` variable. If `--test` is passed or `TEST_MODE=true` env var is set, use hardcoded mock data from `tests/mock_data.py`. If False, use real inputs.
 > - Do NOT change the external tool invocation signatures in bash (the tools themselves are third-party).
 > - Preserve the 4-phase sequential architecture (phases depend on each other).
-> - Maintain backward compatibility with existing `reconx.db` schema.
+> - Maintain backward compatibility with existing `technieum.db` schema.
 > - All existing CLI flags must continue to work.
 >
 > **Output:** Provide the full, modified files. For each file, show the complete updated version.
@@ -314,7 +314,7 @@ def insert_subdomains_bulk(self, target, subdomains):
 
 | File | Lines | Key Issues (line numbers) |
 | :--- | :--- | :--- |
-| `reconx.py` | 587 | L133 (blocking subprocess), L456 (mutable default), L68-76 (eager parser init), no config.yaml load |
+| `technieum.py` | 587 | L133 (blocking subprocess), L456 (mutable default), L68-76 (eager parser init), no config.yaml load |
 | `db/database.py` | 555 | L22-28 (broken Singleton), L209-215 (commit-per-statement), L379-382 (INSERT OR IGNORE drops updates), L504-540 (8 separate stat queries) |
 | `parsers/parser.py` | 501 | L18-25 (memory bomb read_lines), L28-51 (double memory read_json), L298-310 (FFUF bug), L253-292 (duplicated URL parsers), L59/66 (uncompiled regex) |
 | `query.py` | 276 | L200 (SQL injection in export_csv) |

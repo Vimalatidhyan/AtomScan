@@ -1,4 +1,4 @@
-# ReconX Enterprise v2.0 — Main Configuration
+# Technieum Enterprise v2.0 — Main Configuration
 # Copy to config/config.local.yaml and override values as needed.
 
 general:
@@ -8,7 +8,7 @@ general:
   log_level: INFO
 
 database:
-  url: "sqlite:///reconx.db"
+  url: "sqlite:///technieum.db"
   pool_size: 10
   echo: false
 
@@ -53,4 +53,4 @@ notifications:
   enabled: false
   slack_webhook_url: ""
   email_smtp_host: ""
-  email_from: "reconx@example.com"
+  email_from: "technieum@example.com"

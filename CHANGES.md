@@ -1,4 +1,4 @@
-# ReconX — Change Log (production-hardening pass)
+# Technieum — Change Log (production-hardening pass)
 
 All changes are additive or corrective; no existing CLI flags, API routes,
 or response shapes were altered.
@@ -10,7 +10,7 @@ or response shapes were altered.
 | `modules/02_intel.sh` | Added `run_tool()` + counters; replaced hard `exit 1` on missing Phase 1 with graceful warning + empty-file fallback; updated summary log line |
 | `modules/03_content.sh` | Same as 02: added `run_tool()`, counters, graceful fallback, summary log |
 | `modules/04_vuln.sh` | Same as 02: added `run_tool()`, counters, graceful fallback, summary log |
-| `reconx.py` | Added `--best-effort`/`--strict` CLI flags; implemented `--resume` (gates phase-skip on flag); wired `logging.level` from `config.yaml`; wired `general.output_dir` as default for `-o`; added `_early_config()` helper; added `resume`/`strict_mode` params to `ReconX.__init__` |
+| `technieum.py` | Added `--best-effort`/`--strict` CLI flags; implemented `--resume` (gates phase-skip on flag); wired `logging.level` from `config.yaml`; wired `general.output_dir` as default for `-o`; added `_early_config()` helper; added `resume`/`strict_mode` params to `Technieum.__init__` |
 | `app/workers/worker.py` | Extended `_ingest_results()` with FFUF, HTTPx-alive, Feroxbuster/Dirsearch parsers; updated `_parse_nuclei` to handle both JSON array and JSONL formats |
 
 ## Files created

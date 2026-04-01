@@ -363,10 +363,10 @@ class TestWebhookDelivery:
         assert err == ""
         mock_post.assert_called_once()
         call_kwargs = mock_post.call_args[1]
-        assert call_kwargs["headers"]["X-ReconX-Event"] == "scan.completed"
+        assert call_kwargs["headers"]["X-Technieum-Event"] == "scan.completed"
         # Signature header must be present
-        assert "X-ReconX-Signature" in call_kwargs["headers"]
-        assert call_kwargs["headers"]["X-ReconX-Signature"].startswith("sha256=")
+        assert "X-Technieum-Signature" in call_kwargs["headers"]
+        assert call_kwargs["headers"]["X-Technieum-Signature"].startswith("sha256=")
 
     def test_webhook_delivery_failure(self):
         """_deliver must return False on non-2xx response."""

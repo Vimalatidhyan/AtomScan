@@ -1,6 +1,0 @@
-# Abuse.ch Feed URLs
-# These are fetched at runtime by intelligence/threat_intel/sources/abuse_ch.py
-# Format: <feed_name> <url>
-urlhaus_recent   https://urlhaus-api.abuse.ch/v1/urls/recent/
-urlhaus_host     https://urlhaus-api.abuse.ch/v1/host/
-threatfox_ioc    https://threatfox-api.abuse.ch/api/v1/

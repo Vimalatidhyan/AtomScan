@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# ReconX - Phase 8: Compliance Framework Mapping
+# Technieum - Phase 8: Compliance Framework Mapping
 # Maps discovered findings to PCI-DSS, HIPAA, GDPR, SOC2, NIST CSF controls
 ################################################################################
 
@@ -24,7 +24,7 @@ source "$SCRIPT_DIR/../lib/common.sh"
 
 mkdir -p "$PHASE_DIR"/{pci_dss,hipaa,gdpr,soc2,nist_csf,reports}
 
-PYTHON="${RECONX_PYTHON:-python3}"
+PYTHON="${TECHNIEUM_PYTHON:-python3}"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 log_info "=== Phase 8: Compliance Mapping for $TARGET ==="

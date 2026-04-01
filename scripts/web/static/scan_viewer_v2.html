@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assessments | Technieum Enterprise</title>
+  <link rel="stylesheet" href="/assets/css/style.css?v=4.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+            <defs>
+              <linearGradient id="tBarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#FFD84D"/>
+                <stop offset="50%" style="stop-color:#FF8C00"/>
+                <stop offset="100%" style="stop-color:#FF2D00"/>
+              </linearGradient>
+              <linearGradient id="tStemGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#FF8C00"/>
+                <stop offset="100%" style="stop-color:#FFD84D"/>
+              </linearGradient>
+            </defs>
+            <rect x="8" y="16" width="104" height="24" rx="12" fill="url(#tBarGrad)"/>
+            <rect x="42" y="28" width="24" height="76" rx="12" fill="url(#tStemGrad)"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand">
+          <span class="brand-name">TECHNIEUM</span>
+          <small>Enterprise ASM</small>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Main</div>
+          <a href="/" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            Dashboard
+          </a>
+          <a href="/attack-surface" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+            Attack Surface
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Security</div>
+          <a href="/assessments" class="sidebar-item active">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
+            Assessments
+          </a>
+          <a href="/vulnerabilities" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+            Vulnerabilities
+          </a>
+          <a href="/threat-intel" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="9"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="1" y1="12" x2="3" y2="12"/></svg></span>
+            Threat Intel
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Discovery</div>
+          <a href="/subdomain-finder" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></span>
+            Subdomain Finder
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Analysis</div>
+          <a href="/graph" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><line x1="8.6" y1="7.4" x2="15.4" y2="16.6"/><line x1="15.4" y1="7.4" x2="8.6" y2="16.6"/></svg></span>
+            Attack Graph
+          </a>
+          <a href="/reports" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+            Reports
+          </a>
+          <a href="/compliance" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+            Compliance
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">System</div>
+          <a href="/alerts" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+            Alerts
+          </a>
+          <a href="/settings" class="sidebar-item">
+            <span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+            Settings
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-avatar">AD</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">Admin</div>
+            <div class="sidebar-user-role">Security Analyst</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="topbar-title">Assessments</h1>
+        <span class="topbar-breadcrumb">Security &rsaquo; Assessments</span>
+        <div class="topbar-spacer"></div>
+        <button class="btn btn-primary" id="newAssessmentBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Assessment
+        </button>
+        <!-- Notification Bell -->
+        <div class="notif-panel-wrap" style="margin-left:.5rem;">
+          <button class="topbar-icon-btn" id="notifBell" title="Notifications" style="position:relative;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-badge" style="display:none;">0</span>
+          </button>
+          <div id="notifPanel"></div>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- Tabs -->
+        <div class="card" style="margin-bottom:0; border-bottom:none; border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+          <div class="tabs" id="scanTabs">
+            <button class="tab active" data-filter="all">All <span class="tab-count" id="tabAll">0</span></button>
+            <button class="tab" data-filter="running">Running <span class="tab-count" id="tabRunning">0</span></button>
+            <button class="tab" data-filter="completed">Completed <span class="tab-count" id="tabCompleted">0</span></button>
+            <button class="tab" data-filter="failed">Failed <span class="tab-count" id="tabFailed">0</span></button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card" style="border-radius: 0 0 var(--radius-lg) var(--radius-lg); border-top:none;">
+          <div class="filter-bar">
+            <div class="search-box">
+              <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+              <input type="text" id="searchInput" placeholder="Search by target..." class="form-control">
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Target</th>
+                  <th>Phases</th>
+                  <th>Status</th>
+                  <th>Started</th>
+                  <th>Progress</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="assessmentTable">
+                <tr><td colspan="7" class="text-center"><div class="spinner mt-4 mb-4"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination">
+            <div class="pagination-info" id="paginationInfo">Showing 0 assessments</div>
+            <div class="pagination-controls" id="paginationControls"></div>
+          </div>
+        </div>
+
+        <!-- Selected Scan Detail -->
+        <div class="card hidden" id="scanDetailCard">
+          <div class="card-header">
+            <h3 class="card-title" id="detailTitle">Scan Details</h3>
+            <div class="card-actions" style="gap:.5rem;">
+              <div id="detailActions"></div>
+              <button class="btn btn-ghost btn-sm" id="closeScanDetail">&times; Close</button>
+            </div>
+          </div>
+          <div class="card-body">
+
+            <!-- Worker Job Status -->
+            <div id="jobStatusPanel" style="margin-bottom:1rem;padding:.5rem .75rem;border-radius:6px;background:var(--bg-body);border:1px solid var(--border);min-height:2rem;"></div>
+
+            <!-- Phase Progress -->
+            <div class="phase-steps" id="phaseSteps"></div>
+            <div class="progress-bar mt-4" style="height:8px;">
+              <div class="progress-fill" id="detailProgress" style="width:0%;"></div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-grid mt-6" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));">
+              <div class="stat-card"><div class="stat-label">Subdomains</div><div class="stat-value" id="detailSubs">0</div></div>
+              <div class="stat-card"><div class="stat-label">Live Hosts</div><div class="stat-value" id="detailLiveHosts">0</div></div>
+              <div class="stat-card"><div class="stat-label">Open Ports</div><div class="stat-value" id="detailPorts">0</div></div>
+              <div class="stat-card"><div class="stat-label">Vulnerabilities</div><div class="stat-value" id="detailVulns">0</div></div>
+              <div class="stat-card"><div class="stat-label">Critical</div><div class="stat-value" id="detailCritical" style="color:var(--danger,#DC2626);">0</div></div>
+              <div class="stat-card"><div class="stat-label">Cloud Assets</div><div class="stat-value" id="detailCloudAssets">0</div></div>
+            </div>
+
+            <!-- ─── Live Hosts Panel ─── -->
+            <div class="tm-panel mt-6" id="liveHostsPanel">
+              <div class="tm-panel-header" onclick="tmTogglePanel('liveHostsPanel')">
+                <span class="tm-panel-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                </span>
+                <span class="tm-panel-title">Live Hosts</span>
+                <span class="tm-badge" id="liveHostsBadge">0</span>
+                <span class="tm-panel-spacer"></span>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('liveHosts','txt')" title="Export TXT">TXT</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('liveHosts','json')" title="Export JSON">JSON</button>
+                <span class="tm-chevron" id="liveHostsPanelChevron">▾</span>
+              </div>
+              <div class="tm-panel-body" id="liveHostsPanelBody">
+                <div class="tm-empty">Waiting for live host data…</div>
+              </div>
+            </div>
+
+            <!-- ─── ASN / CIDR Panel ─── -->
+            <div class="tm-panel mt-3" id="asnPanel">
+              <div class="tm-panel-header" onclick="tmTogglePanel('asnPanel')">
+                <span class="tm-panel-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </span>
+                <span class="tm-panel-title">ASN &amp; IP Ranges</span>
+                <span class="tm-badge" id="asnCidrBadge">0</span>
+                <span class="tm-panel-spacer"></span>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('asn','txt')" title="Export TXT">TXT</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('asn','json')" title="Export JSON">JSON</button>
+                <span class="tm-chevron" id="asnPanelChevron">▾</span>
+              </div>
+              <div class="tm-panel-body" id="asnPanelBody">
+                <div class="tm-empty">Waiting for ASN data…</div>
+              </div>
+            </div>
+
+            <!-- ─── Domain Intelligence Panel (WHOIS Data) ─── -->
+            <div class="tm-panel mt-3" id="whoisPanel">
+              <div class="tm-panel-header" onclick="tmTogglePanel('whoisPanel')">
+                <span class="tm-panel-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                </span>
+                <span class="tm-panel-title">Domain Intelligence</span>
+                <span class="tm-badge" id="whoisBadge" style="display:none;">0</span>
+                <span class="tm-panel-spacer"></span>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('whois','json')" title="Export JSON">JSON</button>
+                <span class="tm-chevron" id="whoisPanelChevron">▾</span>
+              </div>
+              <div class="tm-panel-body" id="whoisPanelBody">
+                <div class="tm-empty">Waiting for WHOIS data…</div>
+              </div>
+            </div>
+
+            <!-- ─── DNS Resolution / IP Mapping Panel ─── -->
+            <div class="tm-panel mt-3" id="dnsPanel">
+              <div class="tm-panel-header" onclick="tmTogglePanel('dnsPanel')">
+                <span class="tm-panel-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 15a3 3 0 0 0 6 0"/></svg>
+                </span>
+                <span class="tm-panel-title">DNS Resolution</span>
+                <span class="tm-badge" id="dnsBadge">0</span>
+                <span class="tm-panel-spacer"></span>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('dns','csv')" title="Export CSV">CSV</button>
+                <span class="tm-chevron" id="dnsPanelChevron">▾</span>
+              </div>
+              <div class="tm-panel-body" id="dnsPanelBody" style="padding:0;overflow-x:auto;">
+                <div class="tm-empty" style="padding:.75rem 1rem;">Waiting for DNS resolution data…</div>
+              </div>
+            </div>
+
+            <!-- ─── Cloud Exposure Panel ─── -->
+            <div class="tm-panel mt-3" id="cloudPanel">
+              <div class="tm-panel-header" onclick="tmTogglePanel('cloudPanel')">
+                <span class="tm-panel-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                </span>
+                <span class="tm-panel-title">Cloud Exposure</span>
+                <span class="tm-badge" id="cloudBadge">0</span>
+                <span class="tm-panel-spacer"></span>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('cloud','json')" title="Export JSON">JSON</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('cloud','csv')" title="Export CSV">CSV</button>
+                <span class="tm-chevron" id="cloudPanelChevron">▾</span>
+              </div>
+              <div class="tm-panel-body" id="cloudPanelBody">
+                <div class="tm-empty">Waiting for cloud asset data…</div>
+              </div>
+            </div>
+
+            <!-- ─── Certificate Transparency Panel ─── -->
+            <div class="tm-panel mt-3" id="ctPanel">
+              <div class="tm-panel-header" onclick="tmTogglePanel('ctPanel')">
+                <span class="tm-panel-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </span>
+                <span class="tm-panel-title">Certificate Transparency</span>
+                <span class="tm-badge" id="ctBadge">0</span>
+                <span class="tm-panel-spacer"></span>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('ct','json')" title="Export JSON">JSON</button>
+                <span class="tm-chevron" id="ctPanelChevron">▾</span>
+              </div>
+              <div class="tm-panel-body" id="ctPanelBody">
+                <div class="tm-empty">Waiting for CT data…</div>
+              </div>
+            </div>
+
+            <!-- ─── Certificate Transparency Details Modal (Trigger) ─── -->
+
+            <!-- ─── Discovered Assets Table ─── -->
+            <div class="tm-panel mt-3" id="assetsPanel">
+              <div class="tm-panel-header" onclick="tmTogglePanel('assetsPanel')">
+                <span class="tm-panel-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                </span>
+                <span class="tm-panel-title">Scan Details</span>
+                <span class="tm-badge" id="assetsBadge">0</span>
+                <span class="tm-panel-spacer"></span>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('assets','csv')" title="Export CSV">CSV</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('assets','json')" title="Export JSON">JSON</button>
+                <span class="tm-chevron" id="assetsPanelChevron">▾</span>
+              </div>
+              <div class="tm-panel-body" id="assetsPanelBody" style="padding:0;overflow-x:auto;">
+                <div class="tm-empty" style="padding:.75rem 1rem;">Waiting for host detail data…</div>
+              </div>
+            </div>
+
+            <!-- ─── Live Scan Logs ─── -->
+            <div class="tm-panel mt-3" id="logPanel">
+              <div class="tm-panel-header" onclick="tmTogglePanel('logPanel')">
+                <span class="tm-panel-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                </span>
+                <span class="tm-panel-title">Live Scan Logs</span>
+                <span class="tm-panel-spacer"></span>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxExport('logs','txt')" title="Export Logs">Export</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();rxClearLogs()" title="Clear log">Clear</button>
+                <span class="tm-chevron" id="logPanelChevron">▾</span>
+              </div>
+              <div class="tm-panel-body" id="logPanelBody" style="padding:0;">
+                <div class="log-stream" id="logStream">
+                  <div class="text-center text-muted" style="padding:2rem;">Waiting for log data…</div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /.card-body -->
+        </div><!-- /#scanDetailCard -->
+
+        <style>
+          /* ── Technieum detail panels ── */
+          .tm-panel{border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.04);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+          .tm-panel-header{display:flex;align-items:center;gap:.5rem;padding:.65rem 1rem;cursor:pointer;user-select:none;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);}
+          .tm-panel-header:hover{background:rgba(255,140,0,.06);}
+          .tm-panel-icon{color:var(--primary,#FF8C00);flex-shrink:0;}
+          .tm-panel-title{font-size:.875rem;font-weight:600;color:var(--text,rgba(255,255,255,0.87));}
+          .tm-panel-spacer{flex:1;}
+          .tm-chevron{color:var(--text-secondary,rgba(255,255,255,0.60));font-size:.75rem;transition:transform .2s;margin-left:.25rem;}
+          .tm-panel.collapsed .tm-chevron{transform:rotate(-90deg);}
+          .tm-panel.collapsed .tm-panel-body{display:none;}
+          .tm-panel-body{padding:.75rem 1rem;}
+          .tm-badge{background:var(--brand-gradient-h,linear-gradient(90deg,#FFD84D,#FF8C00,#FF2D00));color:#fff;border-radius:999px;font-size:.65rem;font-weight:700;padding:1px 7px;line-height:1.6;flex-shrink:0;}
+          .tm-empty{color:var(--text-muted,rgba(255,255,255,0.40));font-size:.8125rem;font-style:italic;}
+          .tm-hosts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.375rem;}
+          .tm-host-item{font-family:var(--font-mono,"JetBrains Mono"),monospace;font-size:.75rem;padding:.3rem .6rem;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:var(--text,rgba(255,255,255,0.87));word-break:break-all;}
+          .tm-cidr-list{display:flex;flex-wrap:wrap;gap:.375rem;}
+          .tm-cidr-tag{font-family:var(--font-mono,"JetBrains Mono"),monospace;font-size:.7rem;padding:.2rem .6rem;border-radius:4px;background:rgba(255,140,0,.10);border:1px solid rgba(255,140,0,.25);color:var(--primary,#FF8C00);}
+          .tm-cloud-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;}
+          .tm-cloud-vendor{border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:.75rem;}
+          .tm-cloud-vendor-name{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;}
+          .tm-cloud-vendor-name.aws{color:#FF9900;}
+          .tm-cloud-vendor-name.azure{color:#00ADEF;}
+          .tm-cloud-vendor-name.gcp{color:#4285F4;}
+          .tm-cloud-item{font-family:var(--font-mono,"JetBrains Mono"),monospace;font-size:.72rem;color:var(--text-secondary,rgba(255,255,255,0.60));padding:.15rem 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+          .tm-cloud-item:last-child{border-bottom:none;}
+          .tm-ct-stats{display:flex;gap:1.5rem;flex-wrap:wrap;}
+          .tm-ct-stat{display:flex;flex-direction:column;align-items:center;gap:.25rem;}
+          .tm-ct-stat-val{font-size:1.5rem;font-weight:700;color:var(--primary,#FF8C00);}
+          .tm-ct-stat-lbl{font-size:.7rem;color:var(--text-muted,rgba(255,255,255,0.40));text-transform:uppercase;letter-spacing:.05em;}
+          /* Discovered Assets table */
+          .tm-assets-table{width:100%;border-collapse:collapse;font-size:.75rem;}
+          .tm-assets-table th{text-align:left;padding:.5rem .75rem;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary,rgba(255,255,255,0.60));background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.08);}
+          .tm-assets-table td{padding:.4rem .75rem;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--text,rgba(255,255,255,0.87));font-family:var(--font-mono,"JetBrains Mono"),monospace;white-space:nowrap;}
+          .tm-assets-table tr:hover td{background:rgba(255,140,0,.04);}
+          .tm-status-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:.65rem;font-weight:600;}
+          .tm-status-badge.s2xx{background:rgba(34,197,94,.15);color:#22c55e;}
+          .tm-status-badge.s3xx{background:rgba(59,130,246,.15);color:#3b82f6;}
+          .tm-status-badge.s4xx{background:rgba(245,158,11,.15);color:#f59e0b;}
+          .tm-status-badge.s5xx{background:rgba(239,68,68,.15);color:#ef4444;}
+          /* DNS table */
+          .tm-dns-table{width:100%;border-collapse:collapse;font-size:.75rem;}
+          .tm-dns-table th{text-align:left;padding:.5rem .75rem;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary,rgba(255,255,255,0.60));background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.08);}
+          .tm-dns-table td{padding:.4rem .75rem;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--text,rgba(255,255,255,0.87));font-family:var(--font-mono,"JetBrains Mono"),monospace;word-break:break-word;}
+          .tm-dns-table tr:hover td{background:rgba(255,140,0,.04);}
+          /* CT Certificate details */
+          .tm-cert-record{border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:1rem;margin-bottom:.75rem;background:rgba(255,255,255,0.03);}
+          .tm-cert-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;}
+          .tm-cert-domain{font-weight:600;color:var(--primary,#FF8C00);font-family:var(--font-mono,"JetBrains Mono"),monospace;font-size:.8rem;}
+          .tm-cert-source{font-size:.65rem;padding:1px 6px;border-radius:3px;background:rgba(255,140,0,.15);color:var(--primary,#FF8C00);text-transform:uppercase;white-space:nowrap;}
+          .tm-cert-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-top:.5rem;font-size:.72rem;}
+          .tm-cert-detail{padding:.5rem;background:rgba(255,255,255,0.02);border-radius:4px;}
+          .tm-cert-label{text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary,rgba(255,255,255,0.60));font-size:.65rem;font-weight:600;}
+          .tm-cert-value{color:var(--text,rgba(255,255,255,0.87));margin-top:.25rem;word-break:break-all;font-family:var(--font-mono,"JetBrains Mono"),monospace;}
+          .tm-cert-sans{list-style:none;padding:0;margin:.5rem 0 0 0;}
+          .tm-cert-sans li{font-size:.7rem;padding:.2rem 0;color:var(--text-secondary,rgba(255,255,255,0.60));font-family:var(--font-mono,"JetBrains Mono"),monospace;}
+        </style>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- New Assessment Modal -->
+  <div class="modal-overlay" id="newAssessmentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>New Assessment</h2>
+        <button class="modal-close" id="closeNewAssessment">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Target Domain</label>
+          <input type="text" id="modalTarget" placeholder="example.com" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Scan Phases</label>
+          <input type="text" id="modalPhases" value="1,2,3,4" class="form-control">
+          <small class="text-muted">1=Discovery, 2=Intel, 3=Content, 4=Vulnerability</small>
+        </div>
+        <!-- Test Mode removed: all scans run real tools -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelNewAssessment">Cancel</button>
+        <button class="btn btn-primary" id="submitNewAssessment">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Start Assessment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Certificate Transparency Details Modal ─── -->
+  <div class="modal-overlay" id="ctDetailsModal">
+    <div class="modal" style="max-width:90%;max-height:90vh;overflow:auto;">
+      <div class="modal-header">
+        <h2>Certificate Transparency Records</h2>
+        <button class="modal-close" id="closeCTDetails">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem;">
+        <div id="ctCertsList" style="overflow-y:auto;">
+          <div class="text-muted">Loading certificates...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <!-- ensureApiKey from common.js / scan_monitor_v2.js -->
+  <script src="/assets/js/common.js?v=4.0"></script>
+  <script src="/assets/js/output-ui-binder.js?v=1.0"></script>
+  <script src="/assets/js/scan_monitor_v2.js?v=2.1"></script>
+</body>
+</html>

@@ -23,7 +23,7 @@ find . -name "*.py" \
 
         # Skip __init__, test files, conftest, top-level scripts
         case "$mod_base" in
-            __init__|conftest|test_*|*_test|reconx|scheduler|query|state_manager|event_emitter) continue ;;
+            __init__|conftest|test_*|*_test|technieum|scheduler|query|state_manager|event_emitter) continue ;;
         esac
 
         # Derive dot-notation module path

@@ -1,6 +1,6 @@
 ---
 name: prod-readiness-audit
-description: Run the strict production readiness audit for ReconX. Use when validating the app before a release.
+description: Run the strict production readiness audit for Technieum. Use when validating the app before a release.
 disable-model-invocation: true
 allowed-tools: Bash(python *)
 context: fork

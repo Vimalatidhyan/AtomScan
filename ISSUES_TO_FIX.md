@@ -1,4 +1,4 @@
-# Issues to fix — ReconX
+# Issues to fix — Technieum
 
 Consolidated list of what must be fixed before production. Use this as the single checklist.
 
@@ -11,7 +11,7 @@ Consolidated list of what must be fixed before production. Use this as the singl
 - **UI ensureApiKey** — All v2 HTML pages now contain the string `ensureApiKey` (comment or inline script); no page relies on a literal `demo_key` (removed from all JS/HTML) so prod test passes.
 - **Offline / visibility** — `index.html` includes “API offline / Unable to reach API”; `common.js` provides `visibilityPoll` and `showErrorState`; at least one HTML has user-visible offline messaging.
 - **Legacy v1 JS** — Only v2 and `common.js` exist; no `dashboard.js`, `scan_monitor.js`, `findings.js`, `graph_viz.js` in repo.
-- **Worker** — Embedded worker starts with API when `RECONX_WORKER=true` (default); `start.sh` exists and is executable; assets/findings endpoints return 200 (empty when no data).
+- **Worker** — Embedded worker starts with API when `TECHNIEUM_WORKER=true` (default); `start.sh` exists and is executable; assets/findings endpoints return 200 (empty when no data).
 
 ---
 

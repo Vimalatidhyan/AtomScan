@@ -1,4 +1,4 @@
-# ReconX Security Audit - Response & Fixes
+# Technieum Security Audit - Response & Fixes
 
 ## Executive Summary
 
@@ -256,7 +256,7 @@ done
 
 **Effort**: 2-3 hours per module
 
-#### 2. Update reconx.py Orchestrator
+#### 2. Update technieum.py Orchestrator
 
 **Required Changes**:
 
@@ -340,7 +340,7 @@ def parse_module_output(self, target: str, phase: int, stdout: str):
 ```python
 import yaml
 
-class ReconX:
+class Technieum:
     def __init__(self, ...):
         self.config = self.load_config('config.yaml')
 
@@ -351,16 +351,16 @@ class ReconX:
     def run_module(self, module_script: str, ...):
         # Pass config via environment
         env = os.environ.copy()
-        env['RECONX_THREADS'] = str(self.config['general']['threads'])
-        env['RECONX_TIMEOUT'] = str(self.config['general']['timeout'])
+        env['TECHNIEUM_THREADS'] = str(self.config['general']['threads'])
+        env['TECHNIEUM_TIMEOUT'] = str(self.config['general']['timeout'])
 
         subprocess.run([module_script, ...], env=env)
 ```
 
 **Bash Side**:
 ```bash
-THREADS="${RECONX_THREADS:-5}"
-TIMEOUT="${RECONX_TIMEOUT:-3600}"
+THREADS="${TECHNIEUM_THREADS:-5}"
+TIMEOUT="${TECHNIEUM_TIMEOUT:-3600}"
 ```
 
 **Effort**: 3-4 hours
@@ -373,12 +373,12 @@ import logging
 import json
 
 logging.basicConfig(
-    filename='logs/reconx.log',
+    filename='logs/technieum.log',
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-logger = logging.getLogger('reconx')
+logger = logging.getLogger('technieum')
 
 def log_tool_execution(self, tool_run: dict):
     """Log tool execution as JSON"""
@@ -441,7 +441,7 @@ bash 01_discovery.sh test.com /tmp/test_output
 
 ```bash
 # Test full pipeline
-python3 reconx.py -t test.com --best-effort
+python3 technieum.py -t test.com --best-effort
 
 # Verify:
 # 1. All phases run even if some fail
@@ -455,7 +455,7 @@ python3 reconx.py -t test.com --best-effort
 ```bash
 # Test with missing tools
 rm -f $(which subfinder)
-python3 reconx.py -t test.com
+python3 technieum.py -t test.com
 
 # Should:
 # - Skip subfinder
@@ -471,14 +471,14 @@ python3 reconx.py -t test.com
 
 #### Before Fix (Fragile):
 ```bash
-python3 reconx.py -t example.com
+python3 technieum.py -t example.com
 # If any tool fails → entire scan stops
 # Result: Incomplete data, wasted time
 ```
 
 #### After Fix (Robust):
 ```bash
-python3 reconx.py -t example.com --best-effort  # Default
+python3 technieum.py -t example.com --best-effort  # Default
 # All tools run
 # Failed tools logged but don't stop scan
 # Result: Maximum data collection
@@ -490,7 +490,7 @@ python3 reconx.py -t example.com --best-effort  # Default
 python3 query.py -t example.com --tool-status
 
 # Resume failed tools only
-python3 reconx.py -t example.com --retry-failed
+python3 technieum.py -t example.com --retry-failed
 ```
 
 ---
@@ -548,7 +548,7 @@ Result: Comprehensive report in 3-4 hours
 6. `modules/02_intel.sh` - Needs same fixes as 01
 7. `modules/03_content.sh` - Needs same fixes as 01
 8. `modules/04_vuln.sh` - Needs same fixes as 01
-9. `reconx.py` - Needs best-effort mode
+9. `technieum.py` - Needs best-effort mode
 10. Config integration - Needs YAML parsing
 
 ---
@@ -561,13 +561,13 @@ All original files backed up in `backups/` directory:
 # Restore originals
 cd backups/YYYYMMDD_HHMMSS/
 cp modules/*.sh ../../modules/
-cp reconx.py ../../
+cp technieum.py ../../
 cp db/database.py ../../db/
 ```
 
 Or use Git:
 ```bash
-git checkout HEAD -- modules/ db/ reconx.py
+git checkout HEAD -- modules/ db/ technieum.py
 ```
 
 ---
@@ -609,7 +609,7 @@ git checkout HEAD -- modules/ db/ reconx.py
 - **Maintainability**: Clear error messages, easy debugging
 
 ### Assessment:
-The architecture is **fundamentally sound**. The issues were implementation-level (bash error handling, Python success gating), not design-level. With these fixes, ReconX will be a **production-grade, enterprise-ready** ASM framework.
+The architecture is **fundamentally sound**. The issues were implementation-level (bash error handling, Python success gating), not design-level. With these fixes, Technieum will be a **production-grade, enterprise-ready** ASM framework.
 
 ---
 

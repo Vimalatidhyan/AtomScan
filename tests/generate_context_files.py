@@ -46,7 +46,7 @@ def build_product_docs() -> str:
         BASE / "docs" / "START_HERE.md",
         BASE / "docs" / "README.md",
         BASE / "docs" / "ARCHITECTURE_DECISIONS.md",
-        BASE / "docs" / "RECONX_DOCUMENTATION.md",
+        BASE / "docs" / "TECHNIEUM_DOCUMENTATION.md",
         BASE / "docs" / "DOCUMENTATION.md",
         BASE / "docs" / "QUICKSTART.md",
         BASE / "docs" / "FAQ.md",

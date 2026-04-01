@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Admin CLI for ReconX Enterprise."""
+"""Admin CLI for Technieum Enterprise."""
 import argparse, sys, json, secrets, hashlib, logging
 from datetime import datetime
 
@@ -32,7 +32,7 @@ def cmd_config_show(args):
         print("[!] config.yaml not found")
 
 def main():
-    parser = argparse.ArgumentParser(description="ReconX admin CLI")
+    parser = argparse.ArgumentParser(description="Technieum admin CLI")
     sub = parser.add_subparsers(dest="command")
 
     tokens = sub.add_parser("tokens")

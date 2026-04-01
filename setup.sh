@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# ReconX — Quick Environment Verifier
+# Technieum — Quick Environment Verifier
 # Run after install.sh to confirm the environment is ready.
 # Usage: bash setup.sh
 # ==============================================================================
@@ -30,8 +30,8 @@ EOF
 echo -e "${NC}"
 
 # ── Ensure we are in the correct directory ────────────────────────────────────
-if [[ ! -f "reconx.py" ]]; then
-    err "Please run this script from the ReconX project directory."
+if [[ ! -f "technieum.py" ]]; then
+    err "Please run this script from the Technieum project directory."
     exit 1
 fi
 
@@ -68,7 +68,7 @@ PY_MINOR=$("$PYTHON" -c "import sys; print(sys.version_info.minor)")
 if [[ "$PY_MAJOR" -ge 3 && "$PY_MINOR" -ge 11 ]]; then
     ok "Python $PY_VERSION (OK — requires 3.11+)"
 else
-    err "Python $PY_VERSION is too old — ReconX requires Python 3.11+"
+    err "Python $PY_VERSION is too old — Technieum requires Python 3.11+"
     ((ISSUES++))
 fi
 
@@ -222,7 +222,7 @@ echo ""
 echo "Next steps:"
 echo "  1. Activate venv:          source .venv/bin/activate"
 echo "  2. Edit API keys:          nano .env"
-echo "  3. Run a scan:             python3 reconx.py -t example.com"
+echo "  3. Run a scan:             python3 technieum.py -t example.com"
 echo "  4. Start the API server:   python3 -m uvicorn backend.api.server:app --port 8000"
 echo "  5. Open the dashboard:     http://localhost:8000/"
 echo ""

@@ -8,7 +8,7 @@
 set -euo pipefail
 
 BASE_URL="${1:-http://127.0.0.1:8000}"
-API_KEY="${2:-${RECONX_API_KEY:-}}"
+API_KEY="${2:-${TECHNIEUM_API_KEY:-}}"
 
 N=20
 THRESHOLD=200
@@ -36,7 +36,7 @@ measure_p95() {
     if [ "$p95" -le "$THRESHOLD" ]; then pass=$((pass+1)); else fail=$((fail+1)); fi
 }
 
-echo "=== ReconX API latency smoke test ==="
+echo "=== Technieum API latency smoke test ==="
 echo "  base=$BASE_URL  n=$N  threshold=${THRESHOLD}ms"
 echo ""
 
@@ -47,7 +47,7 @@ if [ -n "$API_KEY" ]; then
     measure_p95 "$BASE_URL/api/v1/findings/" "/api/v1/findings  " "$API_KEY"
     measure_p95 "$BASE_URL/api/v1/metrics/" "/api/v1/metrics    " "$API_KEY"
 else
-    echo "  (authenticated endpoints skipped — set RECONX_API_KEY to include)"
+    echo "  (authenticated endpoints skipped — set TECHNIEUM_API_KEY to include)"
 fi
 
 echo ""

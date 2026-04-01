@@ -1,6 +1,0 @@
-Organization:   Amazon Technologies Inc. (AT-88-Z)
-OrgName:        Amazon Technologies Inc.
-Organization:   Amazon Technologies Inc. (AT-88-Z)
-OrgName:        Amazon Technologies Inc.
-Organization:   Amazon Data Services UAE (ADSU-1)
-OrgName:        Amazon Data Services UAE

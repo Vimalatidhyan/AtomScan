@@ -1,6 +1,6 @@
 """Legacy DB migration tests.
 
-Proves that a reconx.db created by the old db/database.py schema (legacy CLI)
+Proves that a technieum.db created by the old db/database.py schema (legacy CLI)
 can be upgraded by migration 006 so the ORM-backed API works correctly.
 """
 import hashlib

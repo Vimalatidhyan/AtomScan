@@ -11,7 +11,7 @@ from typing import Optional
 from datetime import datetime, timezone
 
 from app.db.database import get_db
-from app.db.models import ScanRun, ScanProgress, ScanJob, ScanEvent, DNSRecord, ISPLocation
+from app.db.models import ScanRun, ScanProgress, ScanJob, ScanEvent, DNSRecord, ISPLocation, PortScan, Subdomain
 from app.api.models.scan import ScanCreateRequest, ScanUpdateRequest, ScanResponse, ScanListResponse
 from app.api.models.common import StatusResponse
 
@@ -1074,7 +1074,30 @@ def get_scan_details(scan_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Scan not found")
 
     assets = []
+    port_scans = []
     
+    # DB-first port data so UI can always show open ports even when file parsing is sparse.
+    try:
+        rows = (
+            db.query(PortScan, Subdomain.subdomain)
+            .join(Subdomain, PortScan.subdomain_id == Subdomain.id)
+            .filter(Subdomain.scan_run_id == scan_id, PortScan.state.in_(["open", "open|filtered"]))
+            .all()
+        )
+        for p, sub in rows:
+            port_scans.append({
+                "host": sub,
+                "ip": None,
+                "port": p.port,
+                "protocol": p.protocol,
+                "state": p.state,
+                "service": p.service,
+                "version": p.version,
+                "source": "db",
+            })
+    except Exception:
+        pass
+
     try:
         repo_root = Path(__file__).resolve().parents[3]
         output_base = Path(os.environ.get("TECHNIEUM_OUTPUT_DIR", str(repo_root / "output")))
@@ -1118,6 +1141,8 @@ def get_scan_details(scan_id: int, db: Session = Depends(get_db)):
         "scan_id": scan_id,
         "target": scan.domain,
         "assets": assets,
+        "port_scans": port_scans,
+        "port_count": len(port_scans),
         "count": len(assets),
     }
 

@@ -3,8 +3,12 @@ FROM kalilinux/kali-rolling
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PATH=/root/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     TECHNIEUM_OUTPUT_DIR=/opt/technieum/output \
     TECHNIEUM_DB_PATH=/opt/technieum/technieum.db \
+    TECHNIEUM_NMAP_HOST_TIMEOUT=240 \
+    TECHNIEUM_NMAP_MAX_HOSTS=80 \
+    TECHNIEUM_NMAP_FULL=0 \
     LOG_LEVEL=INFO
 
 WORKDIR /opt/technieum

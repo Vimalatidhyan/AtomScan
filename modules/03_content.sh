@@ -113,10 +113,16 @@ HAKRAWLER_AVAILABLE=0
 KATANA_AVAILABLE=0
 
 # 1. GAU (GetAllUrls)
-if command -v gau &> /dev/null; then
+GAU_BIN=""
+if GAU_BIN="$(resolve_tool_path gau)"; then
     log_info "Launching GAU (GetAllUrls)..."
     (
-        run_timeout "$GAU_TIMEOUT" bash -c "cat '$URLS_DIR/targets.txt' | gau --threads '$GAU_THREADS' --blacklist png,jpg,gif,jpeg,svg,css,woff,woff2,ttf,eot > '$URLS_DIR/gau.txt'" \
+        _gau_help=$("$GAU_BIN" --help 2>&1 || true)
+        _gau_flags=""
+        echo "$_gau_help" | grep -q -- '--threads' && _gau_flags="$_gau_flags --threads $GAU_THREADS"
+        echo "$_gau_help" | grep -q -- '--blacklist' && _gau_flags="$_gau_flags --blacklist png,jpg,gif,jpeg,svg,css,woff,woff2,ttf,eot"
+        # shellcheck disable=SC2086
+        run_timeout "$GAU_TIMEOUT" bash -c "cat '$URLS_DIR/targets.txt' | '$GAU_BIN' $_gau_flags > '$URLS_DIR/gau.txt'" \
             2>/dev/null || log_warn "GAU failed or timed out"
     ) &
     pids+=($!)
@@ -223,16 +229,33 @@ if GOSPIDER_BIN="$(resolve_tool_path gospider)"; then
         GOSPIDER_STORE="$URLS_DIR/gospider_store"
         mkdir -p "$GOSPIDER_STORE"
 
-        # Prefer list mode in current gospider builds.
-        run_timeout "$GOSPIDER_TIMEOUT" "$GOSPIDER_BIN" \
-            -S "$URLS_DIR/gospider_targets.txt" \
-            -d 3 \
-            -c "$GOSPIDER_CONCURRENCY" \
-            -t "$GOSPIDER_THREADS" \
-            --sitemap \
-            --robots \
-            -o "$GOSPIDER_STORE" \
-            >/dev/null 2>>"$URLS_DIR/gospider.err" || true
+        _gosp_help=$("$GOSPIDER_BIN" -h 2>&1 || true)
+        _gosp_depth=""
+        _gosp_conc=""
+        _gosp_threads=""
+        _gosp_sitemap=""
+        _gosp_robots=""
+        _gosp_output=""
+        echo "$_gosp_help" | grep -q -- '-d\b' && _gosp_depth="-d 3"
+        echo "$_gosp_help" | grep -q -- '-c\b' && _gosp_conc="-c $GOSPIDER_CONCURRENCY"
+        echo "$_gosp_help" | grep -q -- '-t\b' && _gosp_threads="-t $GOSPIDER_THREADS"
+        echo "$_gosp_help" | grep -q -- '--sitemap' && _gosp_sitemap="--sitemap"
+        echo "$_gosp_help" | grep -q -- '--robots' && _gosp_robots="--robots"
+        echo "$_gosp_help" | grep -q -- '-o\b' && _gosp_output="-o '$GOSPIDER_STORE'"
+
+        # Prefer list mode when -S exists, otherwise iterate target-by-target with -s.
+        if echo "$_gosp_help" | grep -q -- '-S\b'; then
+            # shellcheck disable=SC2086
+            run_timeout "$GOSPIDER_TIMEOUT" bash -c "'$GOSPIDER_BIN' -S '$URLS_DIR/gospider_targets.txt' $_gosp_depth $_gosp_conc $_gosp_threads $_gosp_sitemap $_gosp_robots $_gosp_output >/dev/null" \
+                2>>"$URLS_DIR/gospider.err" || true
+        else
+            while IFS= read -r _gurl; do
+                [ -z "$_gurl" ] && continue
+                # shellcheck disable=SC2086
+                run_timeout "$GOSPIDER_TIMEOUT" bash -c "'$GOSPIDER_BIN' -s '$_gurl' $_gosp_depth $_gosp_conc $_gosp_threads $_gosp_sitemap $_gosp_robots $_gosp_output >/dev/null" \
+                    2>>"$URLS_DIR/gospider.err" || true
+            done < "$URLS_DIR/gospider_targets.txt"
+        fi
 
         # Parse outputs written by gospider into its output directory.
         if [ -d "$GOSPIDER_STORE" ]; then

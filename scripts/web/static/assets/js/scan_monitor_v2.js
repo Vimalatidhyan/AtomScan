@@ -318,7 +318,7 @@ function formatToolLine(text) {
 }
 
 // ─── Panel data store ─────────────────────────────────────────────────────────
-const _panelData = { liveHosts: [], asn: {}, cloud: {}, ct: {}, assets: [], dns: [], certificates: [], whois: {}, logs: [] };
+const _panelData = { liveHosts: [], asn: {}, cloud: {}, ct: {}, assets: [], portScans: [], dns: [], certificates: [], whois: {}, logs: [] };
 
 // ─── Panel toggle ─────────────────────────────────────────────────────────────
 function tmTogglePanel(panelId) {
@@ -417,12 +417,14 @@ function renderCtPanel(data) {
 // ─── Discovered Assets (HTTPx Details) Panel ──────────────────────────────────
 function renderAssetsPanel(data) {
   const hosts = data.hosts || [];
+  const ports = data.port_scans || data.ports || _panelData.portScans || [];
   _panelData.assets = hosts;
+  _panelData.portScans = ports;
   const badge = el('assetsBadge');
-  if (badge) badge.textContent = hosts.length;
+  if (badge) badge.textContent = (hosts.length + ports.length);
   const body = el('assetsPanelBody');
   if (!body) return;
-  if (!hosts.length) { body.innerHTML = '<div class="tm-empty" style="padding:.75rem 1rem;">No host detail data available.</div>'; return; }
+  if (!hosts.length && !ports.length) { body.innerHTML = '<div class="tm-empty" style="padding:.75rem 1rem;">No host or port data available.</div>'; return; }
   const statusClass = (code) => {
     const c = parseInt(code, 10);
     if (c >= 500) return 's5xx';
@@ -449,10 +451,32 @@ function renderAssetsPanel(data) {
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="${esc(techStr)}">${esc(techStr)}</td>
     </tr>`;
   }).join('');
-  body.innerHTML = `<table class="tm-assets-table">
+
+  const portRows = ports.slice(0, 300).map(p => `<tr>
+      <td>${esc(p.host || '')}</td>
+      <td>${esc(String(p.ip || ''))}</td>
+      <td>${esc(String(p.port || ''))}</td>
+      <td>${esc(String(p.protocol || 'tcp'))}</td>
+      <td>${esc(String(p.state || 'open'))}</td>
+      <td>${esc(String(p.service || ''))}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">${esc(String(p.version || ''))}</td>
+    </tr>`).join('');
+
+  const hostTable = hosts.length ? `<table class="tm-assets-table">
     <thead><tr><th>Host</th><th>IP</th><th>Port</th><th>Status</th><th>Title</th><th>Server</th><th>Technology</th></tr></thead>
     <tbody>${rows}</tbody>
-  </table>${hosts.length > 300 ? `<div class="tm-empty" style="padding:.5rem 1rem;">Showing 300 of ${hosts.length} hosts</div>` : ''}`;
+  </table>${hosts.length > 300 ? `<div class="tm-empty" style="padding:.5rem 1rem;">Showing 300 of ${hosts.length} hosts</div>` : ''}` : '';
+
+  const portTable = ports.length ? `<div style="margin-top:${hosts.length ? '1rem' : '0'};">
+    <div style="padding:.4rem .75rem;font-size:.72rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-secondary);">Open Ports</div>
+    <table class="tm-assets-table">
+      <thead><tr><th>Host</th><th>IP</th><th>Port</th><th>Proto</th><th>State</th><th>Service</th><th>Version</th></tr></thead>
+      <tbody>${portRows}</tbody>
+    </table>
+    ${ports.length > 300 ? `<div class="tm-empty" style="padding:.5rem 1rem;">Showing 300 of ${ports.length} ports</div>` : ''}
+  </div>` : '';
+
+  body.innerHTML = `${hostTable}${portTable}`;
 }
 
 // ─── DNS Resolution Panel ────────────────────────────────────────────────────
@@ -754,10 +778,16 @@ function renderWHOISPanel(data) {
 async function _loadScanDetails(scanId) {
   try {
     const data = await apiGet(`/scans/${parseInt(scanId, 10)}/scan-details`);
-    if (data && data.assets) {
+    if (data && (data.assets || data.port_scans)) {
       _panelData.scanDetails = data.assets;
+      _panelData.portScans = data.port_scans || [];
       const badge = el('detailsBadge');
       if (badge) badge.textContent = (data.count || 0).toString();
+      // Merge into Scan Details panel even when assessment SSE didn't carry port rows.
+      renderAssetsPanel({
+        hosts: _panelData.assets || [],
+        port_scans: _panelData.portScans || [],
+      });
     }
   } catch (err) {
     console.debug('Scan details not available:', err);
@@ -1110,6 +1140,7 @@ function closeScanDetail() {
   _panelData.cloud = {};
   _panelData.ct   = {};
   _panelData.assets = [];
+  _panelData.portScans = [];
   _panelData.dns = [];
   _panelData.certificates = [];
   _panelData.scanDetails = [];

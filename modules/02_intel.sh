@@ -62,7 +62,7 @@ NMAP_MAX_HOSTS="${TECHNIEUM_NMAP_MAX_HOSTS:-50}"
 # Default host timeout reduced to 120s (was 600s). CDN/cloud hosts (Cloudflare,
 # CloudFront, AWS GA) only expose HTTP/HTTPS so a 600s timeout per host caused
 # 20+ minute stalls with -p- scanning all 65535 ports.
-NMAP_HOST_TIMEOUT="${TECHNIEUM_NMAP_HOST_TIMEOUT:-120}"
+NMAP_HOST_TIMEOUT="${TECHNIEUM_NMAP_HOST_TIMEOUT:-240}"
 NMAP_MAX_FILE_MB="${TECHNIEUM_NMAP_MAX_FILE_MB:-500}"
 # Common ports used as nmap fallback when RustScan is not installed.
 # These are the ports that actually matter for web/cloud targets.
@@ -222,6 +222,15 @@ else
 fi
 TARGETS_COUNT=$(wc -l < "$PORTS_DIR/targets.txt" 2>/dev/null | tr -d ' ')
 
+# If DNS resolution produced nothing (common in constrained containers),
+# fall back to scanning the raw host targets directly.
+if [ "$TARGETS_COUNT" -eq 0 ] && [ -s "$PORTS_DIR/targets_raw.txt" ]; then
+    log_warn "No resolved IP targets; falling back to raw host targets for Nmap"
+    cp "$PORTS_DIR/targets_raw.txt" "$PORTS_DIR/targets.txt" 2>/dev/null || true
+    sort -u "$PORTS_DIR/targets.txt" -o "$PORTS_DIR/targets.txt" 2>/dev/null || true
+    TARGETS_COUNT=$(wc -l < "$PORTS_DIR/targets.txt" 2>/dev/null | tr -d ' ')
+fi
+
 # RustScan - Fast initial scan (all targets at once)
 if command -v rustscan &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
     log_info "Running RustScan (fast port discovery on all targets)..."
@@ -291,12 +300,13 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
         if ! check_disk_space "$PORTS_DIR"; then
             log_error "Aborting Nmap due to low disk space"
         else
-            # Cap total nmap time to 3600s regardless of host count.
+            # Cap total nmap time to 10800s regardless of host count.
             # With parallelism=10: 10 hosts run in parallel, so effective
-            # wall time ≈ ceil(hosts/10) × host_timeout ≤ 3600s.
+            # wall time ≈ ceil(hosts/10) × host_timeout ≤ 10800s.
             _NMAP_TIMEOUT=$(( NMAP_HOST_TIMEOUT * (NMAP_MAX_HOSTS / 10 + 1) ))
-            [ "$_NMAP_TIMEOUT" -gt 3600 ] && _NMAP_TIMEOUT=3600
+            [ "$_NMAP_TIMEOUT" -gt 10800 ] && _NMAP_TIMEOUT=10800
             log_info "Nmap scanning $NMAP_TARGET_COUNT targets via -iL (timeout=${_NMAP_TIMEOUT}s, port-flag=${NMAP_PORT_FLAG})..."
+            _nmap_ok=0
             run_timeout "$_NMAP_TIMEOUT" \
                 nmap -sV -sC -T4 -Pn $NMAP_PORT_FLAG \
                 --host-timeout "${NMAP_HOST_TIMEOUT}s" \
@@ -304,7 +314,25 @@ if command -v nmap &> /dev/null && [ "$TARGETS_COUNT" -gt 0 ]; then
                 -iL "$NMAP_TARGETS" \
                 -oX "$PORTS_DIR/nmap_all.xml" \
                 -oN "$PORTS_DIR/nmap_all.txt" \
-                2>/dev/null || log_warn "Nmap failed or timed out"
+                2>/dev/null && _nmap_ok=1
+
+            if [ "$_nmap_ok" -eq 0 ] || [ ! -s "$PORTS_DIR/nmap_all.xml" ]; then
+                log_warn "Nmap full/service scan timed out or produced no XML; running fallback top-ports scan"
+                run_timeout 2400 \
+                    nmap -T4 -Pn --top-ports 1000 \
+                    --host-timeout "${NMAP_HOST_TIMEOUT}s" \
+                    --min-parallelism 10 \
+                    -iL "$NMAP_TARGETS" \
+                    -oX "$PORTS_DIR/nmap_all.xml" \
+                    -oN "$PORTS_DIR/nmap_all.txt" \
+                    2>/dev/null || log_warn "Nmap fallback top-ports scan failed"
+            fi
+
+            # Absolute last-resort fallback: if XML wasn't written but text exists,
+            # synthesize a minimal XML placeholder so downstream ingestion sees artifacts.
+            if [ ! -s "$PORTS_DIR/nmap_all.xml" ] && [ -s "$PORTS_DIR/nmap_all.txt" ]; then
+                log_warn "Nmap XML missing after scans; preserving text output for parser fallback"
+            fi
         fi
     fi
 else

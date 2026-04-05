@@ -663,6 +663,13 @@ def _ingest_results(scan_run_id: int, domain: str, output_dir: Path,
                         f"[ingestion] Parsing nmap XML: {nmap_xml}")
             ports_inserted = _parse_nmap_xml(nmap_xml, scan_run_id, sub_map, domain, db)
             db.commit()
+            # Some interrupted nmap runs leave partial XML that parses but yields 0 ports.
+            # Fall back to text parser when available so open ports still reach the UI.
+            if ports_inserted == 0 and nmap_txt is not None:
+                _emit_event(db, scan_run_id, "log", "warning",
+                            "[ingestion] Nmap XML had no open ports; retrying with text output")
+                ports_inserted = _parse_nmap_text(nmap_txt, scan_run_id, sub_map, domain, db)
+                db.commit()
         except Exception as exc:
             db.rollback()
             _emit_event(db, scan_run_id, "log", "warning",

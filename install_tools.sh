@@ -143,6 +143,10 @@ install_go_tool() {
     if go install -v "$pkg" 2>/dev/null; then
         # FIX: Re-check with full path in case PATH not yet updated
         if command -v "$cmd" &>/dev/null || [[ -f "$GOBIN/$cmd" ]]; then
+            # Ensure binaries are globally resolvable in non-login shells (Docker/runtime).
+            if [[ -f "$GOBIN/$cmd" ]] && [[ ! -x "/usr/local/bin/$cmd" ]]; then
+                ln -sf "$GOBIN/$cmd" "/usr/local/bin/$cmd" 2>/dev/null || true
+            fi
             ok "$cmd installed"
         else
             warn "$cmd binary not found after install (check GOBIN=$GOBIN)"
